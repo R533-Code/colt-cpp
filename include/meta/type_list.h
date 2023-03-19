@@ -59,7 +59,7 @@ namespace clt::meta
   /// @tparam ...Ts The types to hold
   struct type_list
   {
-    template<uint64_t index>
+    template<uint64_t index> requires (index < sizeof...(Ts))
     /// @brief Returns the type at index 'index'
     using get = typename details::get_n<index, Ts...>::type;
 
