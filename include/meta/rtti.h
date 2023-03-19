@@ -21,9 +21,9 @@ namespace clt::meta
   /// @tparam For The type to which to add const if necessary
   using match_const_t = typename match_const<Of, For>::type;
 
-	template<typename T>
+  template<typename T>
   /// @brief Check if 'T' implements the necessary helpers to be used by 'dyn_cast'
-	concept DynCastable =
+  concept DynCastable =
     std::is_same_v<
     std::decay_t<decltype(std::declval<std::add_const_t<T>*>()->classof())>,
     std::decay_t<decltype(std::add_const_t<T>::classof_v)>>;
@@ -31,14 +31,13 @@ namespace clt::meta
   template<typename From, typename To>
   /// @brief Check if 'From' is dynamically cast-able to 'To'
   concept DynCastableTo =
-    std::is_base_of_v<From, To> &&
-    DynCastable<From> &&
     DynCastable<To> &&
+    std::is_base_of_v<From, To> &&
     std::is_same_v<
     decltype(std::declval<From*>()->classof()),
     decltype(std::declval<To*>()->classof())>;
 
-	template<typename To, typename From> requires DynCastableTo<From, std::remove_pointer_t<To>>
+  template<typename To, typename From> requires DynCastableTo<From, std::remove_pointer_t<To>>
   /// @brief Tries to dynamically cast from 'From' to 'To' returning nullptr if 'from' is not a 'To'.
   /// This allows to verify down-casts.
   /// @tparam To The type to cast to.
@@ -58,6 +57,23 @@ namespace clt::meta
     if (from->classof() != ToN::classof_v)
       return nullptr;
     return static_cast<ToP>(from);
+  }
+  COLT_END();
+
+  template<typename To, typename From> requires DynCastableTo<From, std::remove_pointer_t<To>>
+  /// @brief Check if 'from' is of type 'To'
+  /// @tparam To The type to check equality with
+  /// @tparam From The type of the object whose type to check
+  /// @param from The pointer whose true type to check
+  /// @return True if 'from' is a 'To' else false
+  constexpr bool is_a(From* from) noexcept
+  COLT_PRE(from != nullptr)
+  {
+    // Pointer Type to cast to (with const matching const of from)
+    using ToP = std::conditional_t<std::is_pointer_v<To>, match_const_t<From, std::remove_pointer_t<To>>*, match_const_t<From, To>*>;
+    // Type to cast to (without pointer)
+    using ToN = std::remove_pointer_t<ToP>;
+    return from->classof() == ToN::classof_v;
   }
   COLT_END();
 }
