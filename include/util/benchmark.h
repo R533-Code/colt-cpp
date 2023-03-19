@@ -110,9 +110,11 @@ namespace clt::bench
     }
 
   public:
+    // Default constructor
+    Instrumentator() = default;
     // No copy constructor
     Instrumentator(const Instrumentator&) = delete;
-    //No move constructor
+    // No move constructor
     Instrumentator(Instrumentator&&) = delete;
 
     /// @brief Saves a profile result
