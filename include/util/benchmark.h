@@ -53,9 +53,9 @@ namespace clt::bench
   struct ProfileSource
   {
     /// @brief The function name
-    lstring fn_name;
+    const char* fn_name;
     /// @brief The file name
-    lstring file_name;
+    const char* file_name;
     /// @brief The line number
     u32 line_number;    
   };
@@ -131,7 +131,7 @@ namespace clt::bench
     /// @brief Writes saved profile in the "chrome://tracing" format to file at 'path'
     /// @param path The path name (preferably ending with .json)
     /// @return True if successful
-    bool write_tracing(lstring path) const noexcept
+    bool write_tracing(const char* path) const noexcept
     {
       auto lck = std::scoped_lock(mtx);
       auto file = fopen(path, "wt");
