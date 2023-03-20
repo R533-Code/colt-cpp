@@ -68,13 +68,11 @@ namespace clt::details
 }
 
 /// @brief Helper for transforming assertions into strings and their evaluated value
-#define COLT_TO_BOOL_STR_PAIR(expr) clt::details::Assertion{ #expr, expr }
+#define COLT_DETAILS_TO_ASSERTION(expr) clt::details::Assertion{ #expr, expr }
 
 /// @brief Creates a precondition for a function body
-#define COLT_PRE(...) { clt::details::assert_multiple<true>(COLT_FUNCTION_NAME __VA_OPT__(,) COLT_FOR_EACH(COLT_TO_BOOL_STR_PAIR, __VA_ARGS__));
+#define COLT_PRE(...) { clt::details::assert_multiple<true>(COLT_FUNCTION_NAME __VA_OPT__(,) COLT_FOR_EACH(COLT_DETAILS_TO_ASSERTION, __VA_ARGS__));
 /// @brief Creates a postcondition for a function body
-#define COLT_POST(...) clt::details::assert_multiple<false>(COLT_FUNCTION_NAME __VA_OPT__(,) COLT_FOR_EACH(COLT_TO_BOOL_STR_PAIR, __VA_ARGS__)); };
-
-#undef COLT_TO_BOOL_STR_PAIR
+#define COLT_POST(...) clt::details::assert_multiple<false>(COLT_FUNCTION_NAME __VA_OPT__(,) COLT_FOR_EACH(COLT_DETAILS_TO_ASSERTION, __VA_ARGS__)); };
 
 #endif //!HG_COLT_CONTRACTS
