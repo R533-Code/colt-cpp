@@ -1,26 +1,11 @@
 #ifndef HG_COLT_RTTI
 #define HG_COLT_RTTI
 
-#include <type_traits>
+#include "./traits.h"
 #include "../util/contracts.h"
 
 namespace clt::meta
 {
-  template<typename Of, typename For>
-  /// @brief Makes a type match the const-ness of another
-  /// @tparam Of The type whose const-ness to match against
-  /// @tparam For The type to which to add const if necessary
-  struct match_const
-  {
-    using type = std::conditional_t<std::is_const_v<Of>, std::add_const_t<For>, std::remove_const_t<For>>;
-  };
-
-  template<typename Of, typename For>
-  /// @brief Short-hand for match_const<Of, For>::type
-  /// @tparam Of The type whose const-ness to match against
-  /// @tparam For The type to which to add const if necessary
-  using match_const_t = typename match_const<Of, For>::type;
-
   template<typename T>
   /// @brief Check if 'T' implements the necessary helpers to be used by 'dyn_cast'
   concept DynCastable =
@@ -47,11 +32,12 @@ namespace clt::meta
   /// @tparam From The type to cast from.
   /// @param from The pointer to try cast
   /// @return A valid pointer or nullptr if 'from' is not a 'To'
-  constexpr match_const_t<From, std::remove_pointer_t<From>>* dyn_cast(From* from) noexcept
+  [[nodiscard]]
+  constexpr match_cv_t<From, std::remove_pointer_t<From>>* dyn_cast(From* from) noexcept
   COLT_PRE(from != nullptr)
   {
     // Pointer Type to cast to (with const matching const of from)
-    using ToP = std::conditional_t<std::is_pointer_v<To>, match_const_t<From, std::remove_pointer_t<To>>*, match_const_t<From, To>*>;
+    using ToP = std::conditional_t<std::is_pointer_v<To>, match_cv_t<From, std::remove_pointer_t<To>>*, match_cv_t<From, To>*>;
     // Type to cast to (without pointer)
     using ToN = std::remove_pointer_t<ToP>;
     if (from->classof() != ToN::classof_v)
@@ -66,11 +52,12 @@ namespace clt::meta
   /// @tparam From The type of the object whose type to check
   /// @param from The pointer whose true type to check
   /// @return True if 'from' is a 'To' else false
+  [[nodiscard]]
   constexpr bool is_a(From* from) noexcept
   COLT_PRE(from != nullptr)
   {
     // Pointer Type to cast to (with const matching const of from)
-    using ToP = std::conditional_t<std::is_pointer_v<To>, match_const_t<From, std::remove_pointer_t<To>>*, match_const_t<From, To>*>;
+    using ToP = std::conditional_t<std::is_pointer_v<To>, match_cv_t<From, std::remove_pointer_t<To>>*, match_cv_t<From, To>*>;
     // Type to cast to (without pointer)
     using ToN = std::remove_pointer_t<ToP>;
     return from->classof() == ToN::classof_v;

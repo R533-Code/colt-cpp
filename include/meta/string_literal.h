@@ -4,22 +4,10 @@
 #include <type_traits>
 #include <array>
 
+#include "./traits.h"
+
 namespace clt::meta
-{
-  template<typename T>
-  /// @brief Check if T is a string literal "..."
-  /// @tparam T The type to check for
-  struct is_literal_char_str
-  {
-    /// @brief True if string literal
-    static constexpr bool value = std::is_array_v<std::remove_reference_t<T>> && std::same_as<std::decay_t<std::remove_all_extents_t<std::remove_reference_t<T>>>, char>;
-  };
-
-  template<typename T>
-  /// @brief Short-hand for is_literal_char_str::value
-  /// @tparam T The type to check for
-  inline constexpr bool is_literal_char_str_v = is_literal_char_str<T>::value;
-
+{  
   template <size_t N>
   /// @brief Type to pass string literals as parameters
   struct StringLiteral
