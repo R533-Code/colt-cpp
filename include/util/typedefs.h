@@ -89,7 +89,7 @@ namespace clt
       /// @brief Sets the state of the nth-bit to 1
       /// @param n The index of the bit (starting at 0)
       constexpr void set_n(size_t n)          noexcept
-      COLT_PRE(n < sizeof(T))
+      COLT_PRE(n < sizeof(T) * 8)
       {
         value |= 1UL << n;
       }
@@ -98,7 +98,7 @@ namespace clt
       /// @brief Clears the state of the nth-bit (sets the bit to 0)
       /// @param n The index of the bit (starting at 0)
       constexpr void clr_n(size_t n)          noexcept
-      COLT_PRE(n < sizeof(T))
+      COLT_PRE(n < sizeof(T) * 8)
       {
         value &= ~(1UL << n);
       }
@@ -107,7 +107,7 @@ namespace clt
       /// @brief Toggles the state of the nth-bit (if 0 -> 1, if 1 -> 0)
       /// @param n The index of the bit (starting at 0)
       constexpr void tgl_n(size_t n)          noexcept
-      COLT_PRE(n < sizeof(T))
+      COLT_PRE(n < sizeof(T) * 8)
       {
         value ^= 1UL << n;
       }
@@ -117,7 +117,7 @@ namespace clt
       /// @param n The index of the bit (starting at 0)
       /// @param to The value to set the bit to
       constexpr void chg_n(size_t n, bit to)  noexcept
-      COLT_PRE(n < sizeof(T))
+      COLT_PRE(n < sizeof(T) * 8)
       {
         value ^= (-(T)to ^ value) & (1UL << n);
       }
@@ -139,7 +139,7 @@ namespace clt
       /// @param by By how many bits to shift
       /// @return New bit-set containing the result of the operation
       constexpr BitSet operator<<(size_t by)  const noexcept
-      COLT_PRE(by < sizeof(T))
+      COLT_PRE(by < sizeof(T) * 8)
       {
         return value << by;
       }
@@ -149,7 +149,7 @@ namespace clt
       /// @param by By how many bits to shift
       /// @return New bit-set containing the result of the operation
       constexpr BitSet operator>>(size_t by)  const noexcept
-      COLT_PRE(by < sizeof(T))
+      COLT_PRE(by < sizeof(T) * 8)
       {
         return value >> by;
       }
@@ -175,7 +175,7 @@ namespace clt
       /// @param by By how many bits to shift
       /// @return Self
       constexpr BitSet& operator<<=(size_t by) noexcept 
-      COLT_PRE(by < sizeof(T))
+      COLT_PRE(by < sizeof(T) * 8)
       {
         value <<= by; return *this;
       }
@@ -185,7 +185,7 @@ namespace clt
       /// @param by By how many bits to shift
       /// @return Self
       constexpr BitSet& operator>>=(size_t by) noexcept
-      COLT_PRE(by < sizeof(T))
+      COLT_PRE(by < sizeof(T) * 8)
       {
         value >>= by; return *this;
       }
