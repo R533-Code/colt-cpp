@@ -23,8 +23,11 @@
 
 #if defined(_MSC_VER)
   /// @brief Current function name
-  #define COLT_FUNCTION_NAME __FUNCTION__
-#else
+  #define COLT_FUNCTION_NAME __FUNCSIG__
+#elif defined(__clang__) || defined(__GNUC__) 
+  /// @brief Current function name
+  #define COLT_FUNCTION_NAME __PRETTY_FUNCTION__ 
+#define
   /// @brief Current function name
   #define COLT_FUNCTION_NAME __func__
 #endif
@@ -35,8 +38,23 @@
 #define COLT_FILENAME __FILE__
 
 /// @brief Internal concatenating macro
-#define COLT_CONCAT_IMPL(a, b) a##b
+#define COLT_DETAILS_CONCAT(a, b) a##b
 /// @brief Concatenates 'a' and 'b'
-#define COLT_CONCAT(a, b) COLT_CONCAT_IMPL(a, b)
+#define COLT_CONCAT(a, b) COLT_DETAILS_CONCAT(a, b)
+
+#define COLT_DETAILS_PARENS ()
+
+#define COLT_DETAILS_EXPAND(...)  COLT_DETAILS_EXPAND4(COLT_DETAILS_EXPAND4(COLT_DETAILS_EXPAND4(COLT_DETAILS_EXPAND4(__VA_ARGS__))))
+#define COLT_DETAILS_EXPAND4(...) COLT_DETAILS_EXPAND3(COLT_DETAILS_EXPAND3(COLT_DETAILS_EXPAND3(COLT_DETAILS_EXPAND3(__VA_ARGS__))))
+#define COLT_DETAILS_EXPAND3(...) COLT_DETAILS_EXPAND2(COLT_DETAILS_EXPAND2(COLT_DETAILS_EXPAND2(COLT_DETAILS_EXPAND2(__VA_ARGS__))))
+#define COLT_DETAILS_EXPAND2(...) COLT_DETAILS_EXPAND1(COLT_DETAILS_EXPAND1(COLT_DETAILS_EXPAND1(COLT_DETAILS_EXPAND1(__VA_ARGS__))))
+#define COLT_DETAILS_EXPAND1(...) __VA_ARGS__
+
+#define COLT_FOR_EACH(macro, ...)  \
+  __VA_OPT__(COLT_DETAILS_EXPAND(COLT_DETAILS_FOR_EACH_HELPER(macro, __VA_ARGS__)))
+#define COLT_DETAILS_FOR_EACH_HELPER(macro, a1, ...) \
+  macro(a1) \
+  __VA_OPT__(COLT_DETAILS_FOR_EACH_AGAIN COLT_DETAILS_PARENS (macro, __VA_ARGS__))
+#define COLT_DETAILS_FOR_EACH_AGAIN() COLT_DETAILS_FOR_EACH_HELPER
 
 #endif //!HG_COLT_MACRO
