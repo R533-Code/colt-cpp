@@ -75,6 +75,7 @@ namespace clt
 
   template<typename T>
   /// @brief Prevents the argument from being optimized away by the compiler.
+  /// Useful for benchmarks.
   /// @tparam T The type of the argument
   /// @param arg The value of the argument
   void do_not_optimize_away(T&& arg) noexcept
