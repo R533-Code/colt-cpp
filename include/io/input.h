@@ -15,7 +15,7 @@ namespace clt::io
   /// @brief Prints 'Press any key to continue...' and waits for any key input.
   static void press_to_continue() noexcept
   {
-    fputs("Press any key to continue...\n", stdout);
+    std::fputs("Press any key to continue...", stdout);
 #ifndef _WIN32
     struct termios oldattr, newattr;
     tcgetattr(STDIN_FILENO, &oldattr);
@@ -26,7 +26,8 @@ namespace clt::io
     tcsetattr(STDIN_FILENO, TCSANOW, &oldattr);    
 #else
     (void)_getch();
-#endif //!COLT_WINDOWS
+#endif //!COLT_WINDOWS    
+    std::fputc('\n', stdout);
   }
 }
 
