@@ -13,7 +13,11 @@ add_executable(ColtCppTest
 )
 
 if(MSVC)
-  	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ColtCppTest)
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ColtCppTest)
+    target_compile_options(ColtCppTest PUBLIC
+      "/external:anglebrackets" "/external:W0" #To remove warnings from <files>
+      "/Zc:preprocessor" #Use conforming C++ preprocessor
+    )
 endif()
 
 target_include_directories(ColtCppTest PUBLIC "include/")
