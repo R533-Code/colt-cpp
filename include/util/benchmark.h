@@ -132,6 +132,7 @@ namespace clt::bench
     /// @param path The path name (preferably ending with .json)
     /// @return True if successful
     bool write_tracing(const char* path) const noexcept
+    COLT_PRE(path != nullptr)
     {
       auto lck = std::scoped_lock(mtx);
       auto file = fopen(path, "wt");
@@ -150,6 +151,7 @@ namespace clt::bench
       std::fclose(file);
       return true;
     }
+    COLT_POST();
   };
 
   namespace details
@@ -162,9 +164,11 @@ namespace clt::bench
   /// @param path The path to which to write the profiles
   /// @return True if successful
   inline bool save_tracing_to(const char* path) noexcept
+  COLT_PRE(path != nullptr)
   {
     return details::GlobalInstrument.write_tracing(path);
   }
+  COLT_POST()
 }
 
 #ifndef COLT_NO_PROFILE
