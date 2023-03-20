@@ -37,8 +37,6 @@ namespace clt
 	using u64 = uint64_t;
   /// @brief 1-bit integer
   using bit = bool;
-	/// @brief Pointer to characters
-	using lstring = const char*;
 	/// @brief 32-bit floating point
 	using f32 = float;
 	/// @brief 64-bit floating point
@@ -95,7 +93,7 @@ namespace clt
       {
         value |= 1UL << n;
       }
-      COLT_END()
+      COLT_POST()
       
       /// @brief Clears the state of the nth-bit (sets the bit to 0)
       /// @param n The index of the bit (starting at 0)
@@ -104,7 +102,7 @@ namespace clt
       {
         value &= ~(1UL << n);
       }
-      COLT_END()
+      COLT_POST()
 
       /// @brief Toggles the state of the nth-bit (if 0 -> 1, if 1 -> 0)
       /// @param n The index of the bit (starting at 0)
@@ -113,7 +111,7 @@ namespace clt
       {
         value ^= 1UL << n;
       }
-      COLT_END()
+      COLT_POST()
 
       /// @brief Changes the state of the nth-bit to 'to'
       /// @param n The index of the bit (starting at 0)
@@ -123,7 +121,7 @@ namespace clt
       {
         value ^= (-(T)to ^ value) & (1UL << n);
       }
-      COLT_END()
+      COLT_POST()
 
       /// @brief Bitwise OR operator
       /// @param byte The bit-set with which to perform the operation
@@ -145,7 +143,7 @@ namespace clt
       {
         return value << by;
       }
-      COLT_END()
+      COLT_POST()
       
       /// @brief Shift Right operator
       /// @param by By how many bits to shift
@@ -155,7 +153,7 @@ namespace clt
       {
         return value >> by;
       }
-      COLT_END()
+      COLT_POST()
       
       /// @brief Bitwise NOT operator
       /// @return New bit-set containing the result of the operation
@@ -181,7 +179,7 @@ namespace clt
       {
         value <<= by; return *this;
       }
-      COLT_END()
+      COLT_POST()
       
       /// @brief Shift Right operator
       /// @param by By how many bits to shift
@@ -191,7 +189,7 @@ namespace clt
       {
         value >>= by; return *this;
       }
-      COLT_END()
+      COLT_POST()
 
       /// @brief Counts the number of set bits
       /// @return The number of bits that are set (=1)
