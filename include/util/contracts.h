@@ -38,18 +38,18 @@ namespace clt::details
       if constexpr (is_pre)
       {
         if (!error) {
-          printf("CONTRACT FAILED (PRECONDITION %llu): in function:\n\"%s\":\n", i + 1, fn_name);
+          printf("CONTRACT FAILED (PRECONDITION): in function:\n\"%s\":\n", fn_name);
           error = true;
         }
-        printf("%s => false\n", array[i]->str);
+        printf("%llu) %s => false\n", i + 1, array[i]->str);
       }
       else
       {        
         if (!error) {
-          printf("CONTRACT FAILED (POSTCONDITION %llu): in function:\n\"%s\":\n", i + 1, fn_name);
+          printf("CONTRACT FAILED (POSTCONDITION): in function:\n\"%s\":\n", fn_name);
           error = true;
         }
-        printf("%s => false\n", array[i]->str);
+        printf("%llu) %s => false\n", i + 1, array[i]->str);
       }
     }
     if (error)
