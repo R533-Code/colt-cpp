@@ -6,6 +6,7 @@
 #define FMT_HEADER_ONLY
 #include "../libraries/fmt/include/fmt/format-inl.h"
 #include "../meta/string_literal.h"
+#include "../util/typedefs.h"
 
 namespace clt::io
 {
