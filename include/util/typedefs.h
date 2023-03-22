@@ -208,21 +208,21 @@ namespace clt
   }
 
   /// @brief 8-bit BitSet
-  using BYTE = details::BitSet<u8>;
+  using BYTE_t = details::BitSet<u8>;
   /// @brief 16-bit BitSet
-  using WORD = details::BitSet<u16>;
+  using WORD_t = details::BitSet<u16>;
   /// @brief 32-bit BitSet
-  using DWORD = details::BitSet<u32>;
+  using DWORD_t = details::BitSet<u32>;
   /// @brief 64-bit BitSet
-  using QWORD = details::BitSet<u64>;
+  using QWORD_t = details::BitSet<u64>;
 
   template<typename T>
-  concept BitType = std::same_as<T, BYTE>
-    || std::same_as<T, WORD>
-    || std::same_as<T, DWORD>    
-    || std::same_as<T, QWORD>;
+  concept BitType = std::same_as<T, BYTE_t>
+    || std::same_as<T, WORD_t>
+    || std::same_as<T, DWORD_t>    
+    || std::same_as<T, QWORD_t>;
 
-  template<BitType T, typename Wt> requires (sizeof(Wt) == sizeof(QWORD))  
+  template<BitType T, typename Wt> requires (sizeof(Wt) == sizeof(T))
   /// @brief Converts a type to its bit-set equivalent
   /// @tparam Wt The type to convert
   /// @tparam T One of [BYTE, WORD, DWORD, QWORD]
