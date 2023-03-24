@@ -63,6 +63,9 @@ namespace clt::meta
   /// @tparam Of The type whose qualifiers to match against
   /// @tparam For The type to transform if necessary
   using match_cv_t = typename match_cv<Of, For>::type;
+
+  template<typename T>
+  concept StdRatio = (std::is_integral_v<decltype(T::num)>) && (std::is_integral_v<decltype(T::den)>);
 }
 
 #endif //!HG_COLT_TRAITS
