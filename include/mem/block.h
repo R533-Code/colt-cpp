@@ -1,0 +1,114 @@
+#ifndef HG_COLT_BLOCK
+#define HG_COLT_BLOCK
+
+#include "./sizes.h"
+#include "../util/contracts.h"
+#include "../util/typedefs.h"
+
+namespace clt::mem
+{
+  /// @brief Result of an allocation: ptr + size
+  class MemBlock
+  {
+    /// @brief Address of the block
+    void* blk_ptr;
+    /// @brief Size of the block (in bytes)
+    u64 blk_sz;
+
+  public:
+    /// @brief Constructs a MemBlock from a pointer and a size
+    /// @param blk The block
+    /// @param sz The size of the block
+    constexpr MemBlock(void* blk, u64 sz) noexcept
+      : blk_ptr(blk), blk_sz(sz * static_cast<u64>(blk != nullptr)) {}
+
+    /// @brief Constructs a MemBlock from two pointers
+    /// @param start The beginning of the block
+    /// @param end The end of the block
+    constexpr MemBlock(void* start, void* end) noexcept
+      : blk_ptr(start), blk_sz(static_cast<u8*>(end) - static_cast<u8*>(start))
+      COLT_PRE(start < end)
+    {
+      blk_sz *= static_cast<u64>(start != nullptr);
+    }
+    COLT_POST()
+
+    /// @brief Constructs a MemBlock from a nullptr.
+    /// The size of a MemBlock with ptr() == nullptr is always 0.
+    constexpr MemBlock(std::nullptr_t, u64 = 0) noexcept
+      : blk_ptr(nullptr), blk_sz(0) {}
+
+    //Copy constructor
+    constexpr MemBlock(const MemBlock&)               noexcept = default;
+    //Move constructor
+    constexpr MemBlock(MemBlock&&)                    noexcept = default;
+    //Copy-assignment operator
+    constexpr MemBlock& operator=(const MemBlock&)    noexcept = default;
+    //Move-assignment operator
+    constexpr MemBlock& operator=(MemBlock&&)         noexcept = default;
+    
+    /// @brief Sets the block to nullptr
+    /// @param  nullptr
+    /// @return Self
+    constexpr MemBlock& operator=(std::nullptr_t) noexcept
+    {
+      blk_ptr = nullptr;
+      blk_sz = 0;
+      return *this;
+    }
+
+    /// @brief Returns the size of a block (in bytes).
+    /// The size of a block cannot be modified directly, except by assignment.
+    /// @return Byte size of the block
+    constexpr size<Byte> size() const noexcept { return blk_sz; }
+    /// @brief Returns the pointer to the memory block
+    /// @return Pointer (can be nullptr)
+    constexpr void* ptr() const noexcept { return blk_ptr; }
+    
+    /// @brief Check if 'ptr() == nullptr'
+    /// @return True if the MemBlock points to no block
+    constexpr bool is_null() const noexcept { return blk_ptr == nullptr; }
+    /// @brief Check if 'ptr() != nullptr'
+    /// @return True if the MemBlock points to a block
+    constexpr operator bool() const noexcept { return blk_ptr != nullptr; }
+
+    /// @brief Check if two blocks are equal.
+    /// Comparison of the pointer, then the sizes are done.
+    /// @param blk The block to compare with
+    /// @return True if both the block and size are equal
+    constexpr bool operator==(const MemBlock& blk) const noexcept
+    {
+      return blk_ptr == blk.blk_ptr && blk_sz == blk.blk_sz;
+    }
+
+    /// @brief Check if a block is nullptr
+    /// @param  nullptr
+    /// @return True if nullptr
+    constexpr bool operator==(std::nullptr_t) const noexcept
+    {
+      return blk_ptr == nullptr;
+    }
+
+    /// @brief Check if two blocks are not equal.
+    /// Comparison of the pointer, then the sizes are done.
+    /// @param blk The block to compare with
+    /// @return True if either the block or size are not equal
+    constexpr bool operator!=(const MemBlock& blk) const noexcept
+    {
+      return blk_ptr != blk.blk_ptr || blk_sz != blk.blk_sz;
+    }
+
+    /// @brief Check if a block is not nullptr
+    /// @param  nullptr
+    /// @return True if not nullptr
+    constexpr bool operator!=(std::nullptr_t) const noexcept
+    {
+      return blk_ptr != nullptr;
+    }
+  };
+
+  /// @brief Represents an empty block
+  inline constexpr MemBlock nullblk = MemBlock{ nullptr, 0 };
+}
+
+#endif //!HG_COLT_BLOCK
