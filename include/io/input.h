@@ -60,7 +60,7 @@ namespace clt::io
     if (chr == EOF)
       return { 0, IOError::FILE_EOF };
     buffer[0] = chr;
-    size_t i = 1;
+    u32 i = 1;
     for (; i < n; i++)
     {
       chr = getchar();
@@ -80,7 +80,7 @@ namespace clt::io
     if (chr == EOF)
       return { 0, IOError::FILE_EOF };
     buffer[0] = chr;
-    size_t i = 1;
+    u32 i = 1;
     for (; i < n; i++)
     {
       chr = getchar();
