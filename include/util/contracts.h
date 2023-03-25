@@ -17,14 +17,16 @@ namespace clt::details
     bool value;
   };
 
+  /// @brief Used to cause a compile-time failure
   inline void constexpr_assert_failed_pre() noexcept
   {
-    //Does nothing, only used for assertion failure
+    //PRECONDITION FAILED AT COMPILE TIME!
   }
 
+  /// @brief Used to cause a compile-time failure
   inline void constexpr_assert_failed_post() noexcept
   {
-    //Does nothing, only used for assertion failure
+    //PRECONDITION FAILED AT COMPILE TIME!
   }
 
   template<bool is_pre, typename... BoolTs> requires (sizeof...(BoolTs) != 0)
@@ -44,9 +46,9 @@ namespace clt::details
       {
         if (array[i]->value)
           continue;
-        if constexpr (is_pre)
+        if constexpr (is_pre)   //assertion failed at compile time!
           constexpr_assert_failed_pre();
-        else
+        else                    //assertion failed at compile time!
           constexpr_assert_failed_post();
       }
     }
