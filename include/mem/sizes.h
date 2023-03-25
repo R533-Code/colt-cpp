@@ -24,44 +24,123 @@ namespace clt
   /// @brief Gibibyte ratio
   using GibiByte  = std::ratio<1024 * 1024 * 1024, 1>;  
 
-  template<typename RatioT> requires meta::StdRatio<RatioT>
+  template<meta::StdRatio RatioT>
   /// @brief Class responsible of holding byte sizes
   /// @tparam RatioT The ratio to bytes
-  class size
+  struct size
   {
     /// @brief The count of bytes / RatioT::num
-    u64 sz;
+    u64 count;
 
-  public:
     /// @brief The ratio to byte of the size
     using ratio = RatioT;
 
     /// @brief Constructs a size from a count of RatioT
-    /// @param sz The size
-    constexpr size(u64 sz) noexcept
-      : sz(sz) {}
+    /// @param count The size
+    constexpr size(u64 count) noexcept
+      : count(count) {}
 
     template<typename rt> requires (RatioT::num < rt::num)
     /// @brief Constructs a size from another size only when the conversion is not lossy.
     /// Use size_cast for lossy conversions.
     /// @tparam rt The ratio of the other size
-    /// @param sz The other size
-    constexpr size(size<rt> sz) noexcept
-      : sz(sz.sz * rt::num) {}
+    /// @param count The other size
+    constexpr size(size<rt> count) noexcept
+      : count(count.count * rt::num) {}
 
     /// @brief Converts the size to a byte count
     /// @return Byte count
-    constexpr u64 to_bytes() const noexcept { return sz * RatioT::num; }
+    constexpr u64 to_bytes() const noexcept { return count * RatioT::num; }
 
     /// @brief The value of the size
     /// @return The value of the size
-    constexpr u64 value() const noexcept { return sz; }
+    constexpr u64 value() const noexcept { return count; }
 
-    template<typename U> requires meta::StdRatio<U>
+    template<typename rt>
+    /// @brief Comparison operator==
+    /// @tparam rt The ratio of the other size
+    /// @param other The other size
+    /// @return True if equal
+    constexpr bool operator==(size<rt> other) const noexcept
+    {
+      //We would like to avoid overflow, so rather than comparing
+      // to_bytes(), we convert to the biggest size.
+      if constexpr (rt::num > RatioT::num)
+        return other.count * rt::num / RatioT::num == count;
+      else
+        return count * RatioT::num / rt::num == other.count;
+    }
+
+    template<typename rt>
+    /// @brief Comparison operator!=
+    /// @tparam rt The ratio of the other size
+    /// @param other The other size
+    /// @return True if not equal
+    constexpr bool operator!=(size<rt> other) const noexcept
+    {
+      if constexpr (rt::num > RatioT::num)
+        return other.count * rt::num / RatioT::num != count;
+      else
+        return count * RatioT::num / rt::num != other.count;
+    }
+
+    template<typename rt>
+    /// @brief Comparison operator<=
+    /// @tparam rt The ratio of the other size
+    /// @param other The other size
+    /// @return True if less or equal
+    constexpr bool operator<=(size<rt> other) const noexcept
+    {
+      if constexpr (rt::num > RatioT::num)
+        return other.count * rt::num / RatioT::num <= count;
+      else
+        return count * RatioT::num / rt::num <= other.count;
+    }
+
+    template<typename rt>
+    /// @brief Comparison operator>=
+    /// @tparam rt The ratio of the other size
+    /// @param other The other size
+    /// @return True if greater or equal
+    constexpr bool operator>=(size<rt> other) const noexcept
+    {
+      if constexpr (rt::num > RatioT::num)
+        return other.count * rt::num / RatioT::num >= count;
+      else
+        return count * RatioT::num / rt::num >= other.count;
+    }
+
+    template<typename rt>
+    /// @brief Comparison operator<
+    /// @tparam rt The ratio of the other size
+    /// @param other The other size
+    /// @return True if less
+    constexpr bool operator<(size<rt> other) const noexcept
+    {
+      if constexpr (rt::num > RatioT::num)
+        return other.count * rt::num / RatioT::num < count;
+      else
+        return count * RatioT::num / rt::num < other.count;
+    }
+
+    template<typename rt>
+    /// @brief Comparison operator>
+    /// @tparam rt The ratio of the other size
+    /// @param other The other size
+    /// @return True if greater
+    constexpr bool operator>(size<rt> other) const noexcept
+    {
+      if constexpr (rt::num > RatioT::num)
+        return other.count * rt::num / RatioT::num > count;
+      else
+        return count * RatioT::num / rt::num > other.count;
+    }
+
+    template<meta::StdRatio U>
     friend class size;
   };
 
-  template<typename Ratio, typename From> requires meta::StdRatio<Ratio> && meta::StdRatio<From>
+  template<meta::StdRatio Ratio, meta::StdRatio From>
   /// @brief Converts from a size type to another one (performing lossy conversions)
   /// @tparam Ratio The ratio to convert to
   /// @tparam From The ratio to convert from
