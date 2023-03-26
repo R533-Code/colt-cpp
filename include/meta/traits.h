@@ -66,6 +66,27 @@ namespace clt::meta
 
   template<typename T>
   concept StdRatio = (std::is_integral_v<decltype(T::num)>) && (std::is_integral_v<decltype(T::den)>);
+
+  template<typename T> requires (std::same_as<void, T>)
+  /// @brief Returns the sizeof a type or 0 if void
+  /// @tparam T The type
+  struct sizeof_or_zero
+  {
+    static constexpr size_t value = 0;
+  };
+
+  template<typename T> requires (!std::same_as<void, T>)
+  /// @brief Returns the sizeof a type or 0 if void
+  /// @tparam T The type
+  struct sizeof_or_zero
+  {
+    static constexpr size_t value = sizeof(T);
+  };
+
+  template<typename T>
+  /// @brief Shorthand for sizeof_or_zero<T>::value
+  /// @tparam T The type to check for
+  inline constexpr size_t sizeof_or_zero_v = sizeof_or_zero<T>::value;
 }
 
 #endif //!HG_COLT_TRAITS
