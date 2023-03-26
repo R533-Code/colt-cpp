@@ -5,6 +5,7 @@
   #include <termios.h>
   #include <unistd.h>
 #else
+  #define NOMINMAX
   #include <Windows.h>
 #endif //COLT_WINDOWS
 
