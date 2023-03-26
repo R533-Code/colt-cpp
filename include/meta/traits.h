@@ -69,7 +69,7 @@ namespace clt::meta
 
   namespace details
   {
-    template<typename T> requires (std::is_same_v<T, void>)
+    template<typename T> requires (std::is_void_v<T>)
     /// @brief Helper for sizeof_or_zero
     /// @tparam T The type to check for
     /// @return 0
@@ -78,7 +78,7 @@ namespace clt::meta
       return 0;
     }
 
-    template<typename T> requires (!std::is_same_v<T, void>)
+    template<typename T> requires (!std::is_void_v<T>)
     /// @brief Helper for sizeof_or_zero
     /// @tparam T The type to check for
     /// @return sizeof(T)
