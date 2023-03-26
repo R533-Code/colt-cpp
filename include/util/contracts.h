@@ -1,8 +1,8 @@
 #ifndef HG_COLT_CONTRACTS
 #define HG_COLT_CONTRACTS
 
-#include <cassert>
 #include "./typedefs.h"
+#include "./debug_level.h"
 #include "../meta/traits.h"
 #include "./macro.h"
 
@@ -38,7 +38,8 @@ namespace clt::details
   constexpr void assert_multiple(const char* fn_name, BoolTs... bools) noexcept
   {
     static_assert((std::is_same_v<Assertion, std::decay_t<BoolTs>> && ...),
-      "This function expects 'Assertion'! Use COLT_PRE and COLT_POST rather than calling it directly!");
+      "This function expects 'Assertion'! Use COLT_PRE and COLT_POST rather than calling it directly!");    
+
     if (std::is_constant_evaluated())
     {
       Assertion* array[sizeof...(BoolTs)] = { &bools... };
@@ -52,7 +53,7 @@ namespace clt::details
           constexpr_assert_failed_post();
       }
     }
-    else
+    else if constexpr (ColtDebugLevel != COLT_NO_DEBUG)
     {
       Assertion* array[sizeof...(BoolTs)] = { &bools... };
 
