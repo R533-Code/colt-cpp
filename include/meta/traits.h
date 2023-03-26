@@ -5,7 +5,7 @@
 
 namespace clt::meta
 {
-	template<typename T>
+  template<typename T>
   /// @brief Check if T is a string literal "..."
   /// @tparam T The type to check for
   struct is_literal_char_str
@@ -19,7 +19,7 @@ namespace clt::meta
   /// @tparam T The type to check for
   inline constexpr bool is_literal_char_str_v = is_literal_char_str<T>::value;
 
-	template<typename Of, typename For>
+  template<typename Of, typename For>
   /// @brief Makes a type match the const-ness of another
   /// @tparam Of The type whose const-ness to match against
   /// @tparam For The type to which to add const if necessary
@@ -34,7 +34,7 @@ namespace clt::meta
   /// @tparam For The type to which to add const if necessary
   using match_const_t = typename match_const<Of, For>::type;
 
-	template<typename Of, typename For>
+  template<typename Of, typename For>
   /// @brief Makes a type match the volatile-ness of another
   /// @tparam Of The type whose volatile-ness to match against
   /// @tparam For The type to which to add volatile if necessary
@@ -49,7 +49,7 @@ namespace clt::meta
   /// @tparam For The type to which to add volatile if necessary
   using match_volatile_t = typename match_volatile<Of, For>::type;
 
-	template<typename Of, typename For>
+  template<typename Of, typename For>
   /// @brief Makes a type match the qualifiers of another
   /// @tparam Of The type whose qualifiers to match against
   /// @tparam For The type to which to add const if necessary
@@ -67,26 +67,39 @@ namespace clt::meta
   template<typename T>
   concept StdRatio = (std::is_integral_v<decltype(T::num)>) && (std::is_integral_v<decltype(T::den)>);
 
-  template<typename T> requires (std::same_as<void, T>)
-  /// @brief Returns the sizeof a type or 0 if void
-  /// @tparam T The type
-  struct sizeof_or_zero
+  namespace details
   {
-    static constexpr size_t value = 0;
-  };
+    template<typename T> requires (std::is_same_v<T, void>)
+    /// @brief Helper for sizeof_or_zero
+    /// @tparam T The type to check for
+    /// @return 0
+    consteval size_t sizeof_or_zero() noexcept
+    {
+      return 0;
+    }
 
-  template<typename T> requires (!std::same_as<void, T>)
+    template<typename T> requires (!std::is_same_v<T, void>)
+    /// @brief Helper for sizeof_or_zero
+    /// @tparam T The type to check for
+    /// @return sizeof(T)
+    consteval size_t sizeof_or_zero() noexcept
+    {
+      return sizeof(T);
+    }
+  }
+
+  template<typename T>
   /// @brief Returns the sizeof a type or 0 if void
   /// @tparam T The type
   struct sizeof_or_zero
   {
-    static constexpr size_t value = sizeof(T);
+    static constexpr size_t value = details::sizeof_or_zero<T>();
   };
 
   template<typename T>
   /// @brief Shorthand for sizeof_or_zero<T>::value
   /// @tparam T The type to check for
-  inline constexpr size_t sizeof_or_zero_v = sizeof_or_zero<T>::value;
+  inline constexpr size_t sizeof_or_zero_v = sizeof_or_zero<T>::value;  
 }
 
 #endif //!HG_COLT_TRAITS
