@@ -107,18 +107,6 @@ namespace clt::mem
     /// @brief The top of the buffer
     u8* top = buffer;
 
-    /// @brief Round a size to the nearest aligned memory address
-    /// @param sz The size to align
-    /// @return Aligned size
-    constexpr size_t align_up(size_t sz) noexcept
-    {
-      //Do no round as already rounded
-      if (sz % ALIGN == 0)
-        return sz;
-      //Round size upward if needed
-      return sz + ALIGN - (sz % ALIGN);
-    }
-
     /// @brief Check if the stack has enough capacity to allocate 'sz'
     /// @param sz The aligned size to check
     /// @return True if the stack has enough capacity
@@ -144,7 +132,7 @@ namespace clt::mem
     /// @brief Check if the current allocator owns 'blk'
     /// @param blk The MemBlock to check
     /// @return True if 'blk' was allocated through the current allocator
-    constexpr bool owns(MemBlock blk) noexcept
+    constexpr bool owns(MemBlock blk) const noexcept
     {
       return blk.is_null() || (buffer <= blk.ptr() && blk.ptr() < top);
     }
@@ -154,7 +142,7 @@ namespace clt::mem
     /// @return Allocated MemBlock or an empty MemBlock on failure
     constexpr MemBlock alloc(size<Byte> sze) noexcept
     {
-      size_t aligned_size = align_up(sze.to_bytes());
+      size_t aligned_size = round_to_alignment<ALIGN>(sze.to_bytes());
       if (!can_allocate(aligned_size))
         return nullblk;
       auto ptr = top;
@@ -167,7 +155,7 @@ namespace clt::mem
     constexpr void dealloc(MemBlock to_free) noexcept
       COLT_PRE(this->owns(to_free), to_free.is_null() || !this->is_empty())
     {
-      size_t aligned_size = align_up(to_free.size().to_bytes());
+      size_t aligned_size = round_to_alignment<ALIGN>(to_free.size().to_bytes());
       if (static_cast<u8*>(to_free.ptr()) + aligned_size == top)
         top -= aligned_size;
     }
@@ -187,7 +175,7 @@ namespace clt::mem
         blk = alloc(n);
         return !blk.is_null();
       }
-      if (n == 0)
+      if (n == 0_B)
       {
         dealloc(blk);
         return true;
@@ -198,7 +186,7 @@ namespace clt::mem
       {
         if (can_allocate(n.to_bytes() - blk.size().to_bytes()))
         {
-          top += align_up(n.to_bytes() - blk.size().to_bytes());
+          top += round_to_alignment<ALIGN>(n.to_bytes() - blk.size().to_bytes());
           blk = MemBlock{ blk.ptr(), n.to_bytes()};
           return true;
         }
@@ -234,7 +222,7 @@ namespace clt::mem
       
       if (can_allocate(delta.to_bytes() - blk.size().to_bytes()))
       {
-        top += align_up(delta.to_bytes() - blk.size().to_bytes());
+        top += round_to_alignment<ALIGN>(delta.to_bytes() - blk.size().to_bytes());
         blk = MemBlock{ blk.ptr(), delta.to_bytes() };
         return true;
       }
@@ -342,7 +330,7 @@ namespace clt::mem
     /// @brief Check if the current allocator owns 'blk'
     /// @param blk The MemBlock to check
     /// @return True if 'blk' was allocated through the current allocator
-    constexpr bool owns(MemBlock blk) noexcept
+    constexpr bool owns(MemBlock blk) const noexcept
     {
       return allocator::owns(blk);
     }
