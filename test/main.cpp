@@ -2,7 +2,7 @@
 #include "util/benchmark.h"
 #include "io/print.h"
 #include "io/input.h"
-#include "mem/simple_alloc.h"
+#include "mem/composable_alloc.h"
 
 using namespace std::chrono_literals;
 using namespace clt;
@@ -17,4 +17,10 @@ int main(int argc, int argv)
     COLT_PROFILE_SCOPE("fmt::print");
     print_message("Hello {}", "World!");
   }
+
+  AffixAllocator<Mallocator, u32, void> alloc;
+  auto blk = alloc.alloc(16_B);
+  auto& ref = alloc.create_prefix(blk, __LINE__);
+  print("Line: {}", ref);
+  alloc.dealloc(blk);
 }
