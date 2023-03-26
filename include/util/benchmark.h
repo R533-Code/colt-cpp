@@ -173,7 +173,7 @@ namespace clt::bench
 
 #ifndef COLT_NO_PROFILE
   /// @brief Profiles a scope, with name 'name'. NOT AN INLINE MACRO.
-  #define COLT_PROFILE_SCOPE(name) clt::bench::Timer COLT_CONCAT(__TIMER_, __LINE__); static constexpr clt::bench::ProfileSource COLT_CONCAT(__TIMER_SRC_, __LINE__) = { name, COLT_FILENAME, COLT_LINE_NUM }; ON_EXIT { clt::bench::details::GlobalInstrument.save_profile(COLT_CONCAT(__TIMER_SRC_, __LINE__), COLT_CONCAT(__TIMER_, __LINE__).get_start_time(), COLT_CONCAT(__TIMER_, __LINE__).get_elapsed_time()); }
+  #define COLT_PROFILE_SCOPE(name) clt::bench::Timer COLT_CONCAT(__TIMER_, __LINE__); static constexpr clt::bench::ProfileSource COLT_CONCAT(__TIMER_SRC_, __LINE__) = { name, COLT_FILENAME, COLT_LINE_NUM }; ON_SCOPE_EXIT { clt::bench::details::GlobalInstrument.save_profile(COLT_CONCAT(__TIMER_SRC_, __LINE__), COLT_CONCAT(__TIMER_, __LINE__).get_start_time(), COLT_CONCAT(__TIMER_, __LINE__).get_elapsed_time()); }
   /// @brief Profiles a function. NOT AN INLINE MACRO.
   #define COLT_PROFILE_FN() COLT_PROFILE_SCOPE(COLT_FUNCTION_NAME)
 #else
