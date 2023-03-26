@@ -52,6 +52,6 @@ namespace clt::details
   }
 }
 
-#define assert_true(COND, ...) clt::details::assert_true_multiple(COLT_FUNCTION_NAME, COLT_DETAILS_TO_ASSERTION(COND) COLT_FOR_EACH(COLT_DETAILS_TO_ASSERTION, __VA_ARGS__));
+#define assert_true(COND, ...) clt::details::assert_true_multiple(COLT_FUNCTION_NAME COLT_DETAILS_TO_ASSERTION(COND) COLT_FOR_EACH(COLT_DETAILS_TO_ASSERTION, __VA_ARGS__))
 
 #endif //!HG_COLT_ASSERT_TRUE
