@@ -137,7 +137,7 @@ namespace clt
     }
 
     template<meta::StdRatio U>
-    friend class size;
+    friend struct size;
   };
 
   template<meta::StdRatio Ratio, meta::StdRatio From>
