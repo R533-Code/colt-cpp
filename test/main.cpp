@@ -18,9 +18,7 @@ int main(int argc, int argv)
     print_message("Hello {}", "World!");
   }
 
-  AffixAllocator<Mallocator, u32, void> alloc;
+  MemCorruptDetector<Mallocator, 1024_B, 0xFD> alloc;
   auto blk = alloc.alloc(16_B);
-  auto& ref = alloc.create_prefix(blk, __LINE__);
-  print("Line: {}", ref);
   alloc.dealloc(blk);
 }
