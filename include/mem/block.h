@@ -111,6 +111,9 @@ namespace clt::mem
   inline constexpr MemBlock nullblk = MemBlock{ nullptr, 0 };
 
   template<u64 ALIGN>
+  /// @brief Rounds 'sz' to an alignment if it is not already aligned
+  /// @param sz The size to align
+  /// @return The aligned size
   constexpr size_t round_to_alignment(size_t sz) noexcept
   {
     //Do no round as already rounded
