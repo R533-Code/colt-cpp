@@ -28,11 +28,11 @@ namespace clt::details
 /// ```c++
 /// {
 ///		auto hello = 10;
-///		ON_EXIT {
+///		ON_SCOPE_EXIT {
 ///			std::cout << hello;
 ///		}; // <- do not forget the semicolon
 /// }
 /// ```
-#define ON_EXIT auto COLT_CONCAT(SCOPE_EXIT_HELPER, __LINE__) = clt::details::ScopeGuardOnExit() + [&]() 
+#define ON_SCOPE_EXIT auto COLT_CONCAT(SCOPE_EXIT_HELPER, __LINE__) = clt::details::ScopeGuardOnExit() + [&]() 
 
 #endif //!HG_COLT_ON_EXIT
