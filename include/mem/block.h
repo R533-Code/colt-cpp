@@ -2,8 +2,7 @@
 #define HG_COLT_BLOCK
 
 #include "./sizes.h"
-#include "../util/contracts.h"
-#include "../util/typedefs.h"
+#include "../util/util.h"
 
 namespace clt::mem
 {
@@ -121,6 +120,31 @@ namespace clt::mem
       return sz;
     //Round size upward if needed
     return sz + ALIGN - (sz % ALIGN);
+  }
+
+  namespace details
+  {
+    template<typename Old, typename New>
+    /// @brief Reallocates using new allocator, copying the memory, 
+    /// and deallocating the block on success.
+    /// @tparam New The type of the new allocator
+    /// @tparam Old The type of the old allocator
+    /// @param old_a The old allocator to use for deallocation
+    /// @param new_a The new allocator to use for allocation
+    /// @param blk The block to "reallocate"
+    /// @param n The new size
+    /// @return True on success
+    constexpr bool realloc_with_copy(Old& old_a, New& new_a, MemBlock& blk, size<Byte> n) noexcept
+    {
+      MemBlock new_blk = new_a.alloc(n);
+      if (new_blk.is_null()) {
+        return false;
+      }
+      std::memcpy(new_blk.ptr(), blk.ptr(), blk.size() < new_blk.size() ? blk.size().to_bytes() : new_blk.size().to_bytes());
+      old_a.dealloc(b);
+      blk = new_blk;
+      return true;
+    }
   }
 }
 
