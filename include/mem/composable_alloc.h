@@ -114,7 +114,9 @@ namespace clt::mem
     static constexpr u64 suffix_size = meta::sizeof_or_zero_v<Suffix>;
 
   private:
+    /// @brief This helper avoids compile time errors due to 'void&' being invalid
     using helper_suffix_t = std::conditional_t<std::is_same_v<Suffix, void>, u8, Suffix>;
+    /// @brief This helper avoids compile time errors due to 'void&' being invalid
     using helper_prefix_t = std::conditional_t<std::is_same_v<Prefix, void>, u8, Prefix>;
 
   public:
