@@ -109,6 +109,16 @@ namespace clt::mem
 
   /// @brief Represents an empty block
   inline constexpr MemBlock nullblk = MemBlock{ nullptr, 0 };
+
+  template<u64 ALIGN>
+  constexpr size_t round_to_alignment(size_t sz) noexcept
+  {
+    //Do no round as already rounded
+    if (sz % ALIGN == 0)
+      return sz;
+    //Round size upward if needed
+    return sz + ALIGN - (sz % ALIGN);
+  }
 }
 
 #endif //!HG_COLT_BLOCK
