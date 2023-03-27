@@ -124,6 +124,7 @@ namespace clt::mem
     }
 
   public:
+    constexpr StackAllocator() noexcept     = default;
     StackAllocator(const StackAllocator&)   = delete;
     StackAllocator(StackAllocator&&)        = delete;
 
@@ -262,7 +263,7 @@ namespace clt::mem
     /// @brief Check if a size is in range
     /// @param n The size to check
     /// @return True if LOWER <= n && n <= UPPER
-    constexpr bool is_in_range(size_t n) noexcept { return LOWER <= n && n <= UPPER; }
+    constexpr bool is_in_range(size_t n) noexcept { return LOWER.to_bytes() <= n && n <= UPPER.to_bytes(); }
 
     /// @brief Extracts a block from the linked list, of size 'size'
     /// @param size The size of the block to search for
@@ -294,6 +295,7 @@ namespace clt::mem
     COLT_POST()
 
   public:
+    constexpr FreeList() noexcept = default;
     FreeList(const FreeList&)     = delete;
     FreeList(FreeList&&)          = delete;
 
