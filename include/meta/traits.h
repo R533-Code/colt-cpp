@@ -2,6 +2,7 @@
 #define HG_COLT_TRAITS
 
 #include <type_traits>
+#include "../util/debug_level.h"
 
 namespace clt::meta
 {
@@ -100,6 +101,21 @@ namespace clt::meta
   /// @brief Shorthand for sizeof_or_zero<T>::value
   /// @tparam T The type to check for
   inline constexpr size_t sizeof_or_zero_v = sizeof_or_zero<T>::value;  
+
+  template<typename Debug, typename Release>
+  /// @brief Chooses a type if on Debug configuration, or another for Release
+  /// @tparam Debug The type on Debug configuration
+  /// @tparam Release The type on Release configuration
+  struct for_debug_for_release
+  {
+    using type = std::conditional_t<ColtDebugLevel != COLT_NO_DEBUG, Debug, Release>;
+  };
+
+  template<typename Debug, typename Release>
+  /// @brief Shorthand for 'for_debug_for_release<Debug, Release>::type'
+  /// @tparam Debug The type on Debug configuration
+  /// @tparam Release The type on Release configuration
+  using for_debug_for_release_t = typename for_debug_for_release<Debug, Release>::type;
 }
 
 #endif //!HG_COLT_TRAITS
