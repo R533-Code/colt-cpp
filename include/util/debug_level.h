@@ -22,6 +22,13 @@ namespace clt
   /// @brief The debugging level of the Colt library
   inline constexpr debug_level ColtDebugLevel = COLT_DEBUG_LEVEL;
 #endif //!COLT_DEBUG_LEVEL
+
+  /// @brief Check if the library is on debug configuration or not
+  /// @return True if on debug
+  consteval bool is_debug() noexcept
+  {
+    return ColtDebugLevel != COLT_NO_DEBUG;
+  }
 }
 
 #endif //!HG_COLT_DEBUG_LEVEL
