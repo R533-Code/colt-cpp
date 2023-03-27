@@ -2,6 +2,7 @@
 #define HG_COLT_COMPOSABLE_ALLOC
 
 #include <atomic>
+#include <mutex>
 
 #include "./simple_alloc.h"
 #include "../meta/traits.h"
@@ -153,7 +154,7 @@ namespace clt::mem
     {
       //If expansion will make block size go over SIZE,
       //then expansion is not possible.
-      if (blk.size() <= SIZE && blk.size().to_bytes() + delta > SIZE.to_bytes())
+      if (blk.size() <= SIZE && blk.size().to_bytes() + delta.to_bytes() > SIZE.to_bytes())
         return false;
       
       if (blk.size() <= SIZE)
@@ -188,19 +189,19 @@ namespace clt::mem
     /// @brief Converts a block from returned form to the its prefix form
     /// @param blk The block to convert
     /// @return The converted block
-    static constexpr MemBlock from_ret_to_prefix(MemBlock blk) const noexcept
+    static constexpr MemBlock from_ret_to_prefix(MemBlock blk) noexcept
     {
       return MemBlock{ static_cast<u8*>(blk.ptr()) - prefix_size,
-        blk.size().to_bytes() + prefix_size + suffix_size }
+        blk.size().to_bytes() + prefix_size + suffix_size };
     }
 
     /// @brief Converts a block from its prefix form to the returned form
     /// @param blk The block to convert
     /// @return The converted block
-    static constexpr MemBlock from_prefix_to_ret(MemBlock blk) const noexcept
+    static constexpr MemBlock from_prefix_to_ret(MemBlock blk) noexcept
     {
       return MemBlock{ static_cast<u8*>(blk.ptr()) + prefix_size,
-        blk.size().to_bytes() - prefix_size - suffix_size }
+        blk.size().to_bytes() - prefix_size - suffix_size };
     }
 
   public:
@@ -320,16 +321,27 @@ namespace clt::mem
         return true;
       }
       if constexpr (!std::is_void_v<Suffix>) //if suffix
-        Suffix suffix = get_suffix(blk); //copy suffix
-      
-      if (MemBlock cpy = from_ret_to_prefix(blk);
-        allocator::realloc(cpy, n))
       {
-        blk = from_prefix_to_ret(cpy);
-        if constexpr (!std::is_void_v<Suffix>) //if suffix
+        Suffix suffix = get_suffix(blk); //copy suffix
+        if (MemBlock cpy = from_ret_to_prefix(blk);
+          allocator::realloc(cpy, n))
+        {
+          blk = from_prefix_to_ret(cpy);
           get_suffix(blk) = suffix;
-        return true;
+          return true;
+        }
       }
+      else
+      {
+        if (MemBlock cpy = from_ret_to_prefix(blk);
+          allocator::realloc(cpy, n))
+        {
+          blk = from_prefix_to_ret(cpy);
+          return true;
+        }
+        return false;
+      }
+      
       return false;
     }
 
@@ -349,16 +361,27 @@ namespace clt::mem
         return !blk.is_null();
       }
       if constexpr (!std::is_void_v<Suffix>) //if suffix
+      {
         Suffix suffix = get_suffix(blk); //copy suffix
 
-      if (MemBlock cpy = from_ret_to_prefix(blk);
-        allocator::expand(cpy, delta))
-      {
-        blk = from_prefix_to_ret(cpy);
-        if constexpr (!std::is_void_v<Suffix>) //if suffix
+        if (MemBlock cpy = from_ret_to_prefix(blk);
+          allocator::expand(cpy, delta))
+        {
+          blk = from_prefix_to_ret(cpy);
           get_suffix(blk) = suffix;
-        return true;
+          return true;
+        }
       }
+      else
+      {
+        if (MemBlock cpy = from_ret_to_prefix(blk);
+          allocator::expand(cpy, delta))
+        {
+          blk = from_prefix_to_ret(cpy);
+          return true;
+        }
+      }
+
       return false;
     }
   };
@@ -469,7 +492,7 @@ namespace clt::mem
     register_fn_t reg_array[register_size] = {};
     /// @brief The number of registered function.
     /// An atomic is used to protect the 'reg_array' from multiple threads accesses
-    std::atomic<size_t> register_count;
+    std::atomic<size_t> register_count = 0;
 
   public:
     /// @brief Alignment of returned MemBlock
@@ -625,6 +648,79 @@ namespace clt::mem
       requires meta::ExpandingAllocator<Allocator>
     {
       return Allocator::expand(blk, delta);
+    }
+  };
+
+  template<meta::Allocator allocator>
+  /// @brief Allocator that saves the size of the allocation after the allocation.
+  /// On Debug configuration, the size of the allocation is written twice, before and after
+  /// to detect corruption and report it.
+  /// If allocator is 'Mallocator', the size is not written as the OS will have saved it itself.
+  class ThreadSafeAllocator
+    : private allocator
+  {
+    static constexpr bool is_mallocator = std::is_same_v<allocator, Mallocator>;
+
+    [[no_unique_address]]
+    mutable std::conditional_t<std::is_same_v<allocator, Mallocator>, meta::empty, std::mutex> mtx{};
+
+  public:
+    /// @brief Alignment of returned MemBlock
+    static constexpr u64 alignment = allocator::alignment;
+
+    /// @brief Allocates a MemBlock
+    /// @param size The size of the allocation
+    /// @return Allocated MemBlock or empty MemBlock
+    constexpr MemBlock alloc(size<Byte> size) noexcept
+    {
+      if constexpr (is_mallocator)
+        return allocator::alloc(size);
+      auto lock = std::scoped_lock(mtx);
+      return allocator::alloc(size);
+    }
+
+    /// @brief Deallocates a MemBlock that was allocated using the current allocator
+    /// @param to_free The block whose resources to free
+    constexpr void dealloc(MemBlock to_free) noexcept
+    {
+      if constexpr (is_mallocator)
+        return allocator::dealloc(to_free);
+      auto lock = std::scoped_lock(mtx);
+      allocator::dealloc(to_free);
+    }
+
+    /// @brief Check if the current allocator owns 'blk'
+    /// @param blk The MemBlock to check
+    /// @return True if 'blk' was allocated through the current allocator
+    constexpr bool owns(MemBlock blk) const noexcept
+      requires meta::OwningAllocator<allocator>
+    {
+      auto lock = std::scoped_lock(mtx);
+      return allocator::owns(blk);
+    }
+
+    /// @brief Reallocates a MemBlock
+    /// @param blk The block to reallocate
+    /// @param n The new size of the block
+    /// @return True if reallocation was successful
+    constexpr bool realloc(MemBlock& blk, size<Byte> n) noexcept
+      requires meta::ReallocatableAllocator<allocator>
+    {
+      if constexpr (!is_mallocator)
+        auto lock = std::scoped_lock(mtx);
+      return allocator::realloc(blk, n);
+    }
+
+    /// @brief Expands a block in place if possible
+    /// @param blk The block to expand
+    /// @param delta The new size
+    /// @return True if expansion was done successfully
+    constexpr bool expand(MemBlock& blk, size<Byte> delta) noexcept
+      requires meta::ExpandingAllocator<allocator>
+    {
+      if constexpr (!is_mallocator)
+        auto lock = std::scoped_lock(mtx);
+      return allocator::expand(blk, delta);
     }
   };
 }
