@@ -1,6 +1,7 @@
 #ifndef HG_COLT_SIMPLE_ALLOC
 #define HG_COLT_SIMPLE_ALLOC
 
+#include <cstdlib>
 #include "./allocator_traits.h"
 
 namespace clt::mem
@@ -9,7 +10,7 @@ namespace clt::mem
   class NULLAllocator
   {
   public:
-    /// @brief Alignment of returned MemBlock
+    /// @brief Alignment of returned MemBlock (arbitrary)
     static constexpr u64 alignment = 1024;
 
     /// @brief Always returns a 'nullblk'
@@ -73,7 +74,7 @@ namespace clt::mem
     MemBlock alloc(size<Byte> size) const noexcept
       COLT_PRE(size.to_bytes() != 0)
     {      
-      return { malloc(size.to_bytes()), size.to_bytes() };
+      return { std::malloc(size.to_bytes()), size.to_bytes() };
     }
     COLT_POST()
 
@@ -81,7 +82,7 @@ namespace clt::mem
     /// @param blk The block to deallocate
     void dealloc(MemBlock blk) const noexcept
     {
-      free(blk.ptr());
+      std::free(blk.ptr());
     }
 
     /// @brief Reallocates a MemBlock
@@ -90,7 +91,7 @@ namespace clt::mem
     /// @return True if reallocation was successful
     bool realloc(MemBlock& blk, size<Byte> sz) const noexcept
     {
-      auto ptr = ::realloc(blk.ptr(), sz.to_bytes());
+      auto ptr = std::realloc(blk.ptr(), sz.to_bytes());
       if (ptr == nullptr)
         return false;
       blk = MemBlock{ ptr, sz.to_bytes() };
@@ -155,6 +156,7 @@ namespace clt::mem
     constexpr void dealloc(MemBlock to_free) noexcept
       COLT_PRE(this->owns(to_free), to_free.is_null() || !this->is_empty())
     {
+      //This also works for 'nullblk'
       size_t aligned_size = round_to_alignment<ALIGN>(to_free.size().to_bytes());
       if (static_cast<u8*>(to_free.ptr()) + aligned_size == top)
         top -= aligned_size;
@@ -218,7 +220,7 @@ namespace clt::mem
         return !blk.is_null();
       }
       if (blk.ptr() + blk.size().to_bytes() != top)
-        return false;
+        return false; //not the top
       
       if (can_allocate(delta.to_bytes() - blk.size().to_bytes()))
       {
@@ -315,6 +317,7 @@ namespace clt::mem
     /// @param to_free The block whose resources to free
     constexpr void dealloc(MemBlock blk) noexcept
     {
+      //'nullblk' will never be registered: they are deallocated
       if (!is_in_range(blk.size().to_bytes()) || saved_count == MAX_SAVED)
       {
         allocator::dealloc(blk);
