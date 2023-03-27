@@ -6,7 +6,9 @@
 
 namespace clt::mem
 {
-  /// @brief Result of an allocation: ptr + size
+  /// @brief Result of an allocation: ptr + size.
+  /// If ptr() is nullptr, then size() is guaranteed to be 0.
+  /// If size() is 0, ptr() is not guaranteed to be nullptr.
   class MemBlock
   {
     /// @brief Address of the block
