@@ -1,6 +1,8 @@
 #ifndef HG_COLT_COMPOSABLE_ALLOC
 #define HG_COLT_COMPOSABLE_ALLOC
 
+#include <atomic>
+
 #include "./simple_alloc.h"
 #include "../meta/traits.h"
 
@@ -156,6 +158,9 @@ namespace clt::mem
 
   template<meta::Allocator allocator, typename Prefix, typename Suffix>
     requires (std::is_trivially_copyable_v<Prefix> || std::is_void_v<Prefix>) && (std::is_trivially_copyable_v<Suffix> || std::is_void_v<Suffix>)
+  /// @brief Allocator that allocates memory before and after the allocation for a Prefix and Suffix object.
+  /// @tparam Prefix The type of the prefix (or void if no prefix)
+  /// @tparam Suffix The type of the suffix (or void if no suffix)
   struct AffixAllocator
     : private allocator
   {
@@ -208,7 +213,8 @@ namespace clt::mem
     /// @param to_free The block whose resources to free
     constexpr void dealloc(MemBlock to_free) noexcept
     {
-      allocator::dealloc(from_ret_to_prefix(to_free));
+      if (!to_free.is_null())
+        allocator::dealloc(from_ret_to_prefix(to_free));
     }
 
     /// @brief Check if the current allocator owns 'blk'
@@ -216,7 +222,7 @@ namespace clt::mem
     /// @return True if 'blk' was allocated through the current allocator
     constexpr bool owns(MemBlock blk) const noexcept
     {
-      return allocator::owns(from_ret_to_prefix(blk));
+      return blk.is_null() || allocator::owns(from_ret_to_prefix(blk));
     }
 
     template<typename... Args> requires (!std::same_as<void, Prefix>)
@@ -226,9 +232,11 @@ namespace clt::mem
     /// @param ...args The parameter pack to forward to the constructor
     /// @return Reference to the constructed prefix
     constexpr helper_prefix_t& create_prefix(MemBlock blk, Args&&... args) const noexcept(std::is_nothrow_constructible_v<Prefix, Args...>)
+      COLT_PRE(!blk.is_null())
     {
       return *static_cast<Prefix*>(new(static_cast<u8*>(blk.ptr()) - prefix_size) Prefix(std::forward<Args>(args)...));
     }
+    COLT_POST()
 
     template<typename... Args> requires (!std::same_as<void, Suffix>)
     /// @brief Constructs the suffix
@@ -237,43 +245,53 @@ namespace clt::mem
     /// @param ...args The parameter pack to forward to the constructor
     /// @return Reference to the constructed suffix
     constexpr helper_suffix_t& create_suffix(MemBlock blk, Args&&... args) const noexcept(std::is_nothrow_constructible_v<Suffix, Args...>)
+      COLT_PRE(!blk.is_null())
     {
       return *static_cast<Suffix*>(new(static_cast<u8*>(blk.ptr()) + blk.size().to_bytes()) Suffix(std::forward<Args>(args)...));
     }
+    COLT_POST()
 
     /// @brief Destroy the prefix. Be sure to have constructed the prefix!
     /// @param blk The block whose prefix to destroy
     constexpr void destroy_prefix(MemBlock blk) const noexcept(std::is_nothrow_destructible_v<Prefix>)
+      COLT_PRE(!blk.is_null())
     {
       static_assert(!std::same_as<void, Prefix>, "AffixAllocator does not have a prefix!");
       static_cast<Prefix*>(static_cast<u8*>(blk.ptr()) - prefix_size)->~Prefix();
     }
+    COLT_POST()
 
     /// @brief Destroy the suffix. Be sure to have constructed the suffix!
     /// @param blk The block whose suffix to destroy
     constexpr void destroy_suffix(MemBlock blk) const noexcept(std::is_nothrow_destructible_v<Suffix>)
+      COLT_PRE(!blk.is_null())
     {
       static_assert(!std::same_as<void, Suffix>, "AffixAllocator does not have a suffix!");
       static_cast<Suffix*>(static_cast<u8*>(blk.ptr()) + blk.size().to_bytes())->~Suffix();
     }
+    COLT_POST()
 
     /// @brief Returns the prefix. Be sure to have constructed the prefix!
     /// @param blk The block whose prefix to return
     /// @return reference to the prefix
     constexpr helper_prefix_t& get_prefix(MemBlock blk) const noexcept
+      COLT_PRE(!blk.is_null())
     {
       static_assert(!std::same_as<void, Prefix>, "AffixAllocator does not have a prefix!");
       return *static_cast<Prefix*>(static_cast<void*>(static_cast<u8*>(blk.ptr()) - prefix_size));
     }
+    COLT_POST()
 
     /// @brief Returns the suffix. Be sure to have constructed the suffix!
     /// @param blk The block whose suffix to return
     /// @return reference to the suffix
     constexpr helper_suffix_t& get_suffix(MemBlock blk) const noexcept
+      COLT_PRE(!blk.is_null())
     {
       static_assert(!std::same_as<void, Suffix>, "AffixAllocator does not have a suffix!");
       return *static_cast<Suffix*>(static_cast<void*>(static_cast<u8*>(blk.ptr()) + blk.size().to_bytes()));
     }
+    COLT_POST()
 
     /// @brief Reallocates a MemBlock
     /// @param blk The block to reallocate
@@ -426,7 +444,171 @@ namespace clt::mem
     {
       return Allocator::expand(blk, delta);
     }
-  };  
+  };
+
+  template<meta::Allocator allocator, size_t register_size = 32>
+  class AbortOnNULLAllocator
+    : private allocator
+  {
+    /// @brief The function pointer type that can be registered
+    using register_fn_t = void(*)(void) noexcept;
+
+    /// @brief The array of registered function pointer
+    register_fn_t reg_array[register_size] = {};
+    /// @brief The number of registered function.
+    /// An atomic is used to protect the 'reg_array' from multiple threads accesses
+    std::atomic<size_t> register_count;
+
+  public:
+    /// @brief Alignment of returned MemBlock
+    static constexpr u64 alignment = allocator::alignment;
+
+    /// @brief Register function to call on exit
+    /// @param func The function to register
+    /// @return True if registering was successful, false if there is no more capacity for registering
+    bool register_on_null(void(*func)(void) noexcept) noexcept
+    {
+      if (auto index = register_count.fetch_add(1) < register_size)
+      {
+        reg_array[index] = func;
+        return true;
+      }
+      register_count.fetch_sub(1);
+      return false;
+    }
+
+    /// @brief Allocates a MemBlock through allocator
+    /// @param size The size of the allocation
+    /// @return Allocated MemBlock or empty MemBlock
+    MemBlock alloc(size<Byte> size) noexcept
+    {
+      if (auto blk = allocator::alloc(size))
+        return blk;
+      //Call registered functions
+      const size_t registered_count = register_count;
+      for (size_t i = 0; i < registered_count; i++)
+        reg_array[i]();
+      std::abort();
+    }
+
+    /// @brief Deallocates a MemBlock that was allocated using the current allocator
+    /// @param to_free The block whose resources to free
+    void dealloc(MemBlock to_free) noexcept
+      COLT_PRE(!to_free.is_null())
+    {
+      allocator::dealloc(to_free);
+    }
+    COLT_POST()
+
+    /// @brief Check if the current allocator owns 'blk'
+    /// @param blk The MemBlock to check
+    /// @return True if 'blk' was allocated through the current allocator
+    bool owns(MemBlock blk) noexcept
+    {
+      return allocator::owns(blk);
+    }
+
+    /// @brief Reallocates a MemBlock
+    /// @param blk The block to reallocate
+    /// @param n The new size of the block
+    /// @return True if reallocation was successful
+    constexpr bool realloc(MemBlock& blk, size<Byte> n) noexcept
+    {
+      return allocator::realloc(blk, n);
+    }
+
+    /// @brief Expands a block in place if possible
+    /// @param blk The block to expand
+    /// @param delta The new size
+    /// @return True if expansion was done successfully
+    constexpr bool expand(MemBlock& blk, size<Byte> delta) noexcept
+    {
+      return allocator::expand(blk, delta);
+    }
+  };
+
+  template<meta::Allocator allocator, std::integral size_type = u64>
+  /// @brief Allocator that saves the size of the allocation after the allocation.
+  /// On Debug configuration, the size of the allocation is written twice, before and after
+  /// to detect corruption and report it.
+  /// If allocator is 'Mallocator', the size is not written as the OS will have saved it itself.
+  class SaveSizeAllocator
+    : private std::conditional_t<std::is_same_v<allocator, Mallocator>, Mallocator, AffixAllocator<allocator, size_type, meta::for_debug_for_release_t<size_type, void>>>
+  {
+    using Allocator = std::conditional_t<std::is_same_v<allocator, Mallocator>, Mallocator, AffixAllocator<allocator, size_type, meta::for_debug_for_release_t<size_type, void>>>;
+    
+    static constexpr bool is_mallocator = std::is_same_v<allocator, Mallocator>;
+
+    /// @brief Check if (on Debug configuration) both sizes before and after are the same.
+    /// If they are not, then a corruption occurred.
+    /// @param blk The block to check for
+    /// @return True if corruption is detected
+    constexpr bool is_corrupted(MemBlock blk) const noexcept
+    {
+      return Allocator::get_suffix(blk) != Allocator::get_prefix(blk);
+    }
+
+  public:
+    /// @brief Alignment of returned MemBlock
+    static constexpr u64 alignment = Allocator::alignment;
+
+    /// @brief Allocates a MemBlock
+    /// @param size The size of the allocation
+    /// @return Allocated MemBlock or empty MemBlock
+    constexpr void* alloc(size<Byte> size) noexcept
+    {
+      if constexpr (is_mallocator)
+        return Allocator::alloc(size).ptr();
+      
+      if (auto blk = Allocator::alloc(size))
+      {
+        Allocator::create_prefix(blk, size.to_bytes());
+        if constexpr (is_debug())
+          Allocator::create_suffix(blk, size.to_bytes());
+        return blk.ptr();
+      }
+      return nullblk;
+    }
+
+    /// @brief Deallocates a MemBlock that was allocated using the current allocator
+    /// @param to_free The block whose resources to free
+    constexpr void dealloc(void* to_free) noexcept
+    {
+      if constexpr (is_mallocator)
+        Allocator::dealloc(to_free);
+      
+      if constexpr (is_debug())
+        assert_true(!is_corrupted());
+      if (to_free != nullptr)
+        Allocator::dealloc({ to_free, Allocator::get_prefix(MemBlock{ to_free, 0 }) });
+    }
+
+    /// @brief Check if the current allocator owns 'blk'
+    /// @param blk The MemBlock to check
+    /// @return True if 'blk' was allocated through the current allocator
+    constexpr bool owns(MemBlock blk) const noexcept
+    {
+      return Allocator::owns(blk);
+    }
+
+    /// @brief Reallocates a MemBlock
+    /// @param blk The block to reallocate
+    /// @param n The new size of the block
+    /// @return True if reallocation was successful
+    constexpr bool realloc(MemBlock& blk, size<Byte> n) noexcept
+    {
+      return Allocator::realloc(blk, n);
+    }
+
+    /// @brief Expands a block in place if possible
+    /// @param blk The block to expand
+    /// @param delta The new size
+    /// @return True if expansion was done successfully
+    constexpr bool expand(MemBlock& blk, size<Byte> delta) noexcept
+    {
+      return Allocator::expand(blk, delta);
+    }
+  };
 }
 
 #endif //!HG_COLT_COMPOSABLE_ALLOC
