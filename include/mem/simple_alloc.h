@@ -334,6 +334,7 @@ namespace clt::mem
     /// @param blk The MemBlock to check
     /// @return True if 'blk' was allocated through the current allocator
     constexpr bool owns(MemBlock blk) const noexcept
+      requires meta::OwningAllocator<allocator>
     {
       return allocator::owns(blk);
     }
@@ -343,6 +344,7 @@ namespace clt::mem
     /// @param n The new size of the block
     /// @return True if reallocation was successful
     constexpr bool realloc(MemBlock& blk, size<Byte> n) noexcept
+      requires meta::ReallocatableAllocator<allocator>
     {
       return allocator::dealloc(blk, n);
     }
@@ -352,6 +354,7 @@ namespace clt::mem
     /// @param delta The new size
     /// @return True if expansion was done successfully
     constexpr bool expand(MemBlock& blk, size<Byte> delta) noexcept
+      requires meta::ExpandingAllocator<allocator>
     {
       return allocator::expand(blk);
     }
