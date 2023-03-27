@@ -143,7 +143,7 @@ namespace clt::mem
         return false;
       }
       std::memcpy(new_blk.ptr(), blk.ptr(), blk.size() < new_blk.size() ? blk.size().to_bytes() : new_blk.size().to_bytes());
-      old_a.dealloc(b);
+      old_a.dealloc(blk);
       blk = new_blk;
       return true;
     }
