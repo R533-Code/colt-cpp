@@ -116,6 +116,9 @@ namespace clt::meta
   /// @tparam Debug The type on Debug configuration
   /// @tparam Release The type on Release configuration
   using for_debug_for_release_t = typename for_debug_for_release<Debug, Release>::type;
+
+  /// @brief Empty struct helper
+  struct empty {};
 }
 
 #endif //!HG_COLT_TRAITS
