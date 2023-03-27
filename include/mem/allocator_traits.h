@@ -23,6 +23,20 @@ namespace clt::meta
   {
     { t.owns(b) } -> std::same_as<bool>;
   };
+
+  template<typename T>
+  /// @brief An allocator provides a 'alloc()', 'dealloc()' and 'owns()' method
+  concept ExpandingAllocator = Allocator<T> && requires (T t, mem::MemBlock b, size<Byte> delta)
+  {
+    { t.expand(b, delta) } -> std::same_as<bool>;
+  };
+
+  template<typename T>
+  /// @brief An allocator provides a 'alloc()', 'dealloc()' and 'owns()' method
+  concept ReallocatableAllocator = Allocator<T> && requires (T t, mem::MemBlock b, size<Byte> delta)
+  {
+    { t.realloc(b, delta) } -> std::same_as<bool>;
+  };
 }
 
 #endif //!HG_COLT_ALLOCATOR_TRAITS
