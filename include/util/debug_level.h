@@ -3,10 +3,14 @@
 
 namespace clt
 {
+  /// @brief The debug level of the 'colt' library
   enum debug_level
   {
+    /// @brief No debug (for release configuration)
     COLT_NO_DEBUG,
+    /// @brief Check assertions, contracts
     COLT_DEBUG_L1,
+    /// @brief Same as COLT_DEBUG_L1, but with more checks
     COLT_DEBUG_L2
   };
 
