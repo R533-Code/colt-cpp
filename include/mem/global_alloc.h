@@ -21,14 +21,13 @@ namespace clt::mem
   }
 
   /// @brief Deallocate a block of memory through the global allocator.
-  /// This function does not accept a 'nullblk' as 'alloc' never returns a 'nullblk'.
+  /// This function can accept a 'nullblk' even though 'alloc' never returns a 'nullblk'.
   /// @param blk The block to deallocate
   static void dealloc(MemBlock blk) noexcept
-    COLT_PRE(!blk.is_null())
   {
-    GlobalAllocator.dealloc(blk);
+    if (!blk.is_null())
+      GlobalAllocator.dealloc(blk);
   }
-  COLT_POST()
 
   /// @brief Describes a global allocator
   struct AllocatorDescription
@@ -118,21 +117,34 @@ namespace clt::mem
     using alloc_t = typename decltype(ALLOCATOR)::allocator_type;    
 
     /// @brief The reference to the allocator to use
-    alloc_t& ref;
+    alloc_t* ref;
+
+    // No default constructor
+    allocator_ref() = delete;
+    
+    /// @brief Constructor
+    /// @param ref Reference to the allocator
+    constexpr allocator_ref(alloc_t& ref) noexcept
+      : ref(&ref) {}
+
+    constexpr allocator_ref(const allocator_ref&)             noexcept = default;
+    constexpr allocator_ref& operator=(const allocator_ref&)   noexcept = default;
+    constexpr allocator_ref(allocator_ref&&)                  noexcept = default;
+    constexpr allocator_ref& operator=(allocator_ref&&)        noexcept = default;
 
     /// @brief Allocates a MemBlock through the reference to the allocator
     /// @param size The size of the block
     /// @return Result of allocation
     constexpr MemBlock alloc(size<Byte> size) noexcept
     {
-      return ref.alloc(size);
+      return ref->alloc(size);
     }
 
     /// @brief Deallocates a MemBlock through the reference to the allocator
     /// @param blk The block to deallocate
     constexpr void dealloc(MemBlock blk) noexcept
     {
-      return ref.dealloc(blk);
+      return ref->dealloc(blk);
     }
   };
 
@@ -157,7 +169,7 @@ namespace clt::mem
     /// @param blk The block to deallocate
     constexpr void dealloc(MemBlock blk) noexcept
     {
-      return (*ALLOCATOR.dealloc_fn)(size);
+      return (*ALLOCATOR.dealloc_fn)(blk);
     }
   };
 }
