@@ -418,7 +418,7 @@ namespace clt::mem
     /// @return True if corrupted
     constexpr bool is_prefix_corrupted(MemBlock blk) const noexcept
     {
-      return std::memcmp(&Allocator::get_prefix(blk), pattern.data(), BUFFER_SIZE.to_bytes()) == 0;
+      return std::memcmp(&Allocator::get_prefix(blk), pattern.data(), BUFFER_SIZE.to_bytes()) != 0;
     }
 
     /// @brief Check if suffix of block is corrupted
@@ -426,7 +426,7 @@ namespace clt::mem
     /// @return True if corrupted
     constexpr bool is_suffix_corrupted(MemBlock blk) const noexcept
     {
-      return std::memcmp(&Allocator::get_suffix(blk), pattern.data(), BUFFER_SIZE.to_bytes()) == 0;
+      return std::memcmp(&Allocator::get_suffix(blk), pattern.data(), BUFFER_SIZE.to_bytes()) != 0;
     }
 
     /// @brief Allocates a MemBlock
