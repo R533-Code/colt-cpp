@@ -2,14 +2,16 @@
 #define HG_COLT_VECTOR
 
 #include <utility>
+#include <initializer_list>
+#include <algorithm>
+#include "./helper.h"
 #include "../mem/global_alloc.h"
 
 namespace clt
 {
-  template<typename T, auto ALLOCATOR = mem::GlobalAllocatorDescription>
-    requires meta::AllocatorValue<ALLOCATOR>
+  template<typename T, auto ALLOCATOR/* = mem::GlobalAllocatorDescription*/>
+    requires meta::AllocatorScope<ALLOCATOR>
   class Vector
-    : private mem::allocator_ref<ALLOCATOR>
   {
     /// @brief True if the allocator is global
     static constexpr bool is_global   = meta::GlobalAllocator<ALLOCATOR>;
@@ -19,6 +21,9 @@ namespace clt
     /// @brief Type of the allocator: use Allocator::alloc/dealloc
     using Allocator = mem::allocator_ref<ALLOCATOR>;
 
+    /// @brief The allocator
+    [[no_unique_address]]
+    Allocator allocator;
     /// @brief Pointer to the allocated block (can be null)
     T* blk_ptr = nullptr;
     /// @brief Capacity (count) of objects of the block
@@ -26,34 +31,352 @@ namespace clt
     /// @brief Count of active objects in the block
     size_t blk_size = 0;
 
-    void reserve_obj(size_t plus_capacity) noexcept
+    constexpr void reserve_obj(size_t plus_capacity)
+      noexcept(std::is_nothrow_move_constructible_v<T>
+        && std::is_nothrow_destructible_v<T>)
     {
-
+      if (plus_capacity == 0)
+        return;
+      auto new_blk = allocator.alloc((blk_capacity + plus_capacity) * sizeof(T));
+      //register freeing the memory to avoid leaks in case of exceptions
+      ON_SCOPE_EXIT
+      {
+        allocator.dealloc({ blk_ptr, blk_capacity * sizeof(T) });
+        blk_ptr = new_blk.ptr();
+        blk_capacity = new_blk.size().to_bytes() / sizeof(T);
+      };
+      
+      details::contiguous_destructive_move(blk_ptr, static_cast<T*>(new_blk.ptr()), blk_size);      
     }
 
   public:
-    template<meta::Allocator AllocT> requires is_local
-    /// @brief Default constructor (when allocator is local)
-    /// @param alloc Reference to the allocator
-    constexpr Vector(AllocT& alloc) noexcept
-      : Allocator(alloc) {}
-    
     /// @brief Default constructor (when allocator is global)
     constexpr Vector() noexcept requires is_global = default;
-
+    
     template<meta::Allocator AllocT> requires is_local
     /// @brief Default constructor (when allocator is local)
+    /// @param alloc Reference to the allocator to use
+    constexpr Vector(AllocT& alloc) noexcept
+      : allocator(alloc) {}
+
+    template<meta::Allocator AllocT> requires is_local
+    /// @brief Reserve 'reserve' objects constructor (when allocator is local)
     /// @param alloc Reference to the allocator
+    /// @param reserve The count of objects to allocate for
     constexpr Vector(AllocT& alloc, size_t reserve) noexcept
-      : Allocator(alloc) {}
+      : allocator(alloc)
+    {
+      reserve_obj(reserve);
+    }
 
     /// @brief Default constructor (when allocator is global)
+    /// @param reserve The count of objects to allocate for
     constexpr Vector(size_t reserve) noexcept requires is_global
-      :
+    {
+      reserve_obj(reserve);
+    }
+
+    template<meta::Allocator AllocT, typename... Args> requires is_local
+    /// @brief Constructs 'size' objects using 'args'
+    /// @tparam ...Args The parameter pack
+    /// @param alloc Reference to the local allocator to use
+    /// @param size The count of object to construct
+    /// @param  Tag helper
+    /// @param ...args The argument pack
+    constexpr Vector(AllocT& alloc, size_t size, meta::InPlaceT, Args&&... args)
+      noexcept(std::is_nothrow_constructible_v<T, Args...>)
+      : allocator(alloc), blk_size(size)
+    {
+      reserve_obj(size);
+      details::contiguous_construct(blk_ptr, size, std::forward<Args>(args)...);
+    }
+
+    template<typename... Args> requires is_global
+    /// @brief Constructs 'size' objects using 'args'
+    /// @tparam ...Args The parameter pack
+    /// @param size The count of object to construct
+    /// @param  Tag helper
+    /// @param ...args The argument pack
+    constexpr Vector(size_t size, meta::InPlaceT, Args&&... args)
+      noexcept(std::is_nothrow_constructible_v<T, Args...>)
+      : blk_size(size)
+    {
+      reserve_obj(size);
+      details::contiguous_construct(blk_ptr, size, std::forward<Args>(args)...);
+    }
+
+    template<meta::Allocator AllocT> requires is_local
+    /// @brief Constructs a Vector from an initializer_list
+    /// @param alloc Reference to the local allocator to use
+    /// @param list The initializer list
+    constexpr Vector(AllocT& alloc, std::initializer_list<T> list)
+      noexcept(std::is_nothrow_copy_constructible_v<T>) requires is_global
+      : allocator(alloc), blk_size(std::size(list))
+    {
+      reserve_obj(std::size(list));
+      details::contiguous_copy(std::data(list), blk_ptr, blk_size);
+    }
+
+    /// @brief Constructs a Vector from an initializer_list
+    /// @param list The initializer list
+    constexpr Vector(std::initializer_list<T> list)
+      noexcept(std::is_nothrow_copy_constructible_v<T>) requires is_global
+      : blk_size(std::size(list))
+    {
+      reserve_obj(std::size(list));
+      details::contiguous_copy(std::data(list), blk_ptr, blk_size);
+    }
+
+    /// @brief Copy constructor, copy the content from 'to_copy'
+    /// The capacity of the resulting Vector is the same as 'to_copy'.
+    /// @param to_copy 
+    /// @return 
+    constexpr Vector(const Vector& to_copy)
+      noexcept(std::is_nothrow_copy_constructible_v<T>)
+      : allocator(to_copy.allocator), blk_size(to_copy.blk_size)
+    {
+      reserve_obj(to_copy.blk_capacity);
+      details::contiguous_copy(to_copy.blk_ptr, blk_ptr, to_copy.blk_size);
+    }
+    
+    /// @brief Destroy the active objects and copy the content from 'to_copy'.
+    /// The capacity of the resulting Vector is the same as 'to_copy'.
+    /// @param to_copy The Vector whose objects to copy
+    /// @return Self
+    constexpr Vector& operator=(const Vector& to_copy)
+      noexcept(std::is_nothrow_copy_constructible_v<T>
+        && std::is_nothrow_destructible_v<T>)
+      COLT_PRE(&to_copy != this)
+    {
+      details::contiguous_destruct(blk_ptr, blk_size);
+      if (blk_capacity < to_copy.blk_capacity)
+        reserve_obj(to_copy.blk_capacity - blk_capacity);
+      details::contiguous_copy(to_copy.blk_ptr, blk_ptr, to_copy.blk_size);
+      blk_size = to_copy.blk_size;
+      return *this;
+    }
+    COLT_POST()
+
+    /// @brief Move constructor
+    /// @param to_move The Vector whose resources to steal
+    constexpr Vector(Vector&& to_move) noexcept
+      : allocator(to_move.allocator)
+      , blk_ptr(std::exchange(to_move.blk_ptr, nullptr))
+      , blk_capacity(std::exchange(to_move.blk_capacity, 0))
+      , blk_size(std::exchange(to_move.blk_size, 0)) {}
+
+    /// @brief Move assignment operator, swaps every member (allocator included)
+    /// @param to_move The Vector being assigned
+    /// @return Self
+    constexpr Vector& operator=(Vector&& to_move) noexcept
+      COLT_PRE(&to_move != this)
+    {
+      if constexpr (is_local)
+        std::swap(to_move.allocator.ref, allocator.ref);
+      std::swap(to_move.blk_ptr, blk_ptr);
+      std::swap(to_move.blk_capacity, blk_capacity);
+      std::swap(to_move.blk_size, blk_size);
+      
+      return *this;
+    }
+    COLT_POST()
+
+    /// @brief Destructor, destroy all active objects and free memory
+    constexpr ~Vector()
+      noexcept(std::is_nothrow_destructible_v<T>)
+    {
+      //register freeing even if destructor throws to avoid memory leaks
+      ON_SCOPE_EXIT{
+        allocator.dealloc({ blk_ptr, blk_capacity * sizeof(T) });
+        blk_size = 0;
+      };
+      details::contiguous_destruct(blk_ptr, blk_size);
+    }
+
+    /// @brief Returns a pointer to the beginning of the data
+    /// @return Const pointer to the beginning of the data (can be null)
+    constexpr const T* data() const noexcept { return blk_ptr; }
+    /// @brief Returns a pointer to the beginning of the data
+    /// @return Pointer to the beginning of the data (can be null)
+    constexpr T* data() noexcept { return blk_ptr; }
+
+    /// @brief Returns the count of active objects in the Vector
+    /// @return The count of objects in the Vector
+    constexpr size_t size() const noexcept { return blk_size; }
+    /// @brief Returns the capacity of the current allocation
+    /// @return The capacity of the current allocation
+    constexpr size_t capacity() const noexcept { return blk_capacity; }
+
+    /// @brief Returns the object at index 'index' of the Vector.
+    /// @param index The index of the object
+    /// @return The object at index 'index'
+    constexpr meta::copy_trivial_t<const T&> operator[](size_t index) const noexcept
+      COLT_PRE(index < this->size())
+      return blk_ptr[index];
+    COLT_POST()
+
+    /// @brief Returns a reference to the object at index 'index' of the Vector.
+    /// @param index The index of the object
+    /// @return The object at index 'index'
+    constexpr T& operator[](size_t index) noexcept
+      COLT_PRE(index < this->size())
+      return blk_ptr[index];
+    COLT_POST()
+
+    /// @brief Check if the Vector does not contain any object.
+    /// Same as: size() == 0
+    /// @return True if the Vector is empty
+    constexpr bool is_empty() const noexcept { return blk_size == 0; }
+
+    /// @brief Reserve 'by_more' object
+    /// @param by_more The count of object to reserve for
+    constexpr void reserve(size_t by_more)
+      noexcept(std::is_nothrow_move_constructible_v<T>
+        && std::is_nothrow_destructible_v<T>)
+    {
+      reserve_obj(by_more);
+    }
+
+    /// @brief Push an object at the end of the Vector by copying
+    /// @param to_copy The object to copy at the end of the Vector
+    constexpr void push_back(meta::copy_trivial_t<const T&> to_copy)
+      noexcept(std::is_nothrow_copy_constructible_v<T>)
+    {
+      if (blk_size == blk_capacity)
+        reserve(blk_capacity + 16);
+      new(blk_ptr + blk_size) T(to_copy);
+      ++blk_size;
+    }
+
+    /// @brief Push an object at the end of the Vector by moving
+    /// @tparam T_ SFINAE helper
+    /// @tparam  SFINAE helper
+    /// @param to_move The object to move at the end of the Vector
+    constexpr void push_back(T&& to_move)
+      noexcept(std::is_nothrow_move_constructible_v<T>) requires (!std::is_trivial_v<T>)
+    {
+      if (blk_size == blk_capacity)
+        reserve(blk_capacity + 16);
+      new(blk_ptr + blk_size) T(std::move(to_move));
+      ++blk_size;
+    }
+
+    template<typename... Args>
+    /// @brief Emplace an object at the end of the Vector
+    /// @tparam ...Args The parameter pack
+    /// @param  InPlaceT tag
+    /// @param ...args The argument pack to forward to the constructor
+    constexpr void push_back(meta::InPlaceT, Args&&... args)
+      noexcept(std::is_nothrow_constructible_v<T, Args...>)
+    {
+      if (blk_size == blk_capacity)
+        reserve(blk_capacity + 16);
+      new(blk_ptr + blk_size) T(std::forward<Args>(args)...);
+      ++blk_size;
+    }
+
+    /// @brief Pops an item from the back of the Vector.
+    constexpr void pop_back()
+      noexcept(std::is_nothrow_destructible_v<T>)
+      COLT_PRE(!this->is_empty())
+    {
+      --blk_size;
+      blk_ptr()[blk_size].~T();
+    }
+    COLT_POST()
+
+    /// @brief Pops N item from the back of the Vector.
+    /// @param N The number of item to pop from the back
+    constexpr void pop_back_n(size_t N)
+      noexcept(std::is_nothrow_destructible_v<T>)
+      COLT_PRE(N <= this->size())
+    {
+      for (size_t i = blk_size - N; i < blk_size; i++)
+        blk_ptr()[i].~T();
+      blk_size -= N;
+    }
+    COLT_POST()
+
+    /// @brief Removes all the item from the Vector.
+    /// This does not modify the capacity of the Vector.
+    constexpr void clear()
+      noexcept(std::is_nothrow_destructible_v<T>)
+    {
+      details::contiguous_destruct(blk_ptr(), blk_size);
+      blk_size = 0;
+    }
+
+    /// @brief Returns the first item in the Vector.
+    /// @return The first item in the Vector.
+    constexpr meta::copy_trivial_t<const T&> front() const noexcept
+      COLT_PRE(!this->is_empty())
+      return *blk_ptr;
+    COLT_POST()
+    
+    /// @brief Returns the first item in the Vector.
+    /// @return The first item in the Vector.
+    constexpr T& front() noexcept
+      COLT_PRE(!this->is_empty())
+      return *blk_ptr;
+    COLT_POST()
+
+    /// @brief Returns the last item in the Vector.
+    /// @return The last item in the Vector.
+    constexpr meta::copy_trivial_t<const T&> back() const noexcept
+      COLT_PRE(!this->is_empty())
+      return blk_ptr[blk_size - 1];
+    COLT_POST()
+    
+    /// @brief Returns the last item in the Vector.
+    /// @return The last item in the Vector.
+    constexpr T& back() noexcept
+      COLT_PRE(!this->is_empty())
+      return blk_ptr[blk_size - 1];
+    COLT_POST()
+
+    /// @brief Returns an iterator the beginning of the Vector
+    /// @return Iterator to the beginning of the Vector
+    constexpr T* begin() noexcept { return blk_ptr; }
+    /// @brief Returns an iterator the beginning of the Vector
+    /// @return Iterator to the beginning of the Vector
+    constexpr const T* begin() const noexcept { return blk_ptr; }
+
+    /// @brief Returns an iterator the end of the Vector
+    /// @return Iterator to the end of the Vector
+    constexpr T* end() noexcept { return blk_ptr + blk_size; }
+    /// @brief Returns an iterator the end of the Vector
+    /// @return Iterator to the end of the Vector
+    constexpr const T* end() const noexcept { return blk_ptr + blk_size; }
+
+    /// @brief Check if every object of v1 and v2 are equal
+    /// @param v1 The first Vector
+    /// @param v2 The second Vector
+    /// @return True if both Vector are equal
+    friend constexpr bool operator==(const Vector& v1, const Vector& v2) noexcept
+    {
+      if (v1.size() != v2.size())
+        return false;
+      for (size_t i = 0; i < v1.size(); i++)
+        if (v1[i] != v2[i])
+          return false;
+      return true;
+    }
+
+    /// @brief Lexicographically compare two vectors
+    /// @param v1 The first vector
+    /// @param v2 The second vector
+    /// @return Result of comparison
+    friend constexpr auto operator<=>(const Vector& v1, const Vector& v2) noexcept
+    {
+      return std::lexicographical_compare_three_way(v1.begin(), v1.end(), v2.begin(), v2.end());
+    }
   };
 
-  template<typename T, meta::Allocator alloc>
-  Vector(alloc&)->Vector<T, mem::LocalAllocator<alloc>>;
+  template<typename T, meta::Allocator Alloc, typename... Args>
+  constexpr Vector<T, mem::LocalAllocator<Alloc>> make_local_vector(Alloc& ref, Args&&... args) noexcept
+  {
+    return Vector<T, mem::LocalAllocator<Alloc>>{ref, std::forward<Args>(args)...};
+  }
 }
 
 #endif //!HG_COLT_VECTOR
