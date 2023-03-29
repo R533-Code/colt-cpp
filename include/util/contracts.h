@@ -28,7 +28,7 @@ namespace clt::details
   /// @brief Used to cause a compile-time failure
   inline void constexpr_assert_failed_post() noexcept
   {
-    //PRECONDITION FAILED AT COMPILE TIME!
+    //POSTCONDITION FAILED AT COMPILE TIME!
   }
 
   template<bool is_pre, typename... BoolTs> requires (sizeof...(BoolTs) != 0)
