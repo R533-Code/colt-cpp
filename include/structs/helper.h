@@ -4,6 +4,7 @@
 #include <cstring>
 #include <type_traits>
 
+#include "../math/math.h"
 #include "../util/contracts.h"
 
 namespace clt::details
@@ -17,7 +18,7 @@ namespace clt::details
   constexpr void contiguous_destructive_move(T* from, T* to, size_t count)
     noexcept(std::is_nothrow_move_constructible_v<T>
       && std::is_nothrow_destructible_v<T>)
-    COLT_PRE(std::abs(from - to) >= count)
+    COLT_PRE(clt::abs(from - to) >= count)
   {
     if (std::is_constant_evaluated())
     {
@@ -43,7 +44,7 @@ namespace clt::details
   /// @param count The number of objects to move
   constexpr void contiguous_move(T* from, T* to, size_t count)
     noexcept(std::is_nothrow_move_constructible_v<T>)
-    COLT_PRE(std::abs(from - to) >= count)
+    COLT_PRE(clt::abs(from - to) >= count)
   {
     if (std::is_constant_evaluated())
     {
@@ -80,7 +81,7 @@ namespace clt::details
   /// @param count The number of objects to copy constructs
   inline void contiguous_copy(const T* from, T* to, size_t count)
     noexcept(std::is_nothrow_copy_constructible_v<T>)
-    COLT_PRE(std::abs(from - to) >= count)
+    COLT_PRE(clt::abs(from - to) >= count)
   {
     if (std::is_constant_evaluated())
     {
