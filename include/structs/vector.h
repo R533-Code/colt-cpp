@@ -9,7 +9,7 @@
 
 namespace clt
 {
-  template<typename T, auto ALLOCATOR/* = mem::GlobalAllocatorDescription*/>
+  template<typename T, auto ALLOCATOR = mem::GlobalAllocatorDescription>
     requires meta::AllocatorScope<ALLOCATOR>
   class Vector
   {
@@ -41,8 +41,9 @@ namespace clt
       //register freeing the memory to avoid leaks in case of exceptions
       ON_SCOPE_EXIT
       {
-        allocator.dealloc({ blk_ptr, blk_capacity * sizeof(T) });
-        blk_ptr = new_blk.ptr();
+        if (blk_ptr)
+          allocator.dealloc({ blk_ptr, blk_capacity * sizeof(T) });
+        blk_ptr = static_cast<T*>(new_blk.ptr());
         blk_capacity = new_blk.size().to_bytes() / sizeof(T);
       };
       
@@ -186,8 +187,10 @@ namespace clt
       noexcept(std::is_nothrow_destructible_v<T>)
     {
       //register freeing even if destructor throws to avoid memory leaks
-      ON_SCOPE_EXIT{
-        allocator.dealloc({ blk_ptr, blk_capacity * sizeof(T) });
+      ON_SCOPE_EXIT
+      {
+        if (blk_ptr)
+          allocator.dealloc({ blk_ptr, blk_capacity * sizeof(T) });
         blk_size = 0;
       };
       details::contiguous_destruct(blk_ptr, blk_size);
@@ -281,7 +284,7 @@ namespace clt
       COLT_PRE(!this->is_empty())
     {
       --blk_size;
-      blk_ptr()[blk_size].~T();
+      blk_ptr[blk_size].~T();
     }
     COLT_POST()
 
@@ -292,7 +295,7 @@ namespace clt
       COLT_PRE(N <= this->size())
     {
       for (size_t i = blk_size - N; i < blk_size; i++)
-        blk_ptr()[i].~T();
+        blk_ptr[i].~T();
       blk_size -= N;
     }
     COLT_POST()
@@ -302,7 +305,7 @@ namespace clt
     constexpr void clear()
       noexcept(std::is_nothrow_destructible_v<T>)
     {
-      details::contiguous_destruct(blk_ptr(), blk_size);
+      details::contiguous_destruct(blk_ptr, blk_size);
       blk_size = 0;
     }
 
@@ -378,5 +381,51 @@ namespace clt
     return Vector<T, mem::LocalAllocator<Alloc>>{ref, std::forward<Args>(args)...};
   }
 }
+
+template<typename T, auto ALLOCATOR> requires fmt::is_formattable<T>::value
+struct fmt::formatter<clt::Vector<T, ALLOCATOR>>
+{
+  bool human_readable = false;
+
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    auto it = ctx.begin(), end = ctx.end();
+    if (it == end)
+      return it;
+    if (*it == 'h')
+    {
+      ++it;
+      human_readable = true;
+    }
+    assert_true(*it == '}');
+    return it;
+  }
+
+  template<typename FormatContext>
+  auto format(const clt::Vector<T, ALLOCATOR>& vec, FormatContext& ctx)
+  {
+    auto fmt_to = ctx.out();
+    if (human_readable)
+    {
+      if (!vec.is_empty())
+        fmt_to = fmt::format_to(fmt_to, "{}", vec.front());
+      for (size_t i = 1; i < vec.size() - 1; i++)
+        fmt_to = fmt::format_to(fmt_to, ", {}", vec[i]);
+      if (vec.size() != 1)
+        fmt_to = fmt::format_to(fmt_to, " and {}", vec.back());
+      return fmt_to;
+    }
+    else
+    {
+      fmt_to = fmt::format_to(fmt_to, "[");
+      if (!vec.is_empty())
+        fmt_to = fmt::format_to(fmt_to, "{}", vec.front());
+      for (size_t i = 1; i < vec.size(); i++)
+        fmt_to = fmt::format_to(fmt_to, ", {}", vec[i]);
+      return fmt::format_to(fmt_to, "]");
+    }
+  }
+};
 
 #endif //!HG_COLT_VECTOR
