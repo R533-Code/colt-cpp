@@ -1,6 +1,8 @@
 #ifndef HG_COLT_CONTRACTS
 #define HG_COLT_CONTRACTS
 
+#include <cstdio>
+
 #include "./typedefs.h"
 #include "./debug_level.h"
 #include "../meta/traits.h"
@@ -65,7 +67,7 @@ namespace clt::details
         if constexpr (is_pre)
         {
           if (!error) {
-            printf("CONTRACT FAILED (PRECONDITION): in function:\n\"%s\":\n", fn_name);
+            std::printf("CONTRACT FAILED (PRECONDITION): in function:\n\"%s\":\n", fn_name);
             error = true;
           }
           printf("%llu) %s => false\n", i + 1, array[i]->str);
@@ -73,10 +75,10 @@ namespace clt::details
         else
         {
           if (!error) {
-            printf("CONTRACT FAILED (POSTCONDITION): in function:\n\"%s\":\n", fn_name);
+            std::printf("CONTRACT FAILED (POSTCONDITION): in function:\n\"%s\":\n", fn_name);
             error = true;
           }
-          printf("%llu) %s => false\n", i + 1, array[i]->str);
+          std::printf("%llu) %s => false\n", i + 1, array[i]->str);
         }
       }
       if (error)
