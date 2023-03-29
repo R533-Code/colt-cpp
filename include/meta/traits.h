@@ -119,6 +119,28 @@ namespace clt::meta
 
   /// @brief Empty struct helper
   struct empty {};
+
+  template<typename T>
+  /// @brief Contains type field, which is T for trivial types, and T for non-trivial types.
+  /// Example: copy_if_trivial<const T&>::type operator[](size_t index) {}
+  /// This would make the operator return a copy for trivial types.
+  /// Do no use to return non-const references:
+  /// Should be used with const references (const T&/const T&&).
+  /// @tparam T The type to copy
+  struct copy_trivial
+  {
+    static_assert(std::is_const_v<T>, "Type of copy_trivial should be 'const'");
+    using type = typename std::conditional_t<std::is_trivial_v<std::decay_t<T>> && sizeof(T) <= 16, std::decay_t<T>, T>;
+  };
+
+  template<typename T>
+  /// @brief Short hand for copy_if_trivial::type.
+  /// Example: copy_if_trivial<const T&>::type operator[](size_t index) {}
+  /// This would make the operator return a copy for trivial types.
+  /// Do no use to return non-const references:
+  /// Should be used with const references (const T&/const T&&).
+  /// @tparam T The type to copy
+  using copy_trivial_t = typename copy_trivial<T>::type;
 }
 
 #endif //!HG_COLT_TRAITS
