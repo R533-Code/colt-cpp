@@ -447,7 +447,7 @@ namespace clt::mem
     /// @param to_free The block whose resources to free
     constexpr void dealloc(MemBlock to_free) noexcept
     {
-      assert_true(!is_prefix_corrupted(), !is_suffix_corrupted());
+      assert_true(!is_prefix_corrupted(to_free), !is_suffix_corrupted(to_free));
       Allocator::dealloc(to_free);
     }
 
