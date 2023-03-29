@@ -2,7 +2,8 @@
 #include "util/benchmark.h"
 #include "io/print.h"
 #include "io/input.h"
-#include "mem/global_alloc.h"
+#include "structs/vector.h"
+#include <vector>
 
 using namespace std::chrono_literals;
 using namespace clt;
@@ -17,6 +18,10 @@ int main(int argc, int argv)
     COLT_PROFILE_SCOPE("fmt::print");
     print_message("Hello {}", "World!");
   }
-  auto blk = alloc(1024_KiB);
-  dealloc(blk);
+  auto vec = Vector<int>(10ULL);
+  vec.push_back(10);
+  vec.push_back(13);
+  vec.push_back(15);
+  vec.pop_back_n(10);
+  print("Vector: {:h}", vec);
 }
