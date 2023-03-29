@@ -14,7 +14,7 @@ namespace clt
   /// @brief Returns the absolute value (distance from zero) of an integer
   /// @param value The value whose absolute value to compute
   /// @return The absolute value
-  constexpr Int abs(Int value) noexcept
+  constexpr std::make_unsigned_t<Int> abs(Int value) noexcept
     COLT_PRE(value != std::numeric_limits<Int>::min())
   {    
     if (std::is_constant_evaluated())
