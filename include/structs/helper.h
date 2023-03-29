@@ -111,4 +111,16 @@ namespace clt::details
   }
 }
 
+namespace clt::meta
+{
+  /// @brief Tag struct for constructing in place
+  struct InPlaceT{};
+}
+
+namespace clt
+{
+  /// @brief Tag object for constructing in place
+  inline constexpr meta::InPlaceT InPlace;
+}
+
 #endif //!HG_COLT_HELPER
