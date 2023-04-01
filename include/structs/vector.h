@@ -4,8 +4,10 @@
 #include <utility>
 #include <initializer_list>
 #include <algorithm>
-#include "./helper.h"
+
 #include "../mem/global_alloc.h"
+#include "./helper.h"
+#include "./span.h"
 
 namespace clt
 {
@@ -350,6 +352,20 @@ namespace clt
     /// @brief Returns an iterator the end of the Vector
     /// @return Iterator to the end of the Vector
     constexpr const T* end() const noexcept { return blk_ptr + blk_size; }
+
+    /// @brief Converts a Vector to a View
+    /// @return View over the whole Vector
+    constexpr operator View<T>() const noexcept
+    {
+      return Span{ begin(), end() };
+    }
+
+    /// @brief Converts a Vector to a Span
+    /// @return Span over the whole Vector
+    constexpr operator Span<T>() noexcept
+    {
+      return Span{ begin(), end() };
+    }
 
     /// @brief Check if every object of v1 and v2 are equal
     /// @param v1 The first Vector
