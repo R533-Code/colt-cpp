@@ -8,6 +8,8 @@
 namespace clt
 {
   template<typename T>
+  /// @brief [Non]-Owning view over contiguous objects
+  /// @tparam T The type of the objects (if const then non-owning)
   class Span
   {
     /// @brief Pointer to the beginning of the view, can be null
@@ -15,6 +17,7 @@ namespace clt
     /// @brief Count of items in the view
     size_t count;
 
+    /// @brief Helper type for non-owning optimization
     using ref_or_copy = std::conditional_t<std::is_const_v<T>, meta::copy_trivial_t<T&>, T&>;
 
   public:
