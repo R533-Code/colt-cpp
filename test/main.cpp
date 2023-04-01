@@ -3,12 +3,19 @@
 #include "io/print.h"
 #include "io/input.h"
 #include "structs/vector.h"
-#include <vector>
+#include "structs/expect.h"
 
 using namespace std::chrono_literals;
 using namespace clt;
 using namespace clt::io;
 using namespace clt::mem;
+
+Expect<int, const char*> div_expect(int a, int b)
+{
+  if (b != 0)
+    return a / b;
+  return { Error, "Division by zero is prohibited!" };
+}
 
 int main(int argc, int argv)
 {
@@ -22,6 +29,6 @@ int main(int argc, int argv)
   vec.push_back(10);
   vec.push_back(13);
   vec.push_back(15);
-  vec.pop_back_n(10);
-  print("Vector: {:h}", vec);
+  vec.pop_back_n(2);
+  print("{}, {}", div_expect(10, 2), div_expect(19, 0));
 }
