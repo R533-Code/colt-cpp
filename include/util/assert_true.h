@@ -17,10 +17,10 @@ namespace clt::details
   /// @tparam ...BoolTs The type parameter pack
   /// @param fn_name The function name
   /// @param ...bools The Assertion pack
-  constexpr void assert_true_multiple(const char* fn_name, BoolTs... bools) noexcept
+  constexpr void assert_true_multiple(const char* message, const char* fn_name, BoolTs... bools) noexcept
   {
     static_assert((std::is_same_v<Assertion, std::decay_t<BoolTs>> && ...),
-      "This function expects 'Assertion'! Use COLT_PRE and COLT_POST rather than calling it directly!");
+      "This function expects 'Assertion'! Use assert_true rather than calling it directly!");
     if (std::is_constant_evaluated())
     {
       Assertion* array[sizeof...(BoolTs)] = { &bools... };
@@ -41,10 +41,10 @@ namespace clt::details
         if (array[i]->value)
           continue;
         if (!error) {
-          printf("ASSERTION FAILED: in function:\n\"%s\":\n", fn_name);
+          std::printf("ASSERTION FAILED: in function:\n\"%s\":\n%s\n", fn_name, message);
           error = true;
         }
-        printf("%llu) %s => false\n", i + 1, array[i]->str);
+        std::printf("%llu) %s => false\n", i + 1, array[i]->str);
       }
       if (error)
         colt_intrinsic_dbreak();
@@ -52,6 +52,7 @@ namespace clt::details
   }
 }
 
-#define assert_true(COND, ...) clt::details::assert_true_multiple(COLT_FUNCTION_NAME COLT_DETAILS_TO_ASSERTION(COND) COLT_FOR_EACH(COLT_DETAILS_TO_ASSERTION, __VA_ARGS__))
+/// @brief Asserts that all condition are true
+#define assert_true(MESSAGE, COND, ...) clt::details::assert_true_multiple(MESSAGE, COLT_FUNCTION_NAME COLT_DETAILS_TO_ASSERTION(COND) COLT_FOR_EACH(COLT_DETAILS_TO_ASSERTION, __VA_ARGS__))
 
 #endif //!HG_COLT_ASSERT_TRUE
