@@ -118,12 +118,18 @@ namespace clt::meta
 {
   /// @brief Tag struct for constructing in place
   struct InPlaceT{};
+
+  /// @brief Tag struct for constructing errors in Expect
+  struct ErrorT{};
 }
 
 namespace clt
 {
   /// @brief Tag object for constructing in place
   inline constexpr meta::InPlaceT InPlace;
+
+  /// @brief Tag object for constructing an error in Expect
+  inline constexpr meta::ErrorT Error;
 }
 
 #endif //!HG_COLT_HELPER
