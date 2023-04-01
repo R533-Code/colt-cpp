@@ -13,6 +13,8 @@ namespace clt
 {
   template<typename T, auto ALLOCATOR = mem::GlobalAllocatorDescription>
     requires meta::AllocatorScope<ALLOCATOR>
+  /// @brief Dynamic size array, that can make use of a local allocator
+  /// @tparam T The type stored in the Vector
   class Vector
   {
     /// @brief True if the allocator is global
@@ -20,10 +22,10 @@ namespace clt
     /// @brief True if the allocator is local (we need a reference to it)
     static constexpr bool is_local    = meta::LocalAllocator<ALLOCATOR>;
 
-    /// @brief Type of the allocator: use Allocator::alloc/dealloc
+    /// @brief Type of the allocator
     using Allocator = mem::allocator_ref<ALLOCATOR>;
 
-    /// @brief The allocator
+    /// @brief The allocator used for allocation/deallocation
     [[no_unique_address]]
     Allocator allocator;
     /// @brief Pointer to the allocated block (can be null)
@@ -409,7 +411,8 @@ struct fmt::formatter<clt::Vector<T, ALLOCATOR>>
   template<typename ParseContext>
   constexpr auto parse(ParseContext& ctx)
   {
-    auto it = ctx.begin(), end = ctx.end();
+    auto it = ctx.begin();
+    auto end = ctx.end();
     if (it == end)
       return it;
     if (*it == 'h')
