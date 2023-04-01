@@ -129,7 +129,7 @@ namespace clt::meta
   /// @tparam T The type to copy
   struct copy_trivial
   {
-    static_assert(std::is_const_v<std::remove_reference_t<T>>, "Type of copy_trivial should be 'const'");
+    static_assert(std::is_reference_v<T>, "Type of copy_trivial should be a (const) reference!");
     using type = typename std::conditional_t<std::is_trivial_v<std::decay_t<T>> && sizeof(T) <= 16, std::decay_t<T>, T>;
   };
 
