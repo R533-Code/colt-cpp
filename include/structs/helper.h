@@ -4,6 +4,7 @@
 #include <cstring>
 #include <type_traits>
 
+#include "../meta/traits.h"
 #include "../math/math.h"
 #include "../util/contracts.h"
 #include "../util/assert_true.h"
@@ -119,9 +120,13 @@ namespace clt::details
   /// @tparam From The type to convert from
   /// @param frm The value to convert
   /// @return Converted value
-  constexpr To* ptr_to(From* frm) noexcept
+  constexpr To ptr_to(From frm) noexcept
+    requires std::is_pointer_v<To> && std::is_pointer_v<From>
   {
-    return static_cast<To*>(static_cast<void*>(frm));
+    return static_cast<To>(
+      static_cast<
+      meta::match_cv_t<std::remove_pointer_t<From>, void>*
+      >(frm));
   }
 }
 
