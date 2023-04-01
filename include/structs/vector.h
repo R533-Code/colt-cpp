@@ -371,11 +371,14 @@ namespace clt
     /// @return Result of comparison
     friend constexpr auto operator<=>(const Vector& v1, const Vector& v2) noexcept
     {
-      return std::lexicographical_compare_three_way(v1.begin(), v1.end(), v2.begin(), v2.end());
+      return std::lexicographical_compare_three_way(
+        v1.begin(), v1.end(), v2.begin(), v2.end()
+      );
     }
   };
 
   template<typename T, meta::Allocator Alloc, typename... Args>
+  /// @brief Constructs a Vector using a local allocator
   constexpr Vector<T, mem::LocalAllocator<Alloc>> make_local_vector(Alloc& ref, Args&&... args) noexcept
   {
     return Vector<T, mem::LocalAllocator<Alloc>>{ref, std::forward<Args>(args)...};
@@ -398,7 +401,7 @@ struct fmt::formatter<clt::Vector<T, ALLOCATOR>>
       ++it;
       human_readable = true;
     }
-    assert_true(*it == '}');
+    assert_true("Possible format for Vector are: {} or {:h}!", *it == '}');
     return it;
   }
 
