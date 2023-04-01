@@ -112,6 +112,17 @@ namespace clt::details
         begin[i].~T();
     }
   }
+
+  template<typename To, typename From>
+  /// @brief Helper to converts a pointer to a type to a pointer to another type
+  /// @tparam To The type to convert
+  /// @tparam From The type to convert from
+  /// @param frm The value to convert
+  /// @return Converted value
+  constexpr To* ptr_to(From* frm) noexcept
+  {
+    return static_cast<To*>(static_cast<void*>(frm));
+  }
 }
 
 namespace clt::meta
@@ -121,6 +132,9 @@ namespace clt::meta
 
   /// @brief Tag struct for constructing errors in Expect
   struct ErrorT{};
+
+  /// @brief Tag struct for constructing empty Option
+  struct NoneT{};
 }
 
 namespace clt
@@ -130,6 +144,9 @@ namespace clt
 
   /// @brief Tag object for constructing an error in Expect
   inline constexpr meta::ErrorT Error;
+
+  /// @brief Tag object for constructing an empty Option
+  inline constexpr meta::NoneT None;
 }
 
 #endif //!HG_COLT_HELPER
