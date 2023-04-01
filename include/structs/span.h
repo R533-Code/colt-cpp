@@ -54,7 +54,7 @@ namespace clt
 
     /// @brief Returns a pointer to the beginning of the view.
     /// @return Pointer to the beginning of the view
-    constexpr T* data() const noexcept requires (!std::is_const_v<T>) { return begin_ptr; }
+    constexpr T* data() const noexcept { return begin_ptr; }
 
     /// @brief Returns the count of object the view spans on.
     /// @return The count of objects
