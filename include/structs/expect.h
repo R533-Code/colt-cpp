@@ -414,4 +414,28 @@ namespace clt
   };
 }
 
+template<typename T, typename E>
+  requires fmt::is_formattable<T>::value && fmt::is_formattable<E>::value
+struct fmt::formatter<clt::Expect<T, E>>
+{
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    auto it = ctx.begin();
+    auto end = ctx.end();
+    assert_true("Possible format for Expect is: {}!", it == end);
+    return it;
+  }
+
+  template<typename FormatContext>
+  auto format(const clt::Expect<T, E>& exp, FormatContext& ctx)
+  {
+    auto fmt_to = ctx.out();
+    if (exp.is_error())
+      return fmt::format_to(fmt_to, "{}", exp.error());
+    else
+      return fmt::format_to(fmt_to, "{}", exp.value());
+  }
+};
+
 #endif //!HG_COLT_EXPECT
