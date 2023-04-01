@@ -71,16 +71,13 @@ namespace clt::mem
     constexpr bool is_null() const noexcept { return blk_ptr == nullptr; }
     /// @brief Check if 'ptr() != nullptr'
     /// @return True if the MemBlock points to a block
-    constexpr operator bool() const noexcept { return blk_ptr != nullptr; }
+    explicit constexpr operator bool() const noexcept { return blk_ptr != nullptr; }
 
     /// @brief Check if two blocks are equal.
     /// Comparison of the pointer, then the sizes are done.
     /// @param blk The block to compare with
     /// @return True if both the block and size are equal
-    constexpr bool operator==(const MemBlock& blk) const noexcept
-    {
-      return blk_ptr == blk.blk_ptr && blk_sz == blk.blk_sz;
-    }
+    constexpr bool operator==(const MemBlock&) const noexcept = default;
 
     /// @brief Check if a block is nullptr
     /// @param  nullptr
@@ -88,15 +85,6 @@ namespace clt::mem
     constexpr bool operator==(std::nullptr_t) const noexcept
     {
       return blk_ptr == nullptr;
-    }
-
-    /// @brief Check if two blocks are not equal.
-    /// Comparison of the pointer, then the sizes are done.
-    /// @param blk The block to compare with
-    /// @return True if either the block or size are not equal
-    constexpr bool operator!=(const MemBlock& blk) const noexcept
-    {
-      return blk_ptr != blk.blk_ptr || blk_sz != blk.blk_sz;
     }
 
     /// @brief Check if a block is not nullptr
