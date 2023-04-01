@@ -58,7 +58,8 @@ namespace clt::mem
     constexpr AllocatorDescription(AllocFn a, DeallocFn d, ReallocFn r, ExpandFn e, OwnFn o) noexcept
       : alloc_fn(a), dealloc_fn(d), realloc_fn(r), expand_fn(e), own_fn(o)
     {
-      assert_true(alloc_fn != nullptr, dealloc_fn != nullptr);
+      assert_true("An allocator at least has an allocation and deallocation function!",
+        alloc_fn != nullptr, dealloc_fn != nullptr);
     }
   };
 

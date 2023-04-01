@@ -616,7 +616,7 @@ namespace clt::mem
         Allocator::dealloc(to_free);
       
       if constexpr (is_debug())
-        assert_true(!is_corrupted());
+        assert_true("Size information was corrupted!", !is_corrupted());
       if (to_free != nullptr)
         Allocator::dealloc({ to_free, Allocator::get_prefix(MemBlock{ to_free, 0 }) });
     }
