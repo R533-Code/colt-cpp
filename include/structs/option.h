@@ -7,6 +7,7 @@
 #define HG_COLT_OPTIONAL
 
 #include "./helper.h"
+#include "./span.h"
 
 namespace clt
 {
@@ -126,7 +127,7 @@ namespace clt
     constexpr ~Option()
       noexcept(std::is_nothrow_destructible_v<T>)
     {
-      reset()
+      reset();
     }
 
     /// @brief Check if the Option contains a value.
@@ -232,5 +233,40 @@ namespace clt
     }
   };
 }
+
+template<typename T>
+  requires fmt::is_formattable<T>::value
+struct fmt::formatter<clt::Option<T>>
+{
+  clt::View<char> none_str = { "None", 4 };
+
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    auto it = ctx.begin();
+    auto end = ctx.end();
+    if (it == end)
+      return it;
+    auto begin = it;
+    size_t count = 0;
+    while (*it != '}')
+    {
+      ++count;
+      ++it;
+    }
+    none_str = clt::View<char>(begin, count);
+    return it;
+  }
+
+  template<typename FormatContext>
+  auto format(const clt::Option<T>& opt, FormatContext& ctx)
+  {
+    auto fmt_to = ctx.out();
+    if (opt.is_value())
+      return fmt::format_to(fmt_to, "{}", opt.value());
+    else
+      return fmt::format_to(fmt_to, "{:.{}}", none_str.data(), none_str.size());
+  }
+};
 
 #endif //!HG_COLT_OPTIONAL
