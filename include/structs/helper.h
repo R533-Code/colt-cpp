@@ -6,6 +6,8 @@
 
 #include "../math/math.h"
 #include "../util/contracts.h"
+#include "../util/assert_true.h"
+#include "../io/print.h"
 
 namespace clt::details
 {
