@@ -170,7 +170,8 @@ struct fmt::formatter<clt::Span<T>>
   template<typename ParseContext>
   constexpr auto parse(ParseContext& ctx)
   {
-    auto it = ctx.begin(), end = ctx.end();
+    auto it = ctx.begin();
+    auto end = ctx.end();
     if (it == end)
       return it;
     if (*it == 'h')
