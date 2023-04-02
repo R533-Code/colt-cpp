@@ -102,11 +102,12 @@ namespace clt::iter
 #define COLT_DETAILS_MAP_PAIR_ENUM(en)  , std::pair{ clt::StringView{ #en }, en }
 
 /// @brief Declares an enumeration with reflection support
-#define DECLARE_ENUM_WITH_TYPE(type, name, first, ...) \
+#define DECLARE_ENUM_WITH_TYPE(type, namespace_name, name, first, ...) \
+  namespace namespace_name { \
   enum class name : type { \
     first \
     COLT_FOR_EACH(COLT_DETAILS_EXPAND_ENUM, __VA_ARGS__) \
-  }; \
+  }; } \
   template<> \
   struct clt::refl<name> { \
     using enum_type = type; \
@@ -147,11 +148,12 @@ namespace clt::iter
   constexpr refl<name>::ArrayTable_t refl<name>::internal_map = refl<name>::get_array(); \
   constexpr refl<name>::Map_t refl<name>::map =  {{ refl<name>::internal_map }}
 
-#define DECLARE_ENUM(name, first, ...) \
+#define DECLARE_ENUM(namespace_name, name, first, ...) \
+  namespace namespace_name { \
   enum class name { \
     first \
     COLT_FOR_EACH(COLT_DETAILS_EXPAND_ENUM, __VA_ARGS__) \
-  }; \
+  }; } \
   template<> \
   struct clt::refl<name> { \
     using enum_type = std::underlying_type_t<name>; \
