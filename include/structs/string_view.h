@@ -69,7 +69,7 @@ namespace clt
     constexpr StringViewOf strip_spaces() noexcept
     {
       while (ViewT::is_not_empty())
-        if (std::isspace(*View::begin()))
+        if (std::isspace(*ViewT::begin()))
           ViewT::pop_front();
         else
           break;
@@ -155,7 +155,7 @@ struct fmt::formatter<clt::StringView>
   template<typename FormatContext>
   auto format(const clt::StringView& str, FormatContext& ctx)
   {
-    return fmt::format_to(fmt_to, "{:.{}}", str.data(), str.size());
+    return fmt::format_to(ctx.out(), "{:.{}}", str.data(), str.size());
   }
 };
 
