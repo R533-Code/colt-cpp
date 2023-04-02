@@ -140,6 +140,9 @@ namespace clt::meta
 
   /// @brief Tag struct for constructing empty Option
   struct NoneT{};
+
+  /// @brief Tag struct for constructing strings with NUL terminator
+  struct WithNULT{};
 }
 
 namespace clt
@@ -152,6 +155,9 @@ namespace clt
 
   /// @brief Tag object for constructing an empty Option
   inline constexpr meta::NoneT None;
+
+  /// @brief Tag object for constructing strings with NUL terminator
+  inline constexpr meta::WithNULT WithNUL;
 }
 
 #endif //!HG_COLT_HELPER
