@@ -12,15 +12,14 @@
 #include <utility>
 #include "./print.h"
 #include "../util/contracts.h"
+#include "../refl/enum.h"
+#include "../structs/span.h"
+#include "../structs/expect.h"
+
+DECLARE_ENUM_WITH_TYPE(u8, clt::io, IOError, FILE_EOF);
 
 namespace clt::io
 {
-  enum class IOError
-  {
-    NO_ERR,
-    FILE_EOF
-  };
-
   static void toggle_echo() noexcept
   {
 #ifdef _WIN32
@@ -53,13 +52,16 @@ namespace clt::io
   }
 
   
-  std::pair<u32, IOError> gets_no_echo(char* buffer, u32 n) noexcept
-  COLT_PRE(n != 0)
+  Expect<u32, IOError> gets_no_echo(clt::Span<char> span) noexcept
+    COLT_PRE(!span.is_empty())
   {
+    auto n = static_cast<u32>(span.size());
+    char* buffer = span.data();
+    
     toggle_echo();
     char chr = getchar();
     if (chr == EOF)
-      return { 0, IOError::FILE_EOF };
+      return { Error, IOError::FILE_EOF };
     buffer[0] = chr;
     u32 i = 1;
     for (; i < n; i++)
@@ -70,16 +72,19 @@ namespace clt::io
       buffer[i] = chr;
     }
     toggle_echo();
-    return { i, IOError::NO_ERR };
+    return { i };
   }
   COLT_POST()
 
-  std::pair<u32, IOError> gets(char* buffer, u32 n) noexcept
-  COLT_PRE(n != 0)
+  Expect<u32, IOError> gets(Span<char> span) noexcept
+    COLT_PRE(!span.is_empty())
   {
+    auto n = static_cast<u32>(span.size());
+    char* buffer = span.data();
+
     char chr = getchar();
     if (chr == EOF)
-      return { 0, IOError::FILE_EOF };
+      return { Error, IOError::FILE_EOF };
     buffer[0] = chr;
     u32 i = 1;
     for (; i < n; i++)
@@ -89,7 +94,7 @@ namespace clt::io
         break;
       buffer[i] = chr;
     }
-    return { i, IOError::NO_ERR };
+    return { i };
   }
   COLT_POST()
 }
