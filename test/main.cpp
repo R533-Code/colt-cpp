@@ -5,11 +5,14 @@
 #include "structs/vector.h"
 #include "structs/expect.h"
 #include "structs/option.h"
+#include "refl/enum.h"
 
 using namespace std::chrono_literals;
 using namespace clt;
 using namespace clt::io;
 using namespace clt::mem;
+
+DECLARE_ENUM_WITH_TYPE(clt::u8, OS, Windows, Linux, MacOS);
 
 Expect<int, const char*> div_expect(int a, int b)
 {
@@ -29,6 +32,9 @@ int main(int argc, int argv)
 {
   std::atexit([]() { clt::bench::save_tracing_to("Test.json"); });
   
+  for (auto en : refl<OS>::iter())
+    print("{}", en);
+
   {
     COLT_PROFILE_SCOPE("fmt::print");
     print_message("Hello {}", "World!");
