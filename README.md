@@ -26,6 +26,11 @@ Compile-time and meta-programming utilities.
 - `traits.h`: Helper traits and meta-programming utilities.
 - `type_list.h`: Compile-time type list
 
+### refl:
+Reflection utilities.
+- `enum.h`: Magic enum using `DECLARE_ENUM_WITH_TYPE`
+- `refl.h`: Reflection utilities for types
+
 ### structs:
 Data structures and helpers.
 - `expect.h`: `Expect<Exp, Err>` type to represent an expected result
