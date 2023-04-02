@@ -235,4 +235,32 @@ namespace clt
   }
 }
 
+template<typename T>
+/// @brief Pointer
+/// @tparam T The type pointed to by the pointer
+using PTR = T*;
+
+/// @brief signed 8-bit integer
+using i8 = int8_t;
+/// @brief signed 16-bit integer
+using i16 = int16_t;
+/// @brief signed 32-bit integer
+using i32 = int32_t;
+/// @brief signed 64-bit integer
+using i64 = int64_t;
+/// @brief unsigned 8-bit integer
+using u8 = uint8_t;
+/// @brief unsigned 16-bit integer
+using u16 = uint16_t;
+/// @brief unsigned 32-bit integer
+using u32 = uint32_t;
+/// @brief unsigned 64-bit integer
+using u64 = uint64_t;
+/// @brief 1-bit integer
+using bit = bool;
+/// @brief 32-bit floating point
+using f32 = float;
+/// @brief 64-bit floating point
+using f64 = double;
+
 #endif //!HG_TYPEDEFS
