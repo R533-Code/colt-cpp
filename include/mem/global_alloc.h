@@ -15,7 +15,7 @@ namespace clt::mem
   /// @brief Allocate a block of memory through the global allocator
   /// @param sz The size of the block
   /// @return A MemBlock that is NEVER null
-  static MemBlock alloc(byte_size<Byte> sz) noexcept
+  static MemBlock global_alloc(byte_size<Byte> sz) noexcept
   {
     return GlobalAllocator.alloc(sz);
   }
@@ -23,7 +23,7 @@ namespace clt::mem
   /// @brief Deallocate a block of memory through the global allocator.
   /// This function can accept a 'nullblk' even though 'alloc' never returns a 'nullblk'.
   /// @param blk The block to deallocate
-  static void dealloc(MemBlock blk) noexcept
+  static void global_dealloc(MemBlock blk) noexcept
   {
     if (!blk.is_null())
       GlobalAllocator.dealloc(blk);
@@ -64,7 +64,7 @@ namespace clt::mem
   };
 
   /// @brief Description of the GlobalAllocator
-  inline constexpr AllocatorDescription GlobalAllocatorDescription = { &clt::mem::alloc, &clt::mem::dealloc, nullptr, nullptr, nullptr };
+  inline constexpr AllocatorDescription GlobalAllocatorDescription = { &clt::mem::global_alloc, &clt::mem::global_dealloc, nullptr, nullptr, nullptr };
 
   /// @brief Tag type for asking
   template<typename T>
