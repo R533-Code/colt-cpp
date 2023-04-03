@@ -27,7 +27,7 @@ namespace clt
   template<meta::StdRatio RatioT>
   /// @brief Class responsible of holding byte sizes
   /// @tparam RatioT The ratio to bytes
-  struct size
+  struct byte_size
   {
     /// @brief The count of bytes / RatioT::num
     u64 count;
@@ -37,7 +37,7 @@ namespace clt
 
     /// @brief Constructs a size from a count of RatioT
     /// @param count The size
-    constexpr size(u64 count) noexcept
+    constexpr byte_size(u64 count) noexcept
       : count(count) {}
 
     template<typename rt> requires (RatioT::num < rt::num)
@@ -45,7 +45,7 @@ namespace clt
     /// Use size_cast for lossy conversions.
     /// @tparam rt The ratio of the other size
     /// @param count The other size
-    constexpr size(size<rt> count) noexcept
+    constexpr byte_size(byte_size<rt> count) noexcept
       : count(count.count * rt::num) {}
 
     /// @brief Converts the size to a byte count
@@ -61,7 +61,7 @@ namespace clt
     /// @tparam rt The ratio of the other size
     /// @param other The other size
     /// @return True if equal
-    constexpr bool operator==(size<rt> other) const noexcept
+    constexpr bool operator==(byte_size<rt> other) const noexcept
     {
       //We would like to avoid overflow, so rather than comparing
       // to_bytes(), we convert to the biggest size.
@@ -76,7 +76,7 @@ namespace clt
     /// @tparam rt The ratio of the other size
     /// @param other The other size
     /// @return True if not equal
-    constexpr bool operator!=(size<rt> other) const noexcept
+    constexpr bool operator!=(byte_size<rt> other) const noexcept
     {
       if constexpr (rt::num > RatioT::num)
         return other.count * rt::num / RatioT::num != count;
@@ -89,7 +89,7 @@ namespace clt
     /// @tparam rt The ratio of the other size
     /// @param other The other size
     /// @return True if less or equal
-    constexpr bool operator<=(size<rt> other) const noexcept
+    constexpr bool operator<=(byte_size<rt> other) const noexcept
     {
       if constexpr (rt::num > RatioT::num)
         return other.count * rt::num / RatioT::num <= count;
@@ -102,7 +102,7 @@ namespace clt
     /// @tparam rt The ratio of the other size
     /// @param other The other size
     /// @return True if greater or equal
-    constexpr bool operator>=(size<rt> other) const noexcept
+    constexpr bool operator>=(byte_size<rt> other) const noexcept
     {
       if constexpr (rt::num > RatioT::num)
         return other.count * rt::num / RatioT::num >= count;
@@ -115,7 +115,7 @@ namespace clt
     /// @tparam rt The ratio of the other size
     /// @param other The other size
     /// @return True if less
-    constexpr bool operator<(size<rt> other) const noexcept
+    constexpr bool operator<(byte_size<rt> other) const noexcept
     {
       if constexpr (rt::num > RatioT::num)
         return other.count * rt::num / RatioT::num < count;
@@ -128,7 +128,7 @@ namespace clt
     /// @tparam rt The ratio of the other size
     /// @param other The other size
     /// @return True if greater
-    constexpr bool operator>(size<rt> other) const noexcept
+    constexpr bool operator>(byte_size<rt> other) const noexcept
     {
       if constexpr (rt::num > RatioT::num)
         return other.count * rt::num / RatioT::num > count;
@@ -146,7 +146,7 @@ namespace clt
   /// @tparam From The ratio to convert from
   /// @param value The value to convert
   /// @return The converted value
-  constexpr size<Ratio> size_cast(size<From> value) noexcept
+  constexpr byte_size<Ratio> size_cast(byte_size<From> value) noexcept
   {
     return (value.value() * From::num) / Ratio::num;
   }
@@ -154,19 +154,19 @@ namespace clt
   /// @brief Creates a Byte size
   /// @param i The size count
   /// @return Byte size
-  constexpr size<B>   operator""_B(unsigned long long int i)   noexcept { return size<B>(i); }
+  constexpr byte_size<B>   operator""_B(unsigned long long int i)   noexcept { return byte_size<B>(i); }
   /// @brief Creates a Kibibyte size
   /// @param i The size count
   /// @return Kibibyte size
-  constexpr size<KiB> operator""_KiB(unsigned long long int i) noexcept { return size<KiB>(i); }
+  constexpr byte_size<KiB> operator""_KiB(unsigned long long int i) noexcept { return byte_size<KiB>(i); }
   /// @brief Creates a Mebibyte size
   /// @param i The size count
   /// @return Mebibyte size
-  constexpr size<MiB> operator""_MiB(unsigned long long int i) noexcept { return size<MiB>(i); }
+  constexpr byte_size<MiB> operator""_MiB(unsigned long long int i) noexcept { return byte_size<MiB>(i); }
   /// @brief Creates a Gibibyte size
   /// @param i The size count
   /// @return Gibibyte size
-  constexpr size<GiB> operator""_GiB(unsigned long long int i) noexcept { return size<GiB>(i); }
+  constexpr byte_size<GiB> operator""_GiB(unsigned long long int i) noexcept { return byte_size<GiB>(i); }
 }
 
 #endif //!HG_COLT_SIZES

@@ -11,7 +11,7 @@ namespace clt::meta
   template<typename T>
   /// @brief An allocator provides a 'alloc()' and 'dealloc()' method
   concept Allocator = (std::same_as<std::decay_t<decltype(T::alignment)>, u64>) &&
-    requires (T t, mem::MemBlock b, size<Byte> sz)
+    requires (T t, mem::MemBlock b, byte_size<Byte> sz)
   {
     { t.alloc(sz) } -> std::same_as<mem::MemBlock>;
     { t.dealloc(b) } -> std::same_as<void>;
@@ -26,14 +26,14 @@ namespace clt::meta
 
   template<typename T>
   /// @brief An allocator provides a 'alloc()', 'dealloc()' and 'owns()' method
-  concept ExpandingAllocator = Allocator<T> && requires (T t, mem::MemBlock b, size<Byte> delta)
+  concept ExpandingAllocator = Allocator<T> && requires (T t, mem::MemBlock b, byte_size<Byte> delta)
   {
     { t.expand(b, delta) } -> std::same_as<bool>;
   };
 
   template<typename T>
   /// @brief An allocator provides a 'alloc()', 'dealloc()' and 'owns()' method
-  concept ReallocatableAllocator = Allocator<T> && requires (T t, mem::MemBlock b, size<Byte> delta)
+  concept ReallocatableAllocator = Allocator<T> && requires (T t, mem::MemBlock b, byte_size<Byte> delta)
   {
     { t.realloc(b, delta) } -> std::same_as<bool>;
   };

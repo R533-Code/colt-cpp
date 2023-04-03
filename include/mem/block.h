@@ -61,7 +61,7 @@ namespace clt::mem
     /// @brief Returns the size of a block (in bytes).
     /// The size of a block cannot be modified directly, except by assignment.
     /// @return Byte size of the block
-    constexpr size<Byte> size() const noexcept { return blk_sz; }
+    constexpr byte_size<Byte> size() const noexcept { return blk_sz; }
     /// @brief Returns the pointer to the memory block
     /// @return Pointer (can be nullptr)
     constexpr void* ptr() const noexcept { return blk_ptr; }
@@ -124,7 +124,7 @@ namespace clt::mem
     /// @param blk The block to "reallocate"
     /// @param n The new size
     /// @return True on success
-    constexpr bool realloc_with_copy(Old& old_a, New& new_a, MemBlock& blk, size<Byte> n) noexcept
+    constexpr bool realloc_with_copy(Old& old_a, New& new_a, MemBlock& blk, byte_size<Byte> n) noexcept
     {
       MemBlock new_blk = new_a.alloc(n);
       if (new_blk.is_null()) {

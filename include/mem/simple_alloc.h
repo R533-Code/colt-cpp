@@ -16,7 +16,7 @@ namespace clt::mem
     /// @brief Always returns a 'nullblk'
     /// @param  The size to allocate
     /// @return nullblk
-    constexpr MemBlock alloc(size<Byte>) const noexcept
+    constexpr MemBlock alloc(byte_size<Byte>) const noexcept
     {
       return nullblk;
     }
@@ -42,7 +42,7 @@ namespace clt::mem
     /// @param blk The block to check for
     /// @param  Size for expansion
     /// @return false
-    constexpr bool expand(MemBlock& blk, size<Byte>) const noexcept
+    constexpr bool expand(MemBlock& blk, byte_size<Byte>) const noexcept
       COLT_PRE(blk == nullblk)
     {
       return false;
@@ -53,7 +53,7 @@ namespace clt::mem
     /// @param blk The block to check for
     /// @param  Size for expansion
     /// @return false
-    constexpr bool realloc(MemBlock& blk, size<Byte>) const noexcept
+    constexpr bool realloc(MemBlock& blk, byte_size<Byte>) const noexcept
       COLT_PRE(blk == nullblk)
     {
       return false;
@@ -71,7 +71,7 @@ namespace clt::mem
     /// @brief Allocates a block using 'malloc'
     /// @param size The size to allocate
     /// @return nullblk
-    MemBlock alloc(size<Byte> size) const noexcept
+    MemBlock alloc(byte_size<Byte> size) const noexcept
       COLT_PRE(size.to_bytes() != 0)
     {      
       return { std::malloc(size.to_bytes()), size.to_bytes() };
@@ -89,7 +89,7 @@ namespace clt::mem
     /// @param blk The block to reallocate
     /// @param n The new size of the block
     /// @return True if reallocation was successful
-    bool realloc(MemBlock& blk, size<Byte> sz) const noexcept
+    bool realloc(MemBlock& blk, byte_size<Byte> sz) const noexcept
     {
       auto ptr = std::realloc(blk.ptr(), sz.to_bytes());
       if (ptr == nullptr)
@@ -99,7 +99,7 @@ namespace clt::mem
     }
   };
 
-  template<size<Byte> SIZE, u64 ALIGN = alignof(std::max_align_t)>
+  template<byte_size<Byte> SIZE, u64 ALIGN = alignof(std::max_align_t)>
   /// @brief Allocator that uses stack memory to allocate
   class StackAllocator
   {
@@ -142,7 +142,7 @@ namespace clt::mem
     /// @brief Allocates a MemBlock
     /// @param sze The size of the allocation
     /// @return Allocated MemBlock or an empty MemBlock on failure
-    constexpr MemBlock alloc(size<Byte> sze) noexcept
+    constexpr MemBlock alloc(byte_size<Byte> sze) noexcept
     {
       size_t aligned_size = round_to_alignment<ALIGN>(sze.to_bytes());
       if (!can_allocate(aligned_size))
@@ -168,7 +168,7 @@ namespace clt::mem
     /// @param blk The block to reallocate
     /// @param n The new size of the block
     /// @return True if reallocation was successful
-    constexpr bool realloc(MemBlock& blk, size<Byte> n) noexcept
+    constexpr bool realloc(MemBlock& blk, byte_size<Byte> n) noexcept
       COLT_PRE(this->owns(blk))
     {
       if (blk.size() == n)
@@ -209,7 +209,7 @@ namespace clt::mem
     /// @param blk The block to expand
     /// @param delta The new size
     /// @return True if expansion was done successfully
-    constexpr bool expand(MemBlock& blk, size<Byte> delta) noexcept
+    constexpr bool expand(MemBlock& blk, byte_size<Byte> delta) noexcept
       COLT_PRE(this->owns(blk))
     {
       if (delta == 0_B)
@@ -234,7 +234,7 @@ namespace clt::mem
     COLT_POST()
   };
 
-  template<meta::Allocator allocator, size<Byte> LOWER, size<Byte> UPPER, size_t MAX_SAVED = 16>
+  template<meta::Allocator allocator, byte_size<Byte> LOWER, byte_size<Byte> UPPER, size_t MAX_SAVED = 16>
     requires (LOWER >= 16_B) && (UPPER >= LOWER) && (MAX_SAVED != 0)
   /// @brief Allocator that reuses memory that is about to be freed.
   /// A FreeList is an amazing tool for allocations:
@@ -305,7 +305,7 @@ namespace clt::mem
     /// @brief Allocates a MemBlock
     /// @param size The size of the allocation
     /// @return Allocated MemBlock or an empty MemBlock on failure
-    constexpr MemBlock alloc(size<Byte> n) noexcept
+    constexpr MemBlock alloc(byte_size<Byte> n) noexcept
     {
       if (root != nullptr && is_in_range(n.to_bytes()))
       {        
@@ -345,7 +345,7 @@ namespace clt::mem
     /// @param blk The block to reallocate
     /// @param n The new size of the block
     /// @return True if reallocation was successful
-    constexpr bool realloc(MemBlock& blk, size<Byte> n) noexcept
+    constexpr bool realloc(MemBlock& blk, byte_size<Byte> n) noexcept
       requires meta::ReallocatableAllocator<allocator>
     {
       return allocator::dealloc(blk, n);
@@ -355,7 +355,7 @@ namespace clt::mem
     /// @param blk The block to expand
     /// @param delta The new size
     /// @return True if expansion was done successfully
-    constexpr bool expand(MemBlock& blk, size<Byte> delta) noexcept
+    constexpr bool expand(MemBlock& blk, byte_size<Byte> delta) noexcept
       requires meta::ExpandingAllocator<allocator>
     {
       return allocator::expand(blk);

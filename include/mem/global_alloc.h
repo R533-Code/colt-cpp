@@ -15,7 +15,7 @@ namespace clt::mem
   /// @brief Allocate a block of memory through the global allocator
   /// @param sz The size of the block
   /// @return A MemBlock that is NEVER null
-  static MemBlock alloc(size<Byte> sz) noexcept
+  static MemBlock alloc(byte_size<Byte> sz) noexcept
   {
     return GlobalAllocator.alloc(sz);
   }
@@ -33,13 +33,13 @@ namespace clt::mem
   struct AllocatorDescription
   {
     /// @brief Function pointer to an allocation function
-    using AllocFn   = MemBlock(*)(size<Byte>)       noexcept;
+    using AllocFn   = MemBlock(*)(byte_size<Byte>)       noexcept;
     /// @brief Function pointer to a deallocation function
     using DeallocFn = void(*)(MemBlock)             noexcept;
     /// @brief Function pointer to a reallocation function
-    using ReallocFn = bool(*)(MemBlock, size<Byte>) noexcept;
+    using ReallocFn = bool(*)(MemBlock, byte_size<Byte>) noexcept;
     /// @brief Function pointer to an expanding function
-    using ExpandFn  = bool(*)(MemBlock, size<Byte>) noexcept;
+    using ExpandFn  = bool(*)(MemBlock, byte_size<Byte>) noexcept;
     /// @brief Function pointer to an owning function
     using OwnFn     = bool(*)(MemBlock)             noexcept;
 
@@ -136,7 +136,7 @@ namespace clt::mem
     /// @brief Allocates a MemBlock through the reference to the allocator
     /// @param size The size of the block
     /// @return Result of allocation
-    constexpr MemBlock alloc(size<Byte> size) noexcept
+    constexpr MemBlock alloc(byte_size<Byte> size) noexcept
     {
       return ref->alloc(size);
     }
@@ -161,7 +161,7 @@ namespace clt::mem
     /// @brief Allocates a MemBlock through the global allocator
     /// @param size The size of the block
     /// @return Result of allocation
-    constexpr MemBlock alloc(size<Byte> size) noexcept
+    constexpr MemBlock alloc(byte_size<Byte> size) noexcept
     {
       return (*ALLOCATOR.alloc_fn)(size);
     }
