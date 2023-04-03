@@ -55,9 +55,9 @@ namespace clt::mem
       requires meta::ReallocatableAllocator<Primary> && meta::ReallocatableAllocator<Fallback>
     {
       if (Primary::owns(blk))
-        Primary::realloc(blk);
+        return Primary::realloc(blk);
       else
-        Fallback::realloc(blk);
+        return Fallback::realloc(blk);
     }
 
     /// @brief Expands a block in place if possible
@@ -68,9 +68,9 @@ namespace clt::mem
       requires meta::ExpandingAllocator<Primary> && meta::ExpandingAllocator<Fallback>
     {
       if (Primary::owns(blk))
-        Primary::expand(blk);
+        return Primary::expand(blk);
       else
-        Fallback::expand(blk);
+        return Fallback::expand(blk);
     }
   };
 
@@ -605,7 +605,7 @@ namespace clt::mem
           Allocator::create_suffix(blk, size.to_bytes());
         return blk.ptr();
       }
-      return nullblk;
+      return nullptr;
     }
 
     /// @brief Deallocates a MemBlock that was allocated using the current allocator
