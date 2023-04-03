@@ -34,7 +34,7 @@ namespace clt::io
     }
 #else
     struct termios ts;
-    tcgetattr(fileno(f), &ts);
+    tcgetattr(fileno(stdin), &ts);
     ts.c_lflag &= ~ECHO;
     tcsetattr(fileno(f), TCSANOW, &ts);
 
