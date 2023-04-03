@@ -218,6 +218,8 @@ struct fmt::formatter<T>
   template<typename FormatContext>
   auto format(const T& exp, FormatContext& ctx)
   {
+    using namespace clt;
+
     if (human_readable)
       return fmt::format_to(ctx.out(), "{}", refl<T>::str(exp));
     return fmt::format_to(ctx.out(), "{}::{}", refl<T>::str(), refl<T>::str(exp));
