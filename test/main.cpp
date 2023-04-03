@@ -12,8 +12,6 @@ using namespace clt;
 using namespace clt::io;
 using namespace clt::mem;
 
-DECLARE_ENUM(OS, Windows, Linux, MacOS);
-
 Expect<int, const char*> div_expect(int a, int b)
 {
   if (b != 0)
@@ -31,10 +29,8 @@ Option<int> div_option(int a, int b)
 int main(int argc, int argv)
 {
   std::atexit([]() { clt::bench::save_tracing_to("Test.json"); });
-  
-  for (auto en : refl<OS>::iter())
-    print("{:h}", en);
 
+  print("Hello {}", refl<const PTR<const u8>>::str());
   {
     COLT_PROFILE_SCOPE("fmt::print");
     print_message("Hello {}", "World!");
