@@ -154,19 +154,19 @@ namespace clt
   /// @brief Creates a Byte size
   /// @param i The size count
   /// @return Byte size
-  constexpr size<B>   operator""_B(u64 i)   noexcept { return size<B>(i); }
+  constexpr size<B>   operator""_B(unsigned long long int i)   noexcept { return size<B>(i); }
   /// @brief Creates a Kibibyte size
   /// @param i The size count
   /// @return Kibibyte size
-  constexpr size<KiB> operator""_KiB(u64 i) noexcept { return size<KiB>(i); }
+  constexpr size<KiB> operator""_KiB(unsigned long long int i) noexcept { return size<KiB>(i); }
   /// @brief Creates a Mebibyte size
   /// @param i The size count
   /// @return Mebibyte size
-  constexpr size<MiB> operator""_MiB(u64 i) noexcept { return size<MiB>(i); }
+  constexpr size<MiB> operator""_MiB(unsigned long long int i) noexcept { return size<MiB>(i); }
   /// @brief Creates a Gibibyte size
   /// @param i The size count
   /// @return Gibibyte size
-  constexpr size<GiB> operator""_GiB(u64 i) noexcept { return size<GiB>(i); }
+  constexpr size<GiB> operator""_GiB(unsigned long long int i) noexcept { return size<GiB>(i); }
 }
 
 #endif //!HG_COLT_SIZES
