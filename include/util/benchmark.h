@@ -68,7 +68,7 @@ namespace clt::bench
     /// @brief The start time of the snapshot
     time_point start_time;
     /// @brief The duration of the snapshot
-    duration duration;
+    duration time_span;
     /// @brief The thread ID
     u64 thread_id;
   };
@@ -93,7 +93,7 @@ namespace clt::bench
       *std::to_chars(*start, *start + 24,
         tm::time_point_cast<tm::milliseconds>(profile.start_time).time_since_epoch().count()).ptr = '\0';
       *std::to_chars(*durat, *durat + 24,
-        tm::duration_cast<tm::milliseconds>(profile.duration).count()).ptr = '\0';
+        tm::duration_cast<tm::milliseconds>(profile.time_span).count()).ptr = '\0';
       
       std::fprintf(file,
         meta::join_v<lit,
