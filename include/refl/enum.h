@@ -6,7 +6,6 @@
 
 #include "./refl.h"
 #include "../meta/map.h"
-#include "../structs/string_view.h"
 #include "../util/macro.h"
 #include "../util/contracts.h"
 #include "../util/typedefs.h"
@@ -109,7 +108,7 @@ namespace clt::iter
     COLT_FOR_EACH(COLT_DETAILS_EXPAND_ENUM, __VA_ARGS__) \
   }; } \
   template<> \
-  struct clt::refl<name> { \
+  struct clt::refl<namespace_name::name> { \
     using enum_type = type; \
     static constexpr clt::StringView str() noexcept { return #name; } \
     static constexpr bool is_consecutive() noexcept { return true; } \
@@ -117,21 +116,21 @@ namespace clt::iter
     static constexpr size_t min() noexcept { return 0; }  \
     static constexpr size_t max() noexcept { return name##_str.size() - 1; }  \
     static constexpr size_t count() noexcept { return name##_str.size(); } \
-    static constexpr clt::StringView str(name value) { \
+    static constexpr clt::StringView str(namespace_name::name value) { \
       COLT_PRE(static_cast<type>(value) <= max()) \
         return name##_str[static_cast<type>(value)]; \
       COLT_POST() \
     } \
-    static constexpr clt::Option<name> from(type value) {\
+    static constexpr clt::Option<namespace_name::name> from(type value) {\
       if (value > max()) \
         return clt::None; \
-      return static_cast<name>(value); \
+      return static_cast<namespace_name::name>(value); \
     } \
   private: \
-    using ArrayTable_t = std::array<std::pair<clt::StringView, name>, name##_str.size()>; \
-    using Map_t = clt::meta::ConstexprMap<clt::StringView, name, name##_str.size()>; \
+    using ArrayTable_t = std::array<std::pair<clt::StringView, namespace_name::name>, name##_str.size()>; \
+    using Map_t = clt::meta::ConstexprMap<clt::StringView, namespace_name::name, name##_str.size()>; \
     static constexpr ArrayTable_t get_array() { \
-        using enum name; \
+        using enum namespace_name::name; \
         ArrayTable_t ret = { \
           std::pair{ clt::StringView{ #first}, first } \
           COLT_FOR_EACH(COLT_DETAILS_MAP_PAIR_ENUM, __VA_ARGS__) }; \
@@ -140,13 +139,13 @@ namespace clt::iter
     static const ArrayTable_t internal_map; \
     static const Map_t map; \
   public: \
-    static constexpr clt::Option<name> from(clt::StringView str) {\
+    static constexpr clt::Option<namespace_name::name> from(clt::StringView str) {\
       return map.find(str); \
     } \
-    static constexpr clt::iter::EnumIter<name, 0, name##_str.size() - 1> iter() noexcept { return {}; } \
+    static constexpr clt::iter::EnumIter<namespace_name::name, 0, name##_str.size() - 1> iter() noexcept { return {}; } \
   }; \
-  constexpr refl<name>::ArrayTable_t refl<name>::internal_map = refl<name>::get_array(); \
-  constexpr refl<name>::Map_t refl<name>::map =  {{ refl<name>::internal_map }}
+  constexpr clt::refl<namespace_name::name>::ArrayTable_t clt::refl<namespace_name::name>::internal_map = clt::refl<namespace_name::name>::get_array(); \
+  constexpr clt::refl<namespace_name::name>::Map_t clt::refl<namespace_name::name>::map =  {{ clt::refl<namespace_name::name>::internal_map }}
 
 #define DECLARE_ENUM(namespace_name, name, first, ...) \
   namespace namespace_name { \
@@ -155,29 +154,29 @@ namespace clt::iter
     COLT_FOR_EACH(COLT_DETAILS_EXPAND_ENUM, __VA_ARGS__) \
   }; } \
   template<> \
-  struct clt::refl<name> { \
-    using enum_type = std::underlying_type_t<name>; \
+  struct clt::refl<namespace_name::name> { \
+    using enum_type = std::underlying_type_t<namespace_name::name>; \
     static constexpr clt::StringView str() noexcept { return #name; } \
     static constexpr bool is_consecutive() noexcept { return true; } \
     static constexpr std::array name##_str = { clt::StringView{ #first} COLT_FOR_EACH(COLT_DETAILS_STRINGIZE_ENUM, __VA_ARGS__) }; \
     static constexpr size_t min() noexcept { return 0; }  \
     static constexpr size_t max() noexcept { return name##_str.size() - 1; }  \
     static constexpr size_t count() noexcept { return name##_str.size(); } \
-    static constexpr clt::StringView str(name value) { \
+    static constexpr clt::StringView str(namespace_name::name value) { \
       COLT_PRE(static_cast<enum_type>(value) <= max()) \
         return name##_str[static_cast<enum_type>(value)]; \
       COLT_POST() \
     } \
-    static constexpr clt::Option<name> from(enum_type value) {\
+    static constexpr clt::Option<namespace_name::name> from(enum_type value) {\
       if (value > max()) \
         return clt::None; \
-      return static_cast<name>(value); \
+      return static_cast<namespace_name::name>(value); \
     } \
   private: \
-    using ArrayTable_t = std::array<std::pair<clt::StringView, name>, name##_str.size()>; \
-    using Map_t = clt::meta::ConstexprMap<clt::StringView, name, name##_str.size()>; \
+    using ArrayTable_t = std::array<std::pair<clt::StringView, namespace_name::name>, name##_str.size()>; \
+    using Map_t = clt::meta::ConstexprMap<clt::StringView, namespace_name::name, name##_str.size()>; \
     static constexpr ArrayTable_t get_array() { \
-        using enum name; \
+        using enum namespace_name::name; \
         ArrayTable_t ret = { \
           std::pair{ clt::StringView{ #first}, first } \
           COLT_FOR_EACH(COLT_DETAILS_MAP_PAIR_ENUM, __VA_ARGS__) }; \
@@ -186,13 +185,13 @@ namespace clt::iter
     static const ArrayTable_t internal_map; \
     static const Map_t map; \
   public: \
-    static constexpr clt::Option<name> from(clt::StringView str) {\
+    static constexpr clt::Option<namespace_name::name> from(clt::StringView str) {\
       return map.find(str); \
     } \
-    static constexpr clt::iter::EnumIter<name, 0, name##_str.size() - 1> iter() noexcept { return {}; } \
+    static constexpr clt::iter::EnumIter<namespace_name::name, 0, name##_str.size() - 1> iter() noexcept { return {}; } \
   }; \
-  constexpr refl<name>::ArrayTable_t refl<name>::internal_map = refl<name>::get_array(); \
-  constexpr refl<name>::Map_t refl<name>::map =  {{ refl<name>::internal_map }}
+  constexpr clt::refl<namespace_name::name>::ArrayTable_t clt::refl<namespace_name::name>::internal_map = clt::refl<namespace_name::name>::get_array(); \
+  constexpr clt::refl<namespace_name::name>::Map_t clt::refl<namespace_name::name>::map =  {{ clt::refl<namespace_name::name>::internal_map }}
 
 template<typename T>
   requires std::is_enum_v<T> && clt::meta::Reflectable<T>
