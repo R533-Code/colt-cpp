@@ -63,6 +63,26 @@ namespace clt::meta
     /// @brief Returns the type at index 'index'
     using get = typename details::get_n<index, Ts...>::type;
 
+    template<typename T>
+    /// @brief Pushes a new type at the back of the list
+    /// @tparam T The new type
+    using push_back = type_list<Ts..., T>;
+
+    template<typename T>
+    /// @brief Pushes a new type at the front of the list
+    /// @tparam T The new type
+    using push_front = type_list<T, Ts...>;
+
+    template<template<typename> typename apply_f>
+    /// @brief Applies a transformation to the list
+    using apply = type_list<typename apply_f<Ts>::type...>;
+
+    /// @brief Returns the head of the list
+    using head = get<0>;
+    /// @brief Returns the tail of the list
+    using tail = get<sizeof...(Ts) - 1>;
+
+    /// @brief Size of the list
     static constexpr size_t size = sizeof...(Ts);
   };
 }
