@@ -6,8 +6,16 @@
 
 #include "./traits.h"
 
+namespace clt
+{
+  template<typename CharT>
+  class StringViewOf;
+
+  using StringView = StringViewOf<char>;
+}
+
 namespace clt::meta
-{  
+{
   template <size_t N>
   /// @brief Type to pass string literals as parameters
   struct StringLiteral
@@ -43,7 +51,7 @@ namespace clt::meta
       arr[len] = '\0';
       return arr;
     }
-    
+
     /// @brief Array of characters representing concatenated string
     static constexpr auto arr = impl();
     /// @brief Concatenation result
@@ -53,6 +61,33 @@ namespace clt::meta
   template <StringLiteral... Strs>
   /// @brief Short-hand for join<...>::value
   static constexpr auto join_v = join<Strs...>::value;
+
+  template<const StringView&... Strs>
+  /// @brief Concatenates StringView at compile time
+  struct join_strv
+  {
+    /// @brief Concatenate all the StringView and returns an array storing the result
+    static constexpr auto impl() noexcept
+    {
+      constexpr std::size_t len = (Strs.size() + ... + 0);
+      std::array<char, len + 1> arr{};
+      auto append = [i = 0, &arr](const auto& s) mutable {
+        for (size_t j = 0; j < s.size(); j++) arr[i++] = s.data()[j];
+      };
+      (append(Strs), ...);
+      arr[len] = '\0';
+      return arr;
+    }
+    
+    /// @brief Array of characters representing concatenated string
+    static constexpr auto arr = impl();
+    /// @brief Concatenation result
+    static constexpr const char* value{ arr.data() };
+  };
+
+  template <const StringView&... Strs>
+  /// @brief Short-hand for join<...>::value
+  static constexpr auto join_strv_v = join_strv<Strs...>::value;
 }
 
 #endif //!HG_COLT_STRING_LITERAL
