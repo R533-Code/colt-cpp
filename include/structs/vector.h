@@ -115,7 +115,7 @@ namespace clt
     /// @param alloc Reference to the local allocator to use
     /// @param list The initializer list
     constexpr Vector(AllocT& alloc, std::initializer_list<T> list)
-      noexcept(std::is_nothrow_copy_constructible_v<T>) requires is_global
+      noexcept(std::is_nothrow_copy_constructible_v<T>)
       : allocator(alloc), blk_size(std::size(list))
     {
       reserve_obj(std::size(list));
