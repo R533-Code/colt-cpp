@@ -161,14 +161,14 @@ namespace clt::mem
     /// @return Result of allocation
     constexpr MemBlock alloc(byte_size<Byte> size) noexcept
     {
-      return (*ALLOCATOR::alloc_fn)(size);
+      return (*decltype(ALLOCATOR)::alloc_fn)(size);
     }
 
     /// @brief Deallocates a MemBlock through the global allocator
     /// @param blk The block to deallocate
     constexpr void dealloc(MemBlock blk) noexcept
     {
-      return (*ALLOCATOR::dealloc_fn)(blk);
+      return (*decltype(ALLOCATOR)::dealloc_fn)(blk);
     }
   };
 }
