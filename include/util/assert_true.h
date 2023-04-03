@@ -44,7 +44,7 @@ namespace clt::details
           std::printf("ASSERTION FAILED: in function:\n\"%s\":\n%s\n", fn_name, message);
           error = true;
         }
-        std::printf("%llu) %s => false\n", i + 1, array[i]->str);
+        std::printf("%u) %s => false\n", static_cast<unsigned int>(i + 1), array[i]->str);
       }
       if (error)
         colt_intrinsic_dbreak();

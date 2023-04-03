@@ -70,7 +70,7 @@ namespace clt::details
             std::printf("CONTRACT FAILED (PRECONDITION): in function:\n\"%s\":\n", fn_name);
             error = true;
           }
-          printf("%llu) %s => false\n", i + 1, array[i]->str);
+          printf("%u) %s => false\n", static_cast<unsigned int>(i + 1), array[i]->str);
         }
         else
         {
@@ -78,7 +78,7 @@ namespace clt::details
             std::printf("CONTRACT FAILED (POSTCONDITION): in function:\n\"%s\":\n", fn_name);
             error = true;
           }
-          std::printf("%llu) %s => false\n", i + 1, array[i]->str);
+          std::printf("%u) %s => false\n", static_cast<unsigned int>(i + 1), array[i]->str);
         }
       }
       if (error)
