@@ -5,14 +5,7 @@
 #include <array>
 
 #include "./traits.h"
-
-namespace clt
-{
-  template<typename CharT>
-  class StringViewOf;
-
-  using StringView = StringViewOf<char>;
-}
+#include "../structs/string_view.h"
 
 namespace clt::meta
 {
