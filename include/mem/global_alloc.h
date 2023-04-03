@@ -33,15 +33,15 @@ namespace clt::mem
   struct AllocatorDescription
   {
     /// @brief Function pointer to an allocation function
-    using AllocFn   = MemBlock(*)(byte_size<Byte>)       noexcept;
+    using AllocFn   = MemBlock(*)(byte_size<Byte>) noexcept;
     /// @brief Function pointer to a deallocation function
-    using DeallocFn = void(*)(MemBlock)             noexcept;
+    using DeallocFn = void(*)(MemBlock) noexcept;
     /// @brief Function pointer to a reallocation function
     using ReallocFn = bool(*)(MemBlock, byte_size<Byte>) noexcept;
     /// @brief Function pointer to an expanding function
     using ExpandFn  = bool(*)(MemBlock, byte_size<Byte>) noexcept;
     /// @brief Function pointer to an owning function
-    using OwnFn     = bool(*)(MemBlock)             noexcept;
+    using OwnFn     = bool(*)(MemBlock) noexcept;
 
     /// @brief Function pointer to the allocation function (never null)
     AllocFn     alloc_fn;
@@ -64,7 +64,7 @@ namespace clt::mem
   };
 
   /// @brief Description of the GlobalAllocator
-  inline constexpr AllocatorDescription GlobalAllocatorDescription = { &alloc, &dealloc, nullptr, nullptr, nullptr };
+  inline constexpr AllocatorDescription GlobalAllocatorDescription = { &clt::mem::alloc, &clt::mem::dealloc, nullptr, nullptr, nullptr };
 
   /// @brief Tag type for asking
   template<typename T>
