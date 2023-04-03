@@ -27,7 +27,7 @@
 #elif defined(__clang__) || defined(__GNUC__) 
   /// @brief Current function name
   #define COLT_FUNCTION_NAME __PRETTY_FUNCTION__ 
-#define
+#else
   /// @brief Current function name
   #define COLT_FUNCTION_NAME __func__
 #endif
