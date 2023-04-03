@@ -29,42 +29,40 @@ namespace clt::mem
       GlobalAllocator.dealloc(blk);
   }
 
+  /// @brief Function pointer to an allocation function
+  using AllocFn   = MemBlock(*)(byte_size<Byte>) noexcept;
+  /// @brief Function pointer to a deallocation function
+  using DeallocFn = void(*)(MemBlock) noexcept;
+  /// @brief Function pointer to a reallocation function
+  using ReallocFn = bool(*)(MemBlock, byte_size<Byte>) noexcept;
+  /// @brief Function pointer to an expanding function
+  using ExpandFn  = bool(*)(MemBlock, byte_size<Byte>) noexcept;
+  /// @brief Function pointer to an owning function
+  using OwnFn     = bool(*)(MemBlock) noexcept;
+  
   /// @brief Describes a global allocator
+  template<AllocFn A, DeallocFn D, ReallocFn R, ExpandFn E, OwnFn O>
   struct AllocatorDescription
   {
-    /// @brief Function pointer to an allocation function
-    using AllocFn   = MemBlock(*)(byte_size<Byte>) noexcept;
-    /// @brief Function pointer to a deallocation function
-    using DeallocFn = void(*)(MemBlock) noexcept;
-    /// @brief Function pointer to a reallocation function
-    using ReallocFn = bool(*)(MemBlock, byte_size<Byte>) noexcept;
-    /// @brief Function pointer to an expanding function
-    using ExpandFn  = bool(*)(MemBlock, byte_size<Byte>) noexcept;
-    /// @brief Function pointer to an owning function
-    using OwnFn     = bool(*)(MemBlock) noexcept;
+    static_assert(A != nullptr && D != nullptr,
+      "An allocator at least has an allocation and deallocation function!");
+
+    static constexpr bool is_allocator_description = true;
 
     /// @brief Function pointer to the allocation function (never null)
-    AllocFn     alloc_fn;
+    static constexpr AllocFn alloc_fn = A;
     /// @brief Function pointer to the deallocation function (never null)
-    DeallocFn   dealloc_fn;
+    static constexpr DeallocFn dealloc_fn = D;
     /// @brief Function pointer to the reallocation function (can be null)
-    ReallocFn   realloc_fn;
+    static constexpr ReallocFn realloc_fn = R;
     /// @brief Function pointer to the expanding function (can be null)
-    ExpandFn    expand_fn;
+    static constexpr ExpandFn expand_fn = E;
     /// @brief Function pointer to the owning function (can be null)
-    OwnFn       own_fn;
-
-    AllocatorDescription() = delete;
-    constexpr AllocatorDescription(AllocFn a, DeallocFn d, ReallocFn r, ExpandFn e, OwnFn o) noexcept
-      : alloc_fn(a), dealloc_fn(d), realloc_fn(r), expand_fn(e), own_fn(o)
-    {
-      assert_true("An allocator at least has an allocation and deallocation function!",
-        alloc_fn != nullptr, dealloc_fn != nullptr);
-    }
+    static constexpr OwnFn own_fn = O;
   };
 
   /// @brief Description of the GlobalAllocator
-  inline constexpr AllocatorDescription GlobalAllocatorDescription = { &clt::mem::global_alloc, &clt::mem::global_dealloc, nullptr, nullptr, nullptr };
+  inline constexpr AllocatorDescription<&clt::mem::global_alloc, &clt::mem::global_dealloc, nullptr, nullptr, nullptr> GlobalAllocatorDescription{};
 
   /// @brief Tag type for asking
   template<typename T>
@@ -88,7 +86,7 @@ namespace clt::meta
   
   template<auto T>
   /// @brief A Global allocator is a AllocatorDescription
-  concept GlobalAllocator = std::same_as<std::decay_t<decltype(T)>, mem::AllocatorDescription>;
+  concept GlobalAllocator = (decltype(T)::is_allocator_description == true);
 
   template<auto T>
   /// @brief An allocator value is either a LocalAllocator or GlobalAllocator
@@ -163,14 +161,14 @@ namespace clt::mem
     /// @return Result of allocation
     constexpr MemBlock alloc(byte_size<Byte> size) noexcept
     {
-      return (*ALLOCATOR.alloc_fn)(size);
+      return (*ALLOCATOR::alloc_fn)(size);
     }
 
     /// @brief Deallocates a MemBlock through the global allocator
     /// @param blk The block to deallocate
     constexpr void dealloc(MemBlock blk) noexcept
     {
-      return (*ALLOCATOR.dealloc_fn)(blk);
+      return (*ALLOCATOR::dealloc_fn)(blk);
     }
   };
 }
