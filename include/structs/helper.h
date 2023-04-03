@@ -8,7 +8,11 @@
 #include "../math/math.h"
 #include "../util/contracts.h"
 #include "../util/assert_true.h"
-#include "../io/print.h"
+
+#ifndef FMT_HEADER_ONLY
+  #define FMT_HEADER_ONLY
+#endif //!FMT_HEADER_ONLY
+#include "../libraries/fmt/include/fmt/format-inl.h"
 
 namespace clt::details
 {

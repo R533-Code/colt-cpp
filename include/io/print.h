@@ -3,8 +3,11 @@
 
 #include <utility>
 
-#define FMT_HEADER_ONLY
+#ifndef FMT_HEADER_ONLY
+  #define FMT_HEADER_ONLY
+#endif //!FMT_HEADER_ONLY
 #include "../libraries/fmt/include/fmt/format-inl.h"
+
 #include "../meta/string_literal.h"
 #include "../util/typedefs.h"
 
