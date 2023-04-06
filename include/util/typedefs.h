@@ -16,7 +16,12 @@ template<typename T>
 /// @brief Pointer
 /// @tparam T The type pointed to by the pointer
 using PTR = T*;
-
+/// @brief 8-bit char
+using char8 = char8_t;
+/// @brief 16-bit char
+using char16 = char16_t;
+/// @brief 32-bit char
+using char32 = char32_t;
 /// @brief signed 8-bit integer
 using i8 = int8_t;
 /// @brief signed 16-bit integer
