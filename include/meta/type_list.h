@@ -76,12 +76,21 @@ namespace clt::meta
       >...
     >;
 
+    template<template<typename> typename predicate, typename...Ts>
+    using remove_if_t = tuple_cat_t<
+      typename std::conditional_t<
+      predicate<Ts>::value,
+      std::tuple<>,
+      std::tuple<Ts>
+      >...
+    >;
+
     template<typename... Ts>
-    type_list<Ts...> from_tuple_to_type_list(std::tuple<Ts...>) noexcept
-    {
+    type_list<Ts...> from_tuple_to_type_list(std::tuple<Ts...>) noexcept;
+    /*{
       static_assert(always_false<void>,
         "from_tuple_type_list is not allowed in an evaluated context!");
-    }
+    }*/
   }
 
   template<typename T>
@@ -116,36 +125,29 @@ namespace clt::meta
     /// To avoid compiler error, write "template" before accessing this member
     using apply = type_list<typename apply_f<Ts>::type...>;
 
-    /// @brief Returns the head of the list
-    using head = get<0>;
-    /// @brief Returns the tail of the list
-    using tail = get<sizeof...(Ts) - 1>;
-
     /// @brief Size of the list
     static constexpr size_t size = sizeof...(Ts);
 
-    /// @brief Returns the head of the list or void if the list is empty
-    using head_or_void = std::conditional_t<size == 0, void, get<0>>;
-    /// @brief Returns the tail of the list or void if the list is empty
-    using tail_or_void = std::conditional_t<size == 0, void, get<size - 1>>;
-
-    template<typename T, template<typename> condition>
+    template<typename T, template<typename> typename predicate>
     /// @brief Pushes a type to the front of the list if 'condition<T>::value' is true
     /// @tparam T The type to push
-    using push_front_if = std::conditional_t<condition<T>::value, push_front<T>, this_list>;
+    using push_front_if = std::conditional_t<predicate<T>::value, push_front<T>, this_list>;
 
-    template<typename T, template<typename> condition>
+    template<typename T, template<typename> typename predicate>
     /// @brief Pushes a type to the back of the list if 'condition<T>::value' is true
     /// @tparam T The type to push
-    using push_back_if = std::conditional_t<condition<T>::value, push_back<T>, this_list>;
+    using push_back_if = std::conditional_t<predicate<T>::value, push_back<T>, this_list>;
 
     template<typename What>
     /// @brief Remove all types that are the same as 'What'
     /// @tparam What The type to remove
     using remove_all = tuple_to_type_list_t<details::remove_t<What, Ts...>>;
     
+    template<template<typename> typename predicate>
+    using remove_if = tuple_to_type_list_t<details::remove_if_t<predicate, Ts...>>;
+
     /// @brief Removes all void types from the type list
-    using pop_void = remove_all<void>;
+    using remove_void = remove_all<void>;
   };
 }
 
