@@ -1,11 +1,11 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "util/benchmark.h"
 #include "io/print.h"
-#include "io/input.h"
+#include "meta/type_list.h"
 #include "structs/vector.h"
 #include "structs/expect.h"
 #include "structs/option.h"
-#include "refl/enum.h"
+#include "refl/refl.h"
 
 using namespace std::chrono_literals;
 using namespace clt;
@@ -30,17 +30,15 @@ int main(int argc, char** argv)
 {
   std::atexit([]() { clt::bench::save_tracing_to("Test.json"); });
 
-  print("Hello {}", refl<const PTR<const u8>>::str());
   {
     COLT_PROFILE_SCOPE("fmt::print");
-    print_message("Hello {}", "World!");
+    print_message("Hello: {}", clt::refl<const u8* const>::str());
   }
-
   auto vec = Vector<int>(10ULL);
   vec.push_back(10);
   vec.push_back(13);
   vec.push_back(15);
-  vec.pop_back_n(2);
-  print("{}, {}", div_expect(10, 2), div_expect(19, 0));
-  print("{:test}, {:test}", div_option(10, 2), div_option(19, 0));
+  print("Vector: {:h}", vec);
+  print("Option test: {:empty option}", div_option(10, 0));
+  print("Expect test: {}", div_expect(10, 0));
 }
