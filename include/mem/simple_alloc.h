@@ -185,7 +185,7 @@ namespace clt::mem
       }
       //If the block is the top one, and the stack
       //has enough space, "expand" the block in place
-      if (blk.ptr() + blk.size().to_bytes() == top)
+      if (static_cast<u8*>(blk.ptr()) + blk.size().to_bytes() == top)
       {
         if (can_allocate(n.to_bytes() - blk.size().to_bytes()))
         {
@@ -220,7 +220,7 @@ namespace clt::mem
         blk = alloc(delta);
         return !blk.is_null();
       }
-      if (blk.ptr() + blk.size().to_bytes() != top)
+      if (static_cast<u8*>(blk.ptr()) + blk.size().to_bytes() != top)
         return false; //not the top
       
       if (can_allocate(delta.to_bytes() - blk.size().to_bytes()))
