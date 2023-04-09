@@ -125,7 +125,7 @@ namespace clt::bench
     void save_profile(const ProfileSource& src, time_point tm, duration dur, std::thread::id thread_id = std::this_thread::get_id()) noexcept
     {
       auto lck = std::scoped_lock(mtx);
-      profiles.emplace_back(src, tm, dur, std::hash<std::thread::id>{}(thread_id));
+      profiles.emplace_back(ProfileResult{ src, tm, dur, std::hash<std::thread::id>{}(thread_id) });
     }
 
     /// @brief Writes saved profile in the "chrome://tracing" format to file at 'path'

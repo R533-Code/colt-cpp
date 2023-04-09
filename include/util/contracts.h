@@ -3,7 +3,6 @@
 
 #include <cstdio>
 
-#include "./typedefs.h"
 #include "./debug_level.h"
 #include "../meta/traits.h"
 #include "./macro.h"
@@ -70,7 +69,7 @@ namespace clt::details
             std::printf("CONTRACT FAILED (PRECONDITION): in function:\n\"%s\":\n", fn_name);
             error = true;
           }
-          printf("%u) %s => false\n", static_cast<unsigned int>(i + 1), array[i]->str);
+          std::printf("%u) %s => false\n", static_cast<unsigned int>(i + 1), array[i]->str);
         }
         else
         {

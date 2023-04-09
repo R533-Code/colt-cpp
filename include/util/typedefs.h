@@ -10,7 +10,7 @@
 #include <cstddef>
 #include <limits>
 #include <bit>
-#include "contracts.h"
+#include "../util/contracts.h"
 
 template<typename T>
 /// @brief Pointer
@@ -93,39 +93,31 @@ namespace clt
 
       /// @brief Sets the state of the nth-bit to 1
       /// @param n The index of the bit (starting at 0)
-      constexpr void set_n(size_t n)          noexcept
+      constexpr void set_n(size_t n) noexcept
       COLT_PRE(n < sizeof(T) * 8)
-      {
         value |= 1UL << n;
-      }
       COLT_POST()
       
       /// @brief Clears the state of the nth-bit (sets the bit to 0)
       /// @param n The index of the bit (starting at 0)
-      constexpr void clr_n(size_t n)          noexcept
+      constexpr void clr_n(size_t n) noexcept
       COLT_PRE(n < sizeof(T) * 8)
-      {
         value &= ~(1UL << n);
-      }
       COLT_POST()
 
       /// @brief Toggles the state of the nth-bit (if 0 -> 1, if 1 -> 0)
       /// @param n The index of the bit (starting at 0)
-      constexpr void tgl_n(size_t n)          noexcept
+      constexpr void tgl_n(size_t n) noexcept
       COLT_PRE(n < sizeof(T) * 8)
-      {
         value ^= 1UL << n;
-      }
       COLT_POST()
 
       /// @brief Changes the state of the nth-bit to 'to'
       /// @param n The index of the bit (starting at 0)
       /// @param to The value to set the bit to
-      constexpr void chg_n(size_t n, bit to)  noexcept
+      constexpr void chg_n(size_t n, bit to) noexcept
       COLT_PRE(n < sizeof(T) * 8)
-      {
         value ^= (-(T)to ^ value) & (1UL << n);
-      }
       COLT_POST()
 
       /// @brief Bitwise OR operator
@@ -143,26 +135,22 @@ namespace clt
       /// @brief Shift Left operator
       /// @param by By how many bits to shift
       /// @return New bit-set containing the result of the operation
-      constexpr BitSet operator<<(size_t by)  const noexcept
+      constexpr BitSet operator<<(size_t by) const noexcept
       COLT_PRE(by < sizeof(T) * 8)
-      {
         return value << by;
-      }
       COLT_POST()
       
       /// @brief Shift Right operator
       /// @param by By how many bits to shift
       /// @return New bit-set containing the result of the operation
-      constexpr BitSet operator>>(size_t by)  const noexcept
+      constexpr BitSet operator>>(size_t by) const noexcept
       COLT_PRE(by < sizeof(T) * 8)
-      {
         return value >> by;
-      }
       COLT_POST()
       
       /// @brief Bitwise NOT operator
       /// @return New bit-set containing the result of the operation
-      constexpr BitSet operator~()           const noexcept { return ~value; }
+      constexpr BitSet operator~() const noexcept { return ~value; }
       
       /// @brief Bitwise OR operator
       /// @param byte The bit-set with which to perform the operation
