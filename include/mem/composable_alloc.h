@@ -407,7 +407,7 @@ namespace clt::mem
     }
 
     /// @brief The Array pattern
-    static constexpr auto pattern = get_pattern();    
+    static constexpr Array pattern = get_pattern();    
 
   public:
     /// @brief Alignment of returned MemBlock
@@ -652,10 +652,7 @@ namespace clt::mem
   };
 
   template<meta::Allocator allocator>
-  /// @brief Allocator that saves the size of the allocation after the allocation.
-  /// On Debug configuration, the size of the allocation is written twice, before and after
-  /// to detect corruption and report it.
-  /// If allocator is 'Mallocator', the size is not written as the OS will have saved it itself.
+  /// @brief Thread safe allocator
   class ThreadSafeAllocator
     : private allocator
   {
