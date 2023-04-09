@@ -399,7 +399,7 @@ namespace clt::mem
     /// @brief Returns the array filled with PATTERN.
     /// This allows us to use 'memcmp' to check for corruption.
     /// @return Array of size BUFFER_SIZE filled with PATTERN
-    static consteval Array get_pattern() noexcept
+    static constexpr Array get_pattern() noexcept
     {
       Array arr;
       arr.fill(PATTERN);
@@ -407,7 +407,7 @@ namespace clt::mem
     }
 
     /// @brief The Array pattern
-    static constexpr Array pattern = get_pattern();    
+    static constexpr Array pattern = get_pattern();
 
   public:
     /// @brief Alignment of returned MemBlock
@@ -618,7 +618,7 @@ namespace clt::mem
       if constexpr (is_debug())
         assert_true("Size information was corrupted!", !is_corrupted());
       if (to_free != nullptr)
-        Allocator::dealloc({ to_free, Allocator::get_prefix(MemBlock{ to_free, 0 }) });
+        Allocator::dealloc({ to_free, Allocator::get_prefix(MemBlock{ to_free, 0ULL }) });
     }
 
     /// @brief Check if the current allocator owns 'blk'
