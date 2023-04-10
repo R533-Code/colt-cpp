@@ -26,13 +26,21 @@ Option<int> div_option(int a, int b)
   return { None };
 }
 
+struct Test
+{
+  u64 a;
+  u64 b;
+};
+COLT_DECLARE_TYPE(Test, a, b);
+
 int main(int argc, char** argv)
 {
   std::atexit([]() { clt::bench::save_tracing_to("Test.json"); });
 
   {
     COLT_PROFILE_SCOPE("fmt::print");
-    print_message("Hello: {}", clt::refl<const u8* const>::str());
+    print_message("Hello: {}, {}", clt::refl<const u8* const>::str(),
+      Test{ 20, 10 });
   }
   auto vec = Vector<int>(10ULL);
   vec.push_back(10);
