@@ -445,6 +445,20 @@ DECLARE_BUILTIN_TYPE(f64);
 #define COLT_DETAILS_MEMBER_TO_MEMBER_PTR(type, name) , decltype(&type::name)
 #define COLT_DETAILS_IF_CONSTEXPR_IS_MEMBER_CALL_LAMBDA(TYPE, member) if constexpr (std::is_member_object_pointer_v<decltype(&TYPE::member)>) fn(obj.member);
 
+/// @brief Adds the necessary friends declarations for reflection
+#define COLT_ENABLE_REFLECTION() template<typename T> friend struct clt::refl
+
+/// @brief Enables reflection on a type.
+/// ~~~~~~~~~~~~~~{.cpp}
+/// class Test
+/// {
+///   u64 a;
+///   u64 b;
+/// 
+///   COLT_ENABLE_REFLECTION();
+/// };
+/// COLT_DECLARE_TYPE(Test, a, b);
+/// ~~~~~~~~~~~~~~
 #define COLT_DECLARE_TYPE(TYPE, member, ...) \
   template<> \
   struct clt::refl<TYPE> { \
@@ -487,7 +501,7 @@ struct fmt::formatter<T>
           clt::refl<std::decay_t<Ty>>::str(), std::forward<Ty>(a));
       }
     );
-    out = fmt::format_to(out, "}}\n");
+    out = fmt::format_to(out, "}}");
     return out;
   }
 };
