@@ -69,9 +69,9 @@ namespace clt
     /// @brief Applies a lambda on each method of an object
     /// @tparam On The object type
     /// @tparam F The lambda type
-    /// @param obj The object
-    /// @param fn The lambda
-    static constexpr void apply_on_methods(On&& obj, F&& fn)
+    /// @param  Unused parameter
+    /// @param  Unused parameter
+    static constexpr void apply_on_methods(On&&, F&&)
     {
       //Pointers do not have methods... Do nothing.
     }
@@ -98,11 +98,63 @@ namespace clt
       return meta::join_strv_v<name_str, end_str>;
     }
 
-  public:
     /// @brief The unqualified reflected type
     using unqualified_refl = refl<std::remove_reference_t<std::remove_cv_t<T>>>;
     /// @brief The only member is the pointer itself
     using members_type = typename meta::type_list<std::remove_reference_t<T>>::template apply<std::add_lvalue_reference>;
+
+    template<typename On, typename F> requires std::same_as<On, std::decay_t<T>>
+    /// @brief Applies a lambda on each member of an object
+    /// @tparam On The object type
+    /// @tparam F The lambda type
+    /// @param obj The object
+    /// @param fn The lambda
+    static constexpr void apply_on_members(On&& obj, F&& fn)
+    {
+      unqualified_refl::apply_on_members(
+        std::forward<On>(obj), std::forward<F>(fn)
+      );
+    }
+
+    template<typename On, typename F> requires std::same_as<On, std::decay_t<T>>
+    /// @brief Applies a lambda on each method of an object
+    /// @tparam On The object type
+    /// @tparam F The lambda type
+    /// @param obj The object
+    /// @param fn The lambda
+    static constexpr void apply_on_methods(On&& obj, F&& fn)
+    {
+      unqualified_refl::apply_on_methods(
+        std::forward<On>(obj), std::forward<F>(fn)
+      );
+    }
+  };
+
+  template<typename T> requires std::is_rvalue_reference_v<T>
+    && meta::Reflectable<std::remove_reference_t<T>>
+    && (!std::is_const_v<T>) && (!std::is_volatile_v<T>)
+  /// @brief Pointer overload for reflection information
+  /// @tparam T The pointer type
+  struct refl<T>
+  {
+  private:
+    /// @brief Type name
+    static constexpr StringView name_str = refl<std::remove_reference_t<T>>::str();
+    /// @brief Helper string for generating type name
+    static constexpr StringView end_str = "&&";
+
+  public:
+    /// @brief Returns the qualified type name
+    /// @return StringView over the qualified type name
+    static constexpr clt::StringView str() noexcept
+    {
+      return meta::join_strv_v<name_str, end_str>;
+    }
+
+    /// @brief The unqualified reflected type
+    using unqualified_refl = refl<std::remove_reference_t<std::remove_cv_t<T>>>;
+    /// @brief The only member is the pointer itself
+    using members_type = typename meta::type_list<std::remove_reference_t<T>>::template apply<std::add_rvalue_reference>;
 
     template<typename On, typename F> requires std::same_as<On, std::decay_t<T>>
     /// @brief Applies a lambda on each member of an object
