@@ -33,14 +33,22 @@ struct Test
 };
 COLT_DECLARE_TYPE(Test, a, b);
 
+struct AB
+{
+  Test a;
+  u64 b;
+  Test c;
+};
+COLT_DECLARE_TYPE(AB, a, b, c);
+
 int main(int argc, char** argv)
 {
   std::atexit([]() { clt::bench::save_tracing_to("Test.json"); });
 
   {
     COLT_PROFILE_SCOPE("fmt::print");
-    print_message("Hello: {}, {}", clt::refl<const u8* const>::str(),
-      Test{ 20, 10 });
+    print_message("Hello: {}\n{}", clt::refl<const u8* const>::str(),
+      AB{ {20, 10 }, 10, { 30, 20} });
   }
   auto vec = Vector<int>(10ULL);
   vec.push_back(10);
