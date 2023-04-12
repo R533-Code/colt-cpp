@@ -5,28 +5,10 @@
 
 #include "./helper.h"
 #include "./span.h"
+#include "../str/distance.h"
 
 namespace clt
 {
-  namespace details
-  {
-    /// @brief constexpr version of 'strlen'
-    /// @param str The string whose size to find
-    /// @return The size of the string
-    static constexpr size_t strlen(const char* str) noexcept
-    {
-      if (std::is_constant_evaluated())
-      {
-        size_t ret = 0;
-        while (str[ret] != '\0')
-          ++ret;
-        return ret;
-      }
-      else
-        return std::strlen(str);
-    }
-  }
-
   template<typename CharT = char>
   class StringViewOf
     : public View<CharT>
@@ -48,12 +30,12 @@ namespace clt
     /// @brief Constructs a StringView over a NUL terminated string
     /// @param cstr The NUL terminated string to span over
     constexpr StringViewOf(const CharT* cstr) noexcept
-      : ViewT(cstr, details::strlen(cstr)) {}
+      : ViewT(cstr, clt::strlen(cstr)) {}
     /// @brief Constructs a StringView over a NUL terminated string, including its NUL terminator
     /// @param cstr The NUL terminated string to span over
     /// @param  Tag object (WithNUL)
     constexpr StringViewOf(const CharT* cstr, meta::WithNULT) noexcept
-      : ViewT(cstr, details::strlen(cstr) + 1) {}
+      : ViewT(cstr, clt::strlen(cstr) + 1) {}
     /// @brief Copy constructor
     /// @param  The StringView to copy
     constexpr StringViewOf(const StringViewOf&) noexcept = default;
