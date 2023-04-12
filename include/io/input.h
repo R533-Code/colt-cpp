@@ -16,7 +16,7 @@
 #include "../structs/span.h"
 #include "../structs/expect.h"
 
-DECLARE_ENUM_WITH_TYPE(u8, clt::io, IOError, FILE_EOF);
+DECLARE_ENUM_WITH_TYPE(u8, clt::io, IOError, FILE_EOF, FILE_ERROR, INVALID_FMT, RANGE_ERROR);
 
 namespace clt::io
 {
@@ -82,21 +82,48 @@ namespace clt::io
     auto n = static_cast<u32>(span.size());
     char* buffer = span.data();
 
-    char chr = getchar();
+    int chr = getchar();
     if (chr == EOF)
-      return { Error, IOError::FILE_EOF };
-    buffer[0] = chr;
+    {
+      if (feof(stdin))
+        return { Error, IOError::FILE_EOF };
+      else
+        return { Error, IOError::FILE_ERROR };
+    }
+    buffer[0] = static_cast<char>(chr);
     u32 i = 1;
     for (; i < n; i++)
     {
       chr = getchar();
       if (chr == EOF || chr == '\n')
         break;
-      buffer[i] = chr;
+      buffer[i] = static_cast<char>(chr);
     }
     return { i };
   }
   COLT_POST()
+
+  template<typename T, meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)
+  inline Expect<T, IOError> input(std::FILE* file, fmt_str<Args...> fmt, Args&&... args) noexcept
+  {
+    print<endl>(fmt, std::forward<Args>(args)...);
+    int chr;
+    //Consume spaces
+    while ((chr = std::fgetc(file)) != EOF)
+      if (!std::isspace(chr))
+        break;
+    char buffer[128];
+    size_t size = 0;
+    while ((chr = std::fgetc(file)) != EOF)
+      buffer[size++] = static_cast<char>(chr);
+    clt::parse<T>(StringView{ buffer, size });
+  }
+
+  template<typename T, meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)
+  inline Expect<T, IOError> input(fmt_str<Args...> fmt, Args&&... args) noexcept
+  {
+    return input(stdin, fmt, std::forward<Args>(args)...);
+  }
 }
 
 #endif //!HG_COLT_INPUT
