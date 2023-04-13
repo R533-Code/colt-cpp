@@ -118,7 +118,7 @@ namespace clt::meta
   using for_debug_for_release_t = typename for_debug_for_release<Debug, Release>::type;
 
   /// @brief Empty struct helper
-  struct empty {};
+  struct Empty {};
 
   template<typename T>
   /// @brief Contains type field, which is T for trivial types, and T for non-trivial types.
@@ -141,6 +141,18 @@ namespace clt::meta
   /// Should be used with const references (const T&/const T&&).
   /// @tparam T The type to copy
   using copy_trivial_t = typename copy_trivial<T>::type;
+
+  template<typename T>
+  struct type_on_debug
+  {
+    //Empty struct.
+  };
+
+  template<typename T> requires clt::is_debug()
+  struct type_on_debug
+  {
+    T value;
+  };
 }
 
 #endif //!HG_COLT_TRAITS

@@ -659,7 +659,7 @@ namespace clt::mem
     static constexpr bool is_mallocator = std::is_same_v<allocator, Mallocator>;
 
     [[no_unique_address]]
-    mutable std::conditional_t<std::is_same_v<allocator, Mallocator>, meta::empty, std::mutex> mtx{};
+    mutable std::conditional_t<std::is_same_v<allocator, Mallocator>, meta::Empty, std::mutex> mtx{};
 
   public:
     /// @brief Alignment of returned MemBlock
