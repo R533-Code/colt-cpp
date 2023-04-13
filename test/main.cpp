@@ -1,4 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
+#include "util/params.h"
 #include "util/benchmark.h"
 #include "io/print.h"
 #include "meta/type_list.h"
@@ -41,14 +42,21 @@ struct AB
 };
 COLT_DECLARE_TYPE(AB, a, b, c);
 
+void init_AB()
+{
+  AB{ {20, 10 }, 10, { 30, 20} }
+}
+
 int main(int argc, char** argv)
 {
   std::atexit([]() { clt::bench::save_tracing_to("Test.json"); });
 
+  uninit<AB> ab;
+
   {
     COLT_PROFILE_SCOPE("fmt::print");
     print_message("Hello: {}\n{}", clt::refl<const u8* const>::str(),
-      AB{ {20, 10 }, 10, { 30, 20} });
+      ab.data());
   }
   auto vec = Vector<int>(10ULL);
   vec.push_back(10);

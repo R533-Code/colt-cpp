@@ -116,7 +116,7 @@ namespace clt::io
     size_t size = 0;
     while ((chr = std::fgetc(file)) != EOF)
       buffer[size++] = static_cast<char>(chr);
-    clt::parse<T>(StringView{ buffer, size });
+    clt::parse<T>{}(StringView{ buffer, size });
   }
 
   template<typename T, meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)

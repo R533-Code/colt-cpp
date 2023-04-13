@@ -13,6 +13,7 @@ namespace clt
   {
     using OnDebugIsConstructed = meta::type_on_debug<bool>;
 
+    /// @brief Aligned buffer providing storage for the object
     alignas(T) char buffer[sizeof(T)];
 
   public:
@@ -39,10 +40,20 @@ namespace clt
 
     /// @brief Returns a reference to the underlying object, but do construct it first!
     /// @return Reference to the data
-    constexpr const T& data() const noexcept { return *details::ptr_to<T*>(buffer); }
+    constexpr const T& data() const noexcept
+    {
+      if constexpr (is_debug())
+        assert_true("Uninitialized object not constructed!", OnDebugIsConstructed::value);
+      return *details::ptr_to<T*>(buffer);
+    }
     /// @brief Returns a reference to the underlying object, but do construct it first!
     /// @return Reference to the data
-    constexpr const T& data() const noexcept { return *details::ptr_to<T*>(buffer); }
+    constexpr const T& data() const noexcept
+    {
+      if constexpr (is_debug())
+        assert_true("Uninitialized object not constructed!", OnDebugIsConstructed::value);
+      return *details::ptr_to<T*>(buffer);
+    }
 
     template<typename... Args> requires std::is_constructible_v<T, Args>
     constexpr void construct(Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args>)
@@ -65,13 +76,16 @@ namespace clt
       }
       (&this->data()).~T();
     }
-
+    
+    /// @brief Does not destroy internal object
     constexpr ~uninit() noexcept
     {
       if constexpr (is_debug())
         assert_true("Uninitialized object not destructed!", OnDebugIsConstructed::value);
     }
 
+    /// @brief DEBUG ONLY: check if the internal object is constructed
+    /// @return True if constructed
     constexpr bool _DEBUG_is_constructed() requires (clt::is_debug()) { return OnDebugIsConstructed::value; }
   };
 
