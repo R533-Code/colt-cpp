@@ -4,25 +4,28 @@
 #include "./traits.h"
 #include "../util/contracts.h"
 
-namespace clt::meta
+namespace clt
 {
-  template<typename T>
-  /// @brief Check if 'T' implements the necessary helpers to be used by 'dyn_cast'
-  concept DynCastable =
-    std::is_same_v<
-    std::decay_t<decltype(std::declval<std::add_const_t<T>*>()->classof())>,
-    std::decay_t<decltype(std::add_const_t<T>::classof_v)>>;
+  namespace meta
+  {
+    template<typename T>
+    /// @brief Check if 'T' implements the necessary helpers to be used by 'dyn_cast'
+    concept DynCastable =
+      std::is_same_v<
+      std::decay_t<decltype(std::declval<std::add_const_t<T>*>()->classof())>,
+      std::decay_t<decltype(std::add_const_t<T>::classof_v)>>;
 
-  template<typename From, typename To>
-  /// @brief Check if 'From' is dynamically cast-able to 'To'
-  concept DynCastableTo =
-    DynCastable<To> &&
-    std::is_base_of_v<From, To> &&
-    std::is_same_v<
-    decltype(std::declval<From*>()->classof()),
-    decltype(std::declval<To*>()->classof())>;
+    template<typename From, typename To>
+    /// @brief Check if 'From' is dynamically cast-able to 'To'
+    concept DynCastableTo =
+      DynCastable<To> &&
+      std::is_base_of_v<From, To> &&
+      std::is_same_v<
+      decltype(std::declval<From*>()->classof()),
+      decltype(std::declval<To*>()->classof())>;
+  }
 
-  template<typename To, typename From> requires DynCastableTo<From, std::remove_pointer_t<To>>
+  template<typename To, typename From> requires meta::DynCastableTo<From, std::remove_pointer_t<To>>
   /// @brief Tries to dynamically cast from 'From' to 'To' returning nullptr if 'from' is not a 'To'.
   /// This allows to verify down-casts.
   /// @tparam To The type to cast to.
@@ -33,7 +36,7 @@ namespace clt::meta
   /// @param from The pointer to try cast
   /// @return A valid pointer or nullptr if 'from' is not a 'To'
   [[nodiscard]]
-  constexpr match_cv_t<From, std::remove_pointer_t<From>>* dyn_cast(From* from) noexcept
+  constexpr meta::match_cv_t<From, std::remove_pointer_t<From>>* dyn_cast(From* from) noexcept
   COLT_PRE(from != nullptr)
   {
     // Pointer Type to cast to (with const matching const of from)
@@ -44,9 +47,9 @@ namespace clt::meta
       return nullptr;
     return static_cast<ToP>(from);
   }
-  COLT_END();
+  COLT_POST();
 
-  template<typename To, typename From> requires DynCastableTo<From, std::remove_pointer_t<To>>
+  template<typename To, typename From> requires meta::DynCastableTo<From, std::remove_pointer_t<To>>
   /// @brief Check if 'from' is of type 'To'
   /// @tparam To The type to check equality with
   /// @tparam From The type of the object whose type to check
@@ -62,7 +65,7 @@ namespace clt::meta
     using ToN = std::remove_pointer_t<ToP>;
     return from->classof() == ToN::classof_v;
   }
-  COLT_END();
+  COLT_POST();
 }
 
 #endif //!HG_COLT_RTTI
