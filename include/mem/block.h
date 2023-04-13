@@ -2,7 +2,7 @@
 #define HG_COLT_BLOCK
 
 #include "./sizes.h"
-#include "../util/util.h"
+#include "../util/contracts.h"
 
 namespace clt::mem
 {
