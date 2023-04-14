@@ -35,12 +35,10 @@ namespace clt
     constexpr uninit& operator=(uninit&&) noexcept = delete;
     /// @brief Constructor, does nothing
     constexpr uninit() noexcept = default;
-    /// @brief Destructor does nothing
-    constexpr ~uninit() noexcept = default;
 
     /// @brief Returns a reference to the underlying object, but do construct it first!
     /// @return Reference to the data
-    constexpr const T& data() const noexcept
+    constexpr meta::copy_trivial_t<const T&> data() const& noexcept
     {
       if constexpr (is_debug())
         assert_true("Uninitialized object not constructed!", OnDebugIsConstructed::value);
@@ -48,15 +46,33 @@ namespace clt
     }
     /// @brief Returns a reference to the underlying object, but do construct it first!
     /// @return Reference to the data
-    constexpr const T& data() const noexcept
+    constexpr T& data() & noexcept
     {
       if constexpr (is_debug())
         assert_true("Uninitialized object not constructed!", OnDebugIsConstructed::value);
       return *details::ptr_to<T*>(buffer);
     }
 
-    template<typename... Args> requires std::is_constructible_v<T, Args>
-    constexpr void construct(Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args>)
+    /// @brief Returns a reference to the underlying object, but do construct it first!
+    /// @return Reference to the data
+    constexpr T&& data() && noexcept
+    {
+      if constexpr (is_debug())
+        assert_true("Uninitialized object not constructed!", OnDebugIsConstructed::value);
+      return std::move(*details::ptr_to<T*>(buffer));
+    }
+
+    /// @brief Returns a reference to the underlying object, but do construct it first!
+    /// @return Reference to the data
+    constexpr meta::copy_trivial_t<const T&&> data() const&& noexcept
+    {
+      if constexpr (is_debug())
+        assert_true("Uninitialized object not constructed!", OnDebugIsConstructed::value);
+      return *details::ptr_to<T*>(buffer);
+    }
+
+    template<typename... Args> requires std::is_constructible_v<T, Args...>
+    constexpr void construct(Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args...>)
     {
       if constexpr (is_debug())
       {
@@ -113,10 +129,10 @@ namespace clt
 
     /// @brief Returns the underlying storage in which to construct the object
     /// @return Reference to the underlying storage
-    constexpr uninit& object() noexcept { return internal_object; }
+    constexpr uninit<T>& object() noexcept { return internal_object; }
     /// @brief Returns the underlying storage in which to construct the object
     /// @return Reference to the underlying storage
-    constexpr const uninit& object() const noexcept { return internal_object; }
+    constexpr const uninit<T>& object() const noexcept { return internal_object; }
 
     /// @brief Verifies that the object was initialized before the end of the function
     constexpr ~out()
