@@ -129,10 +129,37 @@ namespace clt
 
     /// @brief Returns the underlying storage in which to construct the object
     /// @return Reference to the underlying storage
-    constexpr uninit<T>& object() noexcept { return internal_object; }
+    constexpr uninit<T>& underlying() noexcept { return internal_object; }
     /// @brief Returns the underlying storage in which to construct the object
     /// @return Reference to the underlying storage
-    constexpr const uninit<T>& object() const noexcept { return internal_object; }
+    constexpr const uninit<T>& underlying() const noexcept { return internal_object; }
+
+    /// @brief Returns a reference to the underlying object, but do construct it first!
+    /// @return Reference to the data
+    constexpr meta::copy_trivial_t<const T&> data() const& noexcept
+    {
+      return internal_object.data();
+    }
+    /// @brief Returns a reference to the underlying object, but do construct it first!
+    /// @return Reference to the data
+    constexpr T& data() & noexcept
+    {
+      return internal_object.data();
+    }
+
+    /// @brief Returns a reference to the underlying object, but do construct it first!
+    /// @return Reference to the data
+    constexpr T&& data() && noexcept
+    {
+      return internal_object.data();
+    }
+
+    /// @brief Returns a reference to the underlying object, but do construct it first!
+    /// @return Reference to the data
+    constexpr meta::copy_trivial_t<const T&&> data() const&& noexcept
+    {
+      return internal_object.data();
+    }
 
     template<typename... Args> requires std::is_constructible_v<T, Args...>
     constexpr void construct(Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args...>)

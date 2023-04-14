@@ -42,9 +42,9 @@ struct AB
 };
 COLT_DECLARE_TYPE(AB, a, b, c);
 
-void init_AB()
+void init_AB(out<AB> param)
 {
-  AB{ {20, 10 }, 10, { 30, 20} }
+  param.construct(AB{ {20, 10 }, 10, { 30, 20} });
 }
 
 int main(int argc, char** argv)
@@ -52,7 +52,7 @@ int main(int argc, char** argv)
   std::atexit([]() { clt::bench::save_tracing_to("Test.json"); });
 
   uninit<AB> ab;
-
+  init_AB(ab);
   {
     COLT_PROFILE_SCOPE("fmt::print");
     print_message("Hello: {}\n{}", clt::refl<const u8* const>::str(),
