@@ -134,6 +134,12 @@ namespace clt
     /// @return Reference to the underlying storage
     constexpr const uninit<T>& object() const noexcept { return internal_object; }
 
+    template<typename... Args> requires std::is_constructible_v<T, Args...>
+    constexpr void construct(Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args...>)
+    {
+      internal_object.construct(std::forward<Args>(args)...);
+    }
+
     /// @brief Verifies that the object was initialized before the end of the function
     constexpr ~out()
     {
