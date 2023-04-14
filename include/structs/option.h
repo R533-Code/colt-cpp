@@ -181,7 +181,6 @@ namespace clt
     
     /// @brief Returns the stored value.
     /// @return The value.
-    /// @pre is_value() (colt_optional_is_value).
     constexpr T&& operator*() && noexcept
       COLT_PRE(this->is_value())
       return std::move(*details::ptr_to<T*>(opt_buffer));
