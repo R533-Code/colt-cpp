@@ -17,7 +17,7 @@
     #define colt_intrinsic_dbreak() __debugbreak()
   #else
     /// @brief Intrinsic trap
-    #define colt_intrinsic_dbreak() do { (void)std::fgetc(stdin); std::exit(1); } while (0)
+    #define colt_intrinsic_dbreak() do { (void)std::fgetc(stdin); std::abort(); } while (0)
   #endif
 #endif
 
