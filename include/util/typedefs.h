@@ -230,19 +230,27 @@ namespace clt
   namespace meta
   {
     template<typename T>
+    /// @brief Unsigned integral
     concept UnsignedIntegral = std::same_as<std::decay_t<T>, u8>
       || std::same_as<std::decay_t<T>, u16>
       || std::same_as<std::decay_t<T>, u32>
       || std::same_as<std::decay_t<T>, u64>;
 
     template<typename T>
+    /// @brief Signed integral
     concept SignedIntegral = std::same_as<std::decay_t<T>, i8>
       || std::same_as<std::decay_t<T>, i16>
       || std::same_as<std::decay_t<T>, i32>
       || std::same_as<std::decay_t<T>, i64>;
 
     template<typename T>
+    /// @brief Signed/Unsigned integral
     concept Integral = UnsignedIntegral<T> || SignedIntegral<T>;
+
+    template<typename T>
+    /// @brief Floating point (f32, f64)
+    concept FloatingPoint = std::same_as<std::decay_t<T>, f32>
+      || std::same_as<std::decay_t<T>, f64>;
   }
 }
 
