@@ -117,6 +117,16 @@ namespace clt
       return ParseResult{ to_parse.end(), INVALID_FMT };
     }
   };
+
+  namespace meta
+  {
+    template<typename T>
+    /// @brief Check if type has a parse<> specialization
+    concept Parsable = requires (StringView strv, maybe_out<T> out)
+    {
+      { parse<T>{}(out, strv)}->std::same_as<ParseResult>;
+    };
+  }
 }
 
 #endif //!HG_COLT_PARSE
