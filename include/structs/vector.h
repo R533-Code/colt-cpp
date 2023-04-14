@@ -81,6 +81,26 @@ namespace clt
       reserve_obj(reserve);
     }
 
+    template<meta::Allocator AllocT> requires is_local
+      /// @brief Reserve 'reserve' objects constructor (when allocator is local)
+      /// @param alloc Reference to the allocator
+      /// @param reserve The count of objects to allocate for
+    constexpr Vector(AllocT& alloc, View<T> to_copy) noexcept
+      : Vector(alloc, to_copy.size())
+    {
+      details::contiguous_copy(to_copy.begin(), blk_ptr, to_copy.size());
+      blk_size = to_copy.size();
+    }
+
+    /// @brief Default constructor (when allocator is global)
+    /// @param reserve The count of objects to allocate for
+    constexpr Vector(View<T> to_copy) noexcept requires is_global
+      : Vector(to_copy.size())
+    {
+      details::contiguous_copy(to_copy.begin(), blk_ptr, to_copy.size());
+      blk_size = to_copy.size();
+    }
+
     template<meta::Allocator AllocT, typename... Args> requires is_local
     /// @brief Constructs 'size' objects using 'args'
     /// @tparam ...Args The parameter pack
