@@ -11,7 +11,7 @@
 #include "../util/typedefs.h"
 #include "../refl/enum.h"
 
-DECLARE_ENUM_WITH_TYPE(u8, clt, ParseErrorCode, NO_ERROR, INVALID_FMT, OUT_OF_RANGE);
+DECLARE_ENUM_WITH_TYPE(u8, clt, ParseErrorCode, SUCCESS, INVALID_FMT, OUT_OF_RANGE);
 
 namespace clt
 {
@@ -54,7 +54,7 @@ namespace clt
       if (errc == std::errc{})
       {
         value.construct(int_result);
-        return ParseResult{ ptr, ParseErrorCode::NO_ERROR };
+        return ParseResult{ ptr, ParseErrorCode::SUCCESS };
       }
       else
         return ParseResult{ ptr, details::errc_to_parse_code(errc) };
@@ -72,7 +72,7 @@ namespace clt
       if (errc == std::errc{})
       {
         value.construct(fp_result);
-        return ParseResult{ ptr, ParseErrorCode::NO_ERROR };
+        return ParseResult{ ptr, ParseErrorCode::SUCCESS };
       }
       else
         return ParseResult{ ptr, details::errc_to_parse_code(errc) };
@@ -95,24 +95,24 @@ namespace clt
           lower == 't' || lower == '1')
         {
           value.construct(true);
-          return ParseResult{ to_parse.end(), NO_ERROR };
+          return ParseResult{ to_parse.end(), SUCCESS };
         }
         else if (lower == 'f' || lower == '0')
         {
           value.construct(false);
-          return ParseResult{ to_parse.end(), NO_ERROR };
+          return ParseResult{ to_parse.end(), SUCCESS };
         }
         return ParseResult{ to_parse.end(), INVALID_FMT };
       }
       else if (to_parse == "true")
       {
         value.construct(true);
-        return ParseResult{ to_parse.end(), NO_ERROR };
+        return ParseResult{ to_parse.end(), SUCCESS };
       }
       else if (to_parse == "false")
       {
         value.construct(false);
-        return ParseResult{ to_parse.end(), NO_ERROR };
+        return ParseResult{ to_parse.end(), SUCCESS };
       }
       return ParseResult{ to_parse.end(), INVALID_FMT };
     }
