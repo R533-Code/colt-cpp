@@ -80,7 +80,7 @@ namespace clt
   };
 
   template<>
-  /// @brief Overload for booleans
+  /// @brief Overload for booleans ([TtFf01]|true|false)
   struct parse<bool>
   {
     ParseResult operator()(maybe_out<bool> value, StringView to_parse) const noexcept
@@ -90,7 +90,7 @@ namespace clt
       if (to_parse.is_empty())
         return ParseResult{ to_parse.end(), INVALID_FMT };
       if (to_parse.size() == 1)
-      {        
+      {
         if (auto lower = static_cast<char>(std::tolower(to_parse.front()));
           lower == 't' || lower == '1')
         {
