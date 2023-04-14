@@ -4,3 +4,6 @@
 [submodule "libraries/cpr"]
 	path = libraries/cpr
 	url = https://github.com/libcpr/cpr.git
+[submodule "libraries/fast_float"]
+	path = libraries/fast_float
+	url = https://github.com/fastfloat/fast_float.git
