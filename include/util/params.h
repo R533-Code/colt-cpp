@@ -114,7 +114,7 @@ namespace clt
   using ref = T&;
 
   template<typename T>
-  /// @brief Represents uninitialized parameters that should end up be initialized
+  /// @brief Represents uninitialized parameters that should end up initialized
   /// before the end of the function's body.
   class out
   {
@@ -173,6 +173,63 @@ namespace clt
       if constexpr (is_debug())
         assert_true("Function returned without initializing 'uninit' value!",
           internal_object._DEBUG_is_constructed());
+    }
+  };
+
+  template<typename T>
+  /// @brief Represents uninitialized parameters that might end up being initialized
+  /// before the end of the function's body. This is considered more unsafe
+  /// than 'out' as this API requires the caller of the function to verify
+  /// the return of the function to check if the parameter was initialized.
+  class maybe_out
+  {
+    /// @brief The internal uninitialized object to use
+    uninit<T>& internal_object;
+
+  public:
+    /// @brief Constructs an 'out' parameter from an uninitialized object
+    /// @param object The object to initialize
+    constexpr maybe_out(uninit<T>& object) noexcept
+      : internal_object(object) {}
+
+    /// @brief Returns the underlying storage in which to construct the object
+    /// @return Reference to the underlying storage
+    constexpr uninit<T>& underlying() noexcept { return internal_object; }
+    /// @brief Returns the underlying storage in which to construct the object
+    /// @return Reference to the underlying storage
+    constexpr const uninit<T>& underlying() const noexcept { return internal_object; }
+
+    /// @brief Returns a reference to the underlying object, but do construct it first!
+    /// @return Reference to the data
+    constexpr meta::copy_trivial_t<const T&> data() const& noexcept
+    {
+      return internal_object.data();
+    }
+    /// @brief Returns a reference to the underlying object, but do construct it first!
+    /// @return Reference to the data
+    constexpr T& data() & noexcept
+    {
+      return internal_object.data();
+    }
+
+    /// @brief Returns a reference to the underlying object, but do construct it first!
+    /// @return Reference to the data
+    constexpr T&& data() && noexcept
+    {
+      return internal_object.data();
+    }
+
+    /// @brief Returns a reference to the underlying object, but do construct it first!
+    /// @return Reference to the data
+    constexpr meta::copy_trivial_t<const T&&> data() const&& noexcept
+    {
+      return internal_object.data();
+    }
+
+    template<typename... Args> requires std::is_constructible_v<T, Args...>
+    constexpr void construct(Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args...>)
+    {
+      internal_object.construct(std::forward<Args>(args)...);
     }
   };
 }
