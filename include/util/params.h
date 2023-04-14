@@ -90,14 +90,14 @@ namespace clt
         assert_true("Uninitialized object not constructed!", OnDebugIsConstructed::value);
         OnDebugIsConstructed::value = false;
       }
-      (&this->data()).~T();
+      (details::ptr_to<T*>(buffer))->~T();
     }
     
     /// @brief Does not destroy internal object
     constexpr ~uninit() noexcept
     {
       if constexpr (is_debug())
-        assert_true("Uninitialized object not destructed!", OnDebugIsConstructed::value);
+        assert_true("Initialized object not destructed!", !OnDebugIsConstructed::value);
     }
 
     /// @brief DEBUG ONLY: check if the internal object is constructed
