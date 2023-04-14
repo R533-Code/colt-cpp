@@ -53,15 +53,15 @@ namespace clt
     /// The characters that are considered spaces are '\n', ' ', '\v', '\t'.
     constexpr StringViewOf strip_spaces() noexcept
     {
-      while (ViewT::is_not_empty())
+      while (!ViewT::is_empty())
         if (std::isspace(*ViewT::begin()))
           ViewT::pop_front();
         else
           break;
 
-      while (ViewT::is_not_empty())
+      while (!ViewT::is_empty())
         if (std::isspace(*(ViewT::begin() + ViewT::size() - 1)))
-          ViewT::pop_front();
+          ViewT::pop_back();
         else
           break;
       return *this;
