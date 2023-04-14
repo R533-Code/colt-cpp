@@ -31,7 +31,7 @@ namespace clt::details
     {
       if constexpr (std::is_trivially_move_constructible_v<T> && std::is_trivially_destructible_v<T>)
       {
-        std::memcpy(from, to, count * sizeof(T));
+        std::memcpy(to, from, count * sizeof(T));
         return;
       }
     }
@@ -57,7 +57,7 @@ namespace clt::details
     {
       if constexpr (std::is_trivially_move_constructible_v<T>)
       {
-        std::memcpy(from, to, count * sizeof(T));
+        std::memcpy(to, from, count * sizeof(T));
         return;
       }
     }
@@ -94,7 +94,7 @@ namespace clt::details
     {
       if constexpr (std::is_trivially_move_constructible_v<T> && std::is_trivially_destructible_v<T>)
       {
-        std::memcpy(from, to, count * sizeof(T));
+        std::memcpy(to, from, count * sizeof(T));
         return;
       }
     }
