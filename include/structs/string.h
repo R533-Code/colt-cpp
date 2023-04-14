@@ -3,9 +3,11 @@
 
 #include "./vector.h"
 #include "./string_view.h"
+#include "./expect.h"
 #include "../refl/enum.h"
 
 DECLARE_ENUM_WITH_TYPE(u8, clt, StringEncoding, ASCII, UTF8, UTF32);
+DECLARE_ENUM_WITH_TYPE(u8, clt::io, IOError, FILE_EOF, FILE_ERROR, INVALID_FMT, OUT_OF_RANGE);
 
 namespace clt
 {
@@ -26,6 +28,12 @@ namespace clt
     static constexpr bool is_local = meta::LocalAllocator<ALLOCATOR>;
 
   public:
+    template<typename AllocT> requires is_local
+    constexpr BasicString(AllocT& alloc) noexcept
+      : UnderlyingVector(alloc) {}
+
+    constexpr BasicString() noexcept requires is_global = default;
+
     template<typename AllocT>
     constexpr BasicString(AllocT& alloc, StringView strv) noexcept requires is_local
       : UnderlyingVector(alloc, strv) {}
@@ -46,6 +54,43 @@ namespace clt
     constexpr operator StringView() noexcept
     {
       return StringView{ this->begin(), this->end() };
+    }
+
+    static Expect<BasicString, io::IOError> getLine(FILE* from, u64 reserve = 64, bool strip_front = true) noexcept
+    {
+      BasicString str;
+      auto gchar = std::fgetc(from);
+      if (gchar == EOF)
+      {
+        if (feof(from))
+          return { Error, IOError::FILE_EOF };
+        else
+          return { Error, IOError::FILE_ERROR };
+      }
+      str.reserve(reserve);
+      if (strip_front && std::isspace(gchar))
+      {
+        //Consume spaces
+        while ((gchar = std::fgetc(from)) != EOF)
+          if (!std::isspace(gchar))
+            break;
+      }
+      for (;;)
+      {
+        if (gchar != '\n' && gchar != EOF)
+        {
+          str.push_back(static_cast<char>(gchar));
+          gchar = std::fgetc(from);
+        }
+        else
+          break;
+      }
+      return str;
+    }
+
+    static Expect<BasicString, io::IOError> getLine(u64 reserve = 64, bool strip_front = true) noexcept
+    {
+      return getLine(stdin, reserve, strip_front);
     }
   };
 
