@@ -2,6 +2,8 @@
 #define HG_COLT_TRAITS
 
 #include <type_traits>
+#include <concepts>
+
 #include "../util/debug_level.h"
 
 namespace clt::meta
@@ -151,7 +153,7 @@ namespace clt::meta
 
   template<typename T> requires (clt::is_debug())
   /// @brief Expands to a struct with 'T value' as a member on debug
-  struct type_on_debug
+  struct type_on_debug<T>
   {
     T value;
   };
