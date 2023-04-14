@@ -10,13 +10,12 @@
 #endif //COLT_WINDOWS
 
 #include <utility>
+
+#include "../str/parse.h"
 #include "./print.h"
 #include "../util/contracts.h"
 #include "../refl/enum.h"
-#include "../structs/span.h"
-#include "../structs/expect.h"
-
-DECLARE_ENUM_WITH_TYPE(u8, clt::io, IOError, FILE_EOF, FILE_ERROR, INVALID_FMT, RANGE_ERROR);
+#include "../structs/string.h"
 
 namespace clt::io
 {
@@ -59,7 +58,7 @@ namespace clt::io
     char* buffer = span.data();
     
     toggle_echo();
-    char chr = getchar();
+    int chr = getchar();
     if (chr == EOF)
       return { Error, IOError::FILE_EOF };
     buffer[0] = chr;
@@ -69,7 +68,7 @@ namespace clt::io
       chr = getchar();
       if (chr == EOF || chr == '\n')
         break;
-      buffer[i] = chr;
+      buffer[i] = static_cast<char>(chr);
     }
     toggle_echo();
     return { i };
@@ -103,26 +102,37 @@ namespace clt::io
   }
   COLT_POST()
 
-  template<typename T, meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::Parsable T, meta::StringLiteral endl = "", typename... Args> requires (Formatable<Args> && ...)
   inline Expect<T, IOError> input(std::FILE* file, fmt_str<Args...> fmt, Args&&... args) noexcept
   {
     print<endl>(fmt, std::forward<Args>(args)...);
-    int chr;
-    //Consume spaces
-    while ((chr = std::fgetc(file)) != EOF)
-      if (!std::isspace(chr))
-        break;
-    char buffer[128];
-    size_t size = 0;
-    while ((chr = std::fgetc(file)) != EOF)
-      buffer[size++] = static_cast<char>(chr);
-    clt::parse<T>{}(StringView{ buffer, size });
+    auto str = String::getLine(128);    
+    if (str.is_error())
+      return { Error, str.error() };
+    //The string to parse
+    auto strv = StringView{ str->begin(), str->end() }.strip_spaces();
+    
+    //The variable in which to store the result
+    uninit<T> result;
+    
+    auto [ptr, err] = clt::parse<T>{}(result, strv);
+    if (err != ParseErrorCode::SUCCESS)
+      return { Error, IOError::INVALID_FMT };    
+    
+    //As the object was constructed, we need to take destruct it
+    ON_SCOPE_EXIT{
+      result.destruct();
+    };
+    
+    if (ptr != strv.end())
+      return { Error, IOError::INVALID_FMT };
+    return { InPlace, std::move(result.data()) };
   }
 
-  template<typename T, meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::Parsable T, meta::StringLiteral endl = "", typename... Args> requires (Formatable<Args> && ...)
   inline Expect<T, IOError> input(fmt_str<Args...> fmt, Args&&... args) noexcept
   {
-    return input(stdin, fmt, std::forward<Args>(args)...);
+    return input<T>(stdin, fmt, std::forward<Args>(args)...);
   }
 }
 

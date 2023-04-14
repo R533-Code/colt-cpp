@@ -3,10 +3,12 @@
 #include "util/benchmark.h"
 #include "io/print.h"
 #include "meta/type_list.h"
+#include "structs/string.h"
 #include "structs/vector.h"
 #include "structs/expect.h"
 #include "structs/option.h"
 #include "refl/refl.h"
+#include "io/input.h"
 
 using namespace std::chrono_literals;
 using namespace clt;
@@ -51,18 +53,11 @@ int main(int argc, char** argv)
 {
   std::atexit([]() { clt::bench::save_tracing_to("Test.json"); });
 
-  uninit<AB> ab;
-  init_AB(ab);
+  auto result = input<u64>("Enter your age: ");
+  while (result.is_error())
   {
-    COLT_PROFILE_SCOPE("fmt::print");
-    print_message("Hello: {}\n{}", clt::refl<const u8* const>::str(),
-      ab.data());
+    result = input<u64>("Invalid value ({})! Please enter a valid number: ",
+      refl<IOError>::str(result.error()));
   }
-  auto vec = Vector<int>(10ULL);
-  vec.push_back(10);
-  vec.push_back(13);
-  vec.push_back(15);
-  print("Vector: {:h}", vec);
-  print("Option test: {:empty option}", div_option(10, 0));
-  print("Expect test: {}", div_expect(10, 0));
+  print("Your age is {}!", *result);
 }
