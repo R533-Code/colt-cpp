@@ -18,10 +18,13 @@ namespace clt
     using ViewT = View<CharT>;
 
   public:
-
     /// @brief Constructs an empty StringViewOf
     constexpr StringViewOf() noexcept
       : ViewT(nullptr, nullptr) {}
+    
+    template<size_t N>
+    constexpr StringViewOf(const CharT(&x)[N]) noexcept
+      : ViewT(x, x + N) {}
     /// @brief Range constructor
     /// @param begin The beginning of the view
     /// @param end The end of the view
