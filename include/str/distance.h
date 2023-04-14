@@ -1,12 +1,15 @@
 #ifndef HG_COLT_DISTANCE
 #define HG_COLT_DISTANCE
 
+#include <type_traits>
+#include <cstring>
+
 namespace clt
 {
   /// @brief constexpr version of 'strlen'
   /// @param str The string whose size to find
   /// @return The size of the string
-  static constexpr size_t strlen(const char* str) noexcept
+  constexpr size_t strlen(const char* str) noexcept
   {
     if (std::is_constant_evaluated())
     {
