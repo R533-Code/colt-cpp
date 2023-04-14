@@ -117,7 +117,13 @@ namespace clt::io
     
     auto [ptr, err] = clt::parse<T>{}(result, strv);
     if (err != ParseErrorCode::SUCCESS)
-      return { Error, IOError::INVALID_FMT };    
+    {
+      if (err == ParseErrorCode::INVALID_FMT)
+        return { Error, IOError::INVALID_FMT };
+      else if (err == ParseErrorCode::OUT_OF_RANGE)
+        return { Error, IOError::OUT_OF_RANGE };
+      colt_unreachable("Invalid ParseErrorCode!");
+    }
     
     //As the object was constructed, we need to take destruct it
     ON_SCOPE_EXIT{

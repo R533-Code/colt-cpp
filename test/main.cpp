@@ -56,6 +56,11 @@ int main(int argc, char** argv)
   auto result = input<u64>("Enter your age: ");
   while (result.is_error())
   {
+    if (result.error() == IOError::FILE_EOF)
+    {
+      print_fatal("EOF detected!");
+      std::exit(1);
+    }
     result = input<u64>("Invalid value ({})! Please enter a valid number: ",
       refl<IOError>::str(result.error()));
   }
