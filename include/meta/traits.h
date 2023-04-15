@@ -145,18 +145,8 @@ namespace clt::meta
   using copy_trivial_t = typename copy_trivial<T>::type;
 
   template<typename T>
-  /// @brief Expands to an empty struct on non-debug configuration
-  struct type_on_debug
-  {
-    //Empty struct.
-  };
-
-  template<typename T> requires (clt::is_debug())
-  /// @brief Expands to a struct with 'T value' as a member on debug
-  struct type_on_debug<T>
-  {
-    T value;
-  };
+  /// @brief Expands to T if clt::is_debug()
+  using type_on_debug = std::conditional_t<clt::is_debug(), T, Empty>;
 }
 
 #endif //!HG_COLT_TRAITS
