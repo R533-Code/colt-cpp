@@ -7,52 +7,60 @@
 #include "./span.h"
 #include "../str/distance.h"
 #include "../str/ascii.h"
+#include "../refl/enum.h"
+
+DECLARE_ENUM_WITH_TYPE(u8, clt, StringEncoding, ASCII, UTF8, UTF32);
 
 namespace clt
 {
-  template<typename CharT = char>
-  class StringViewOf
-    : public View<CharT>
+  template<StringEncoding>
+  class BasicStringView {};
+
+  template<>
+  class BasicStringView<StringEncoding::ASCII>
+    : public View<char>
   {
-    static_assert(std::is_same_v<CharT, char>, "StringViewOf only supports char for now!");
+    using CharT = char;
+
+    static_assert(std::is_same_v<CharT, char>, "BasicStringView only supports char for now!");
     /// @brief Helper type
     using ViewT = View<CharT>;
 
   public:
-    /// @brief Constructs an empty StringViewOf
-    constexpr StringViewOf() noexcept
+    /// @brief Constructs an empty BasicStringView
+    constexpr BasicStringView() noexcept
       : ViewT(nullptr, nullptr) {}
     
     template<size_t N>
-    constexpr StringViewOf(const CharT(&x)[N]) noexcept
+    constexpr BasicStringView(const CharT(&x)[N]) noexcept
       : ViewT(x, x + N) {}
     /// @brief Range constructor
     /// @param begin The beginning of the view
     /// @param end The end of the view
-    constexpr StringViewOf(const CharT* begin, const CharT* end) noexcept
+    constexpr BasicStringView(const CharT* begin, const CharT* end) noexcept
       : ViewT(begin, end) {}
     /// @brief Constructs a StringView over a NUL terminated string
     /// @param cstr The NUL terminated string to span over
-    constexpr StringViewOf(const CharT* cstr) noexcept
+    constexpr BasicStringView(const CharT* cstr) noexcept
       : ViewT(cstr, clt::strlen(cstr)) {}
     /// @brief Constructs a StringView over a NUL terminated string, including its NUL terminator
     /// @param cstr The NUL terminated string to span over
     /// @param  Tag object (WithNUL)
-    constexpr StringViewOf(const CharT* cstr, meta::WithNULT) noexcept
+    constexpr BasicStringView(const CharT* cstr, meta::WithNULT) noexcept
       : ViewT(cstr, clt::strlen(cstr) + 1) {}
     /// @brief Copy constructor
     /// @param  The StringView to copy
-    constexpr StringViewOf(const StringViewOf&) noexcept = default;
+    constexpr BasicStringView(const BasicStringView&) noexcept = default;
     /// @brief Move constructor
     /// @param  The StringView to move
-    constexpr StringViewOf(StringViewOf&&) noexcept = default;
+    constexpr BasicStringView(BasicStringView&&) noexcept = default;
 
-    constexpr StringViewOf& operator=(const StringViewOf&) noexcept = default;
-    constexpr StringViewOf& operator=(StringViewOf&&) noexcept = default;
+    constexpr BasicStringView& operator=(const BasicStringView&) noexcept = default;
+    constexpr BasicStringView& operator=(BasicStringView&&) noexcept = default;
 
     /// @brief Strips whitespace from the beginning of the string 
     /// @return Self
-    constexpr StringViewOf strip_prefix() noexcept
+    constexpr BasicStringView strip_prefix() noexcept
     {
       while (!ViewT::is_empty())
         if (clt::isspace(*ViewT::begin()))
@@ -65,7 +73,7 @@ namespace clt
     
     /// @brief Strips whitespace from the end of the string 
     /// @return Self
-    constexpr StringViewOf strip_suffix() noexcept
+    constexpr BasicStringView strip_suffix() noexcept
     {
       while (!ViewT::is_empty())
         if (clt::isspace(*(ViewT::begin() + ViewT::size() - 1)))
@@ -78,7 +86,7 @@ namespace clt
     /// @brief Pops all spaces from the beginning and the end of the StringView.
     /// The characters that are considered spaces are '\n', ' ', '\v', '\t'.
     /// @return Self
-    constexpr StringViewOf strip() noexcept
+    constexpr BasicStringView strip() noexcept
     {
       return strip_prefix(), strip_suffix();
     }
@@ -92,9 +100,9 @@ namespace clt
     /// @return The index of 'chr' or npos if not found
     constexpr size_t find(CharT chr, size_t offset = 0) const noexcept
     {
-      for (size_t i = offset; i < this->get_size(); i++)
+      for (size_t i = offset; i < this->size(); i++)
       {
-        if (this->get_data()[i] == chr)
+        if (this->data()[i] == chr)
           return i;
       }
       return npos;
@@ -107,17 +115,17 @@ namespace clt
     {
       if (this->is_empty())
         return false;
-      return this->get_front() == chr;
+      return this->front() == chr;
     }
 
     /// @brief Check if the StringView begins with another StringView
     /// @param str The StringView to search for
     /// @return True if the current StringView begins with 'str'
-    constexpr bool begins_with(StringViewOf str) const noexcept
+    constexpr bool begins_with(BasicStringView str) const noexcept
     {
-      if (str.get_size() > this->get_size())
+      if (str.size() > this->size())
         return false;
-      for (size_t i = 0; i < str.get_size(); i++)
+      for (size_t i = 0; i < str.size(); i++)
       {
         if (str[i] != (*this)[i])
           return false;
@@ -134,11 +142,11 @@ namespace clt
 
     /// @brief Uses comparison operators of View
     /// @return Result of comparison
-    friend constexpr auto operator<=>(const StringViewOf&, const StringViewOf&) noexcept = default;
+    friend constexpr auto operator<=>(const BasicStringView&, const BasicStringView&) noexcept = default;
   };
 
-  /// @brief StringViewOf char
-  using StringView = StringViewOf<char>;
+  /// @brief BasicStringView of ASCII characters.
+  using StringView = BasicStringView<StringEncoding::ASCII>;
 }
 
 template<>
