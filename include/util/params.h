@@ -52,7 +52,10 @@ namespace clt
     /// @brief No default copy assignment operator
     constexpr uninit& operator=(uninit&&) noexcept = delete;
     /// @brief Constructor, does nothing
-    constexpr uninit() noexcept = default;
+    constexpr uninit() noexcept requires (clt::is_release()) = default;
+    /// @brief Constructor, does nothing (and sets a debug flag)
+    constexpr uninit() noexcept requires (clt::is_debug())
+      : OnDebugIsConstructed(false) {}
 
     /// @brief Returns a reference to the underlying object, but do construct it first!
     /// @return Reference to the data
