@@ -4,9 +4,7 @@
 #include "./vector.h"
 #include "./string_view.h"
 #include "./expect.h"
-#include "../refl/enum.h"
 
-DECLARE_ENUM_WITH_TYPE(u8, clt, StringEncoding, ASCII, UTF8, UTF32);
 DECLARE_ENUM_WITH_TYPE(u8, clt::io, IOError, FILE_EOF, FILE_ERROR, INVALID_FMT, OUT_OF_RANGE);
 
 namespace clt
