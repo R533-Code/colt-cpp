@@ -476,7 +476,7 @@ DECLARE_BUILTIN_TYPE(f64);
     } \
   }
 
-template<typename T> requires (!fmt::is_formattable<T>::value) && clt::meta::Reflectable<T>
+template<typename T> requires (!fmt::is_formattable<T>::value) && clt::meta::Reflectable<T> && (!std::is_enum_v<T>)
 /// @brief Format any type whose "Reflectable" and not already formattable.
 struct fmt::formatter<T>
 {
