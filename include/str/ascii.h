@@ -7,21 +7,41 @@ namespace clt
 {
   namespace details
   {
+    /// @brief Used to extract data from CHAR_INFO_TABLE (see example in 'islower')
     enum CharInfo
       : u8
     {
+      /// @brief Check if the result of indexing into
+      /// CHAR_INFO_TABLE is a control character.
       ISCNTRL     = (1 << 0),
+      /// @brief Check if the result of indexing into
+      /// CHAR_INFO_TABLE is a digit character.
       ISDIGIT     = (1 << 2),
+      /// @brief Check if the result of indexing into
+      /// CHAR_INFO_TABLE is a lower case letter.
       ISLOWER     = (1 << 3),
+      /// @brief Check if the result of indexing into
+      /// CHAR_INFO_TABLE is a punctuation character.
       ISPUNCT     = (1 << 4),
+      /// @brief Check if the result of indexing into
+      /// CHAR_INFO_TABLE is a whitespace character.
       ISSPACE     = (1 << 5),
+      /// @brief Check if the result of indexing into
+      /// CHAR_INFO_TABLE is an upper case letter.
       ISUPPER     = (1 << 6),
       
+      /// @brief Check if the result of indexing into
+      /// CHAR_INFO_TABLE is a letter.
       ISALPHA     = ISUPPER | ISLOWER,
+      /// @brief Check if the result of indexing into
+      /// CHAR_INFO_TABLE is an alpha-numeric character.
       ISALNUM     = ISALPHA | ISDIGIT,
+      /// @brief Check if the result of indexing into
+      /// CHAR_INFO_TABLE is a graphical character.
       ISGRAPH     = ISALNUM | ISPUNCT,
     };
 
+    /// @brief Table of all the characters information
     constexpr u8 CHAR_INFO_TABLE[] =
     { 
       0b00000001, //[NULL]
