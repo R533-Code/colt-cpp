@@ -5,6 +5,7 @@
 #include "./string_view.h"
 #include "./expect.h"
 #include "../refl/enum.h"
+#include "../str/parse.h"
 
 DECLARE_ENUM_WITH_TYPE(u8, clt::io, IOError, FILE_EOF, FILE_ERROR, INVALID_FMT, OUT_OF_RANGE);
 
@@ -119,6 +120,16 @@ namespace clt
 
   /// @brief ASCII String
   using String = BasicString<mem::GlobalAllocatorDescription, StringEncoding::ASCII>;
+
+  template<>
+  struct parse<String>
+  {
+    constexpr ParseResult operator()(maybe_out<String> str, StringView to_parse) const noexcept
+    {
+      str.construct(to_parse);
+      return ParseResult{ to_parse.end(), ParseErrorCode::SUCCESS };
+    }
+  };
 }
 
 #endif //!HG_COLT_STRING
