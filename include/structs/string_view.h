@@ -145,21 +145,6 @@ namespace clt
 
   /// @brief BasicStringView of ASCII characters.
   using StringView = BasicStringView<StringEncoding::ASCII>;
-
-  template<typename>
-  //Forward declaration
-  struct parser;
-
-  template<>
-  /// @brief Overload for StringView
-  struct parser<StringView>
-  {
-    constexpr ParseResult operator()(maybe_out<StringView> str, StringView to_parse) const noexcept
-    {
-      str.construct(to_parse);
-      return ParseResult{ to_parse.end(), ParseErrorCode::SUCCESS };
-    }
-  };
 }
 
 template<>
