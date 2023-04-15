@@ -7,6 +7,24 @@
 
 namespace clt
 {
+  namespace details
+  {
+    template<typename To, typename From>
+    /// @brief Helper to converts a pointer to a type to a pointer to another type
+    /// @tparam To The type to convert
+    /// @tparam From The type to convert from
+    /// @param frm The value to convert
+    /// @return Converted value
+    constexpr To ptr_to(From frm) noexcept
+      requires std::is_pointer_v<To>&& std::is_pointer_v<From>
+    {
+      return static_cast<To>(
+        static_cast<
+        meta::match_cv_t<std::remove_pointer_t<From>, void>*
+        >(frm));
+    }
+  }
+
   template<typename T>
   class uninit
     : public meta::type_on_debug<bool>
