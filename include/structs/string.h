@@ -12,13 +12,16 @@ namespace clt
 {
   template<auto ALLOCATOR, StringEncoding ENCODING>
     requires meta::AllocatorScope<ALLOCATOR>
+  /// @brief Unspecialized BasicString
   class BasicString{};
 
   template<auto ALLOCATOR>
     requires meta::AllocatorScope<ALLOCATOR>
+  /// @brief ASCII BasicString
   class BasicString<ALLOCATOR, StringEncoding::ASCII>
     : public Vector<char, ALLOCATOR>
   {
+    /// @brief The underlying vector providing storage
     using UnderlyingVector = Vector<char, ALLOCATOR>;
 
     /// @brief True if the allocator is global
@@ -28,20 +31,28 @@ namespace clt
 
   public:
     template<typename AllocT> requires is_local
+    /// @brief Constructor for BasicString using a local allocator
+    /// @param alloc The local allocator
     constexpr BasicString(AllocT& alloc) noexcept
       : UnderlyingVector(alloc) {}
 
+    /// @brief Default constructor for BasicString using a global allocator
     constexpr BasicString() noexcept requires is_global = default;
 
     template<typename AllocT>
+    /// @brief Constructor for BasicString using a local allocator
+    /// @param alloc The local allocator
+    /// @param strv The StringView to use whose content to copy
     constexpr BasicString(AllocT& alloc, StringView strv) noexcept requires is_local
       : UnderlyingVector(alloc, strv) {}
 
+    /// @brief Constructor for BasicString using a global allocator
+    /// @param strv The StringView to use whose content to copy
     constexpr BasicString(StringView strv) noexcept requires is_global
       : UnderlyingVector(strv) {}
 
     template<typename AllocT, size_t N> requires is_local
-      constexpr BasicString(AllocT& alloc, const char(&x)[N]) noexcept
+    constexpr BasicString(AllocT& alloc, const char(&x)[N]) noexcept
       : UnderlyingVector(alloc, StringView{ x, x + N }) {}
 
     template<size_t N> requires is_global
@@ -55,6 +66,13 @@ namespace clt
       return StringView{ this->begin(), this->end() };
     }
 
+    /// @brief Gets a line from a file.
+    /// The resulting BasicString is not NUL terminated, and does not contain the new line.
+    /// FILE_EOF and FILE_ERROR is only returned if no characters were read.
+    /// @param from The (opened) file from which to read characters
+    /// @param reserve The count of characters to reserve before reading characters
+    /// @param strip_front If true, skips all blank (' ', '\t') characters in the front of the string
+    /// @return BasicString containing the line or either FILE_EOF or FILE_ERROR.
     static Expect<BasicString, io::IOError> getLine(FILE* from, u64 reserve = 64, bool strip_front = true) noexcept
     {
       BasicString str;
@@ -71,7 +89,7 @@ namespace clt
       {
         //Consume spaces
         while ((gchar = std::fgetc(from)) != EOF)
-          if (!std::isspace(gchar))
+          if (!clt::isblank(gchar))
             break;
       }
       for (;;)
@@ -87,12 +105,19 @@ namespace clt
       return str;
     }
 
+    /// @brief Gets a line from a 'stdin'.
+    /// The resulting BasicString is not NUL terminated, and does not contain the new line.
+    /// FILE_EOF and FILE_ERROR is only returned if no characters were read.
+    /// @param reserve The count of characters to reserve before reading characters
+    /// @param strip_front If true, skips all blank (' ', '\t') characters in the front of the string
+    /// @return BasicString containing the line or either FILE_EOF or FILE_ERROR.
     static Expect<BasicString, io::IOError> getLine(u64 reserve = 64, bool strip_front = true) noexcept
     {
       return getLine(stdin, reserve, strip_front);
     }
   };
 
+  /// @brief ASCII String
   using String = BasicString<mem::GlobalAllocatorDescription, StringEncoding::ASCII>;
 }
 
