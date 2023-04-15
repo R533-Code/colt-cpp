@@ -52,7 +52,7 @@ void init_AB(out<AB> param)
 int main(int argc, char** argv)
 {
   std::atexit([]() { clt::bench::save_tracing_to("Test.json"); });
-
+  
   auto result = input<u64>("Enter your age: ");
   while (result.is_error())
   {
