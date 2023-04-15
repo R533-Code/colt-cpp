@@ -105,16 +105,22 @@ namespace clt::io
   template<meta::Parsable T, meta::StringLiteral endl = "", typename... Args> requires (Formatable<Args> && ...)
   inline Expect<T, IOError> input(std::FILE* file, fmt_str<Args...> fmt, Args&&... args) noexcept
   {
+    //Print the message...
     print<endl>(fmt, std::forward<Args>(args)...);
-    auto str = String::getLine(128);    
-    if (str.is_error())
+    //Ask for input...
+    auto str = String::getLine(file, 128);
+    if (str.is_error()) //FILE_EOF or FILE_ERROR
       return { Error, str.error() };
-    //The string to parse
-    auto strv = StringView{ str->begin(), str->end() }.strip_spaces();
+    
+    //The string to parse.
+    //As String::getLine strips the spaces from the front,
+    //we only strip the spaces in the back.
+    auto strv = StringView{ str->begin(), str->end() }.strip_suffix();
     
     //The variable in which to store the result
     uninit<T> result;
     
+    //Parse the line
     auto [ptr, err] = clt::parse<T>{}(result, strv);
     if (err != ParseErrorCode::SUCCESS)
     {
@@ -122,6 +128,7 @@ namespace clt::io
         return { Error, IOError::INVALID_FMT };
       else if (err == ParseErrorCode::OUT_OF_RANGE)
         return { Error, IOError::OUT_OF_RANGE };
+      //Check if a new IOError was added...
       colt_unreachable("Invalid ParseErrorCode!");
     }
     //err == SUCCESS, the object was constructed,
@@ -130,6 +137,8 @@ namespace clt::io
       result.destruct();
     };
     
+    //There was more characters that did not match:
+    // "10 x" is not a valid integer as the " x" won't be accessible.
     if (ptr != strv.end())
       return { Error, IOError::INVALID_FMT };
     return { InPlace, std::move(result.data()) };
