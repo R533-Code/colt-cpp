@@ -8,6 +8,8 @@
 #include "../math/math.h"
 #include "../util/contracts.h"
 #include "../util/assert_true.h"
+#include "../util/on_exit.h"
+#include "../util/params.h"
 
 #ifndef FMT_HEADER_ONLY
   #define FMT_HEADER_ONLY
@@ -116,21 +118,6 @@ namespace clt::details
       for (size_t i = 0; i < count; i++)
         begin[i].~T();
     }
-  }
-
-  template<typename To, typename From>
-  /// @brief Helper to converts a pointer to a type to a pointer to another type
-  /// @tparam To The type to convert
-  /// @tparam From The type to convert from
-  /// @param frm The value to convert
-  /// @return Converted value
-  constexpr To ptr_to(From frm) noexcept
-    requires std::is_pointer_v<To> && std::is_pointer_v<From>
-  {
-    return static_cast<To>(
-      static_cast<
-      meta::match_cv_t<std::remove_pointer_t<From>, void>*
-      >(frm));
   }
 }
 

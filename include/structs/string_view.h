@@ -3,7 +3,6 @@
 
 #include <type_traits>
 
-#include "./helper.h"
 #include "./span.h"
 #include "../str/distance.h"
 #include "../str/ascii.h"
