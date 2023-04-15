@@ -110,7 +110,7 @@ namespace clt::meta
   /// @tparam Release The type on Release configuration
   struct for_debug_for_release
   {
-    using type = std::conditional_t<ColtDebugLevel != COLT_NO_DEBUG, Debug, Release>;
+    using type = std::conditional_t<clt::is_debug(), Debug, Release>;
   };
 
   template<typename Debug, typename Release>
@@ -145,8 +145,22 @@ namespace clt::meta
   using copy_trivial_t = typename copy_trivial<T>::type;
 
   template<typename T>
-  /// @brief Expands to T if clt::is_debug()
-  using type_on_debug = std::conditional_t<clt::is_debug(), T, Empty>;
+  /// @brief Expands to an empty struct on non-debug configuration
+  struct type_on_debug
+  {
+    //Empty struct.
+  };
+
+  template<typename T> requires (clt::is_debug())
+    /// @brief Expands to a struct with 'T value' as a member on debug
+    struct type_on_debug<T>
+  {
+    T value;
+
+    template<typename... Args> requires (std::is_constructible_v<T, Args...>)
+    constexpr type_on_debug(Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args...>)
+      : value(std::forward<Args>(args)...) {}
+  };
 }
 
 #endif //!HG_COLT_TRAITS
