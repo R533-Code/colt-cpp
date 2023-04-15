@@ -17,9 +17,11 @@ namespace clt
   };
 
   template<StringEncoding>
+  /// @brief Unspecialized BasicStringView
   class BasicStringView {};
 
   template<>
+  /// @brief ASCII StringView
   class BasicStringView<StringEncoding::ASCII>
     : public View<char>
   {
