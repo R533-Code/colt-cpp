@@ -427,27 +427,34 @@ namespace clt
   {
     constexpr ParseResult operator()(maybe_out<Vector<T, ALLOCATOR>> result, StringView to_parse) const noexcept
     {
-      if (to_parse.size() < 2 || (to_parse.front() != '[' && to_parse.back() != ']'))
+      if (to_parse.size() < 2 || to_parse.front() != '[' || to_parse.back() != ']')
         return ParseResult{ to_parse.end(), ParseErrorCode::INVALID_FMT };
+      auto end = to_parse.end();
       //Pop '[' and ']'
-      to_parse.pop_front(); //to_parse.pop_back();
+      to_parse.pop_front(); to_parse.pop_back();
       
       //Construct the Vector
       result.construct();
+      
+      if (to_parse.is_empty())
+        return ParseResult{ end, ParseErrorCode::SUCCESS };
 
       u64 offset = 0;
-      u64 find_i;
-      while ((find_i = to_parse.find(',')) != StringView::npos)
+      u64 find_i = to_parse.find(',', offset);
+      do
       {
-        auto obj = StringView{ to_parse.begin(), to_parse.begin() + find_i }.strip();
+        auto obj = to_parse.substr(offset, find_i - offset);
+        obj.strip();
+        
         uninit<T> try_obj;
         auto [ptr, err] = clt::parser<T>{}(try_obj, obj);
         if (err != ParseErrorCode::SUCCESS)
         {
-          //Destroy, as we could not construct Vector...
+          //Destroy the object as it was constructed...
           result.underlying().destruct();
           return ParseResult{ obj.end(), err };
         }
+
         ON_SCOPE_EXIT{
           //Destroy the object as it was constructed...
           try_obj.destruct();
@@ -455,15 +462,21 @@ namespace clt
         
         if (ptr != obj.end())
         {
-          //Destroy, as we could not construct Vector...
-          result.underlying().destruct();          
+          //Destroy the object as it was constructed...
+          result.underlying().destruct();
           return ParseResult{ ptr, ParseErrorCode::INVALID_FMT };
         }
+        
         result.data().push_back(std::move(try_obj.data()));
         //After ','
         offset = find_i + 1;
-      }
-      return ParseResult{ to_parse.end(), ParseErrorCode::SUCCESS };
+        find_i = to_parse.find(',', offset);
+        //Due to overflow, when find_i is npos, find_i + 1 == 0.
+        if (offset == 0)
+          break;
+      } while (true);
+
+      return ParseResult{ end, ParseErrorCode::SUCCESS };
     }
   };
 }
