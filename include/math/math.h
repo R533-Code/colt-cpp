@@ -6,6 +6,7 @@
 #include <concepts>
 #include <numeric>
 
+#include "../util/typedefs.h"
 #include "../util/contracts.h"
 
 namespace clt
@@ -42,6 +43,18 @@ namespace clt
     }
     else
       return std::abs(value);
+  }
+
+  template<meta::Integral Int>
+  constexpr Int min(Int a, Int b) noexcept
+  {
+    return (b < a) ? b : a;
+  }
+
+  template<meta::Integral Int>
+  constexpr Int max(Int a, Int b) noexcept
+  {
+    return (a < b) ? b : a;
   }
 }
 
