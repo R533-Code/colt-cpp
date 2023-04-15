@@ -62,7 +62,7 @@ int main(int argc, char** argv)
       std::exit(1);
     }
     result = input<u64>("Invalid value ({})! Please enter a valid number: ",
-      refl<IOError>::str(result.error()));
+      result.error());
   }
   print("Your age is {}!", *result);
 }
