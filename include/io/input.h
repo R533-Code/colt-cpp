@@ -121,7 +121,7 @@ namespace clt::io
     uninit<T> result;
     
     //Parse the line
-    auto [ptr, err] = clt::parse<T>{}(result, strv);
+    auto [ptr, err] = clt::parser<T>{}(result, strv);
     if (err != ParseErrorCode::SUCCESS)
     {
       if (err == ParseErrorCode::INVALID_FMT)

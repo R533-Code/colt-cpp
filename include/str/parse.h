@@ -41,11 +41,11 @@ namespace clt
   }
 
   template<typename T>
-  struct parse {};
+  struct parser {};
 
   template<meta::Integral T>
   /// @brief Overload for integrals
-  struct parse<T>
+  struct parser<T>
   {
     ParseResult operator()(maybe_out<T> value, StringView to_parse) const noexcept
     {
@@ -63,7 +63,7 @@ namespace clt
 
   template<meta::FloatingPoint T>
   /// @brief Overload for floating-points
-  struct parse<T>
+  struct parser<T>
   {
     ParseResult operator()(maybe_out<T> value, StringView to_parse) const noexcept
     {
@@ -81,7 +81,7 @@ namespace clt
 
   template<>
   /// @brief Overload for booleans ([TtFf01]|true|false)
-  struct parse<bool>
+  struct parser<bool>
   {
     ParseResult operator()(maybe_out<bool> value, StringView to_parse) const noexcept
     {
@@ -124,7 +124,7 @@ namespace clt
     /// @brief Check if type has a parse<> specialization
     concept Parsable = requires (StringView strv, maybe_out<T> out)
     {
-      { parse<T>{}(out, strv)}->std::same_as<ParseResult>;
+      { parser<T>{}(out, strv)}->std::same_as<ParseResult>;
     };
   }
 }

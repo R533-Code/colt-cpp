@@ -122,7 +122,8 @@ namespace clt
   using String = BasicString<mem::GlobalAllocatorDescription, StringEncoding::ASCII>;
 
   template<>
-  struct parse<String>
+  /// @brief Overload for String
+  struct parser<String>
   {
     constexpr ParseResult operator()(maybe_out<String> str, StringView to_parse) const noexcept
     {
