@@ -64,7 +64,7 @@ namespace clt
 
     /// @brief Strips whitespace from the beginning of the string 
     /// @return Self
-    constexpr BasicStringView strip_prefix() noexcept
+    constexpr BasicStringView& strip_prefix() noexcept
     {
       while (!ViewT::is_empty())
         if (clt::isspace(*ViewT::begin()))
@@ -77,7 +77,7 @@ namespace clt
     
     /// @brief Strips whitespace from the end of the string 
     /// @return Self
-    constexpr BasicStringView strip_suffix() noexcept
+    constexpr BasicStringView& strip_suffix() noexcept
     {
       while (!ViewT::is_empty())
         if (clt::isspace(*(ViewT::begin() + ViewT::size() - 1)))
@@ -90,7 +90,7 @@ namespace clt
     /// @brief Pops all spaces from the beginning and the end of the StringView.
     /// The characters that are considered spaces are '\n', ' ', '\v', '\t'.
     /// @return Self
-    constexpr BasicStringView strip() noexcept
+    constexpr BasicStringView& strip() noexcept
     {
       return strip_prefix(), strip_suffix();
     }
@@ -111,6 +111,14 @@ namespace clt
       }
       return npos;
     }
+
+    constexpr BasicStringView substr(size_t pos = 0, size_t count = npos) const noexcept
+      COLT_PRE(pos <= size())
+    {
+      return BasicStringView{ ViewT::data() + pos,
+        ViewT::data() + pos + clt::min(ViewT::size() - pos, count) };
+    }
+    COLT_POST()
 
     /// @brief Check if the StringView begins with 'chr'
     /// @param chr The character to check for
