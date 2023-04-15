@@ -50,22 +50,34 @@ namespace clt
     constexpr StringViewOf& operator=(const StringViewOf&) noexcept = default;
     constexpr StringViewOf& operator=(StringViewOf&&) noexcept = default;
 
-    /// @brief Pops all spaces from the beginning and the end of the StringView.
-    /// The characters that are considered spaces are '\n', ' ', '\v', '\t'.
-    constexpr StringViewOf strip_spaces() noexcept
+    constexpr StringViewOf strip_prefix() noexcept
     {
       while (!ViewT::is_empty())
-        if (std::isspace(*ViewT::begin()))
+        if (clt::isspace(*ViewT::begin()))
           ViewT::pop_front();
         else
           break;
 
+      return *this;
+    }
+    
+    /// @brief Strips a suffix
+    /// @return 
+    constexpr StringViewOf strip_suffix() noexcept
+    {
       while (!ViewT::is_empty())
-        if (std::isspace(*(ViewT::begin() + ViewT::size() - 1)))
+        if (clt::isspace(*(ViewT::begin() + ViewT::size() - 1)))
           ViewT::pop_back();
         else
           break;
       return *this;
+    }
+
+    /// @brief Pops all spaces from the beginning and the end of the StringView.
+    /// The characters that are considered spaces are '\n', ' ', '\v', '\t'.
+    constexpr StringViewOf strip() noexcept
+    {
+      return strip_prefix(), strip_suffix();
     }
 
     /// @brief Value that signifies that the value was not found
