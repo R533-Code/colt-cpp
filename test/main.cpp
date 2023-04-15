@@ -64,5 +64,15 @@ int main(int argc, char** argv)
     result = input<u64>("Invalid value ({})! Please enter a valid number: ",
       result.error());
   }
-  print("Your age is {}!", *result);
+  const u64& age = *result;
+
+  auto result1 = input("Enter your name: ");
+  if (result1.is_error())
+  {
+    print_fatal("EOF detected!");
+    std::exit(1);
+  }
+  StringView strv = *result1;
+
+  print("Your age is {} and your name is {}!", age, strv);
 }
