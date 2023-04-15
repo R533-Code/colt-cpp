@@ -8,6 +8,7 @@
 #include "../mem/global_alloc.h"
 #include "./helper.h"
 #include "./span.h"
+#include "../str/parse.h"
 
 namespace clt
 {
@@ -43,8 +44,7 @@ namespace clt
         return;
       auto new_blk = allocator.alloc((blk_capacity + plus_capacity) * sizeof(T));
       //register freeing the memory to avoid leaks in case of exceptions
-      ON_SCOPE_EXIT
-      {
+      ON_SCOPE_EXIT {
         if (blk_ptr)
           allocator.dealloc({ blk_ptr, blk_capacity * sizeof(T) });
         blk_ptr = static_cast<T*>(new_blk.ptr());
@@ -211,8 +211,7 @@ namespace clt
       noexcept(std::is_nothrow_destructible_v<T>)
     {
       //register freeing even if destructor throws to avoid memory leaks
-      ON_SCOPE_EXIT
-      {
+      ON_SCOPE_EXIT {
         if (blk_ptr)
           allocator.dealloc({ blk_ptr, blk_capacity * sizeof(T) });
         blk_size = 0;
@@ -421,6 +420,52 @@ namespace clt
   {
     return Vector<T, mem::LocalAllocator<Alloc>>{ref, std::forward<Args>(args)...};
   }
+
+  template<meta::Parsable T, auto ALLOCATOR> requires meta::AllocatorScope<ALLOCATOR>
+  /// @brief Overload for Vector
+  struct parser<Vector<T, ALLOCATOR>>
+  {
+    constexpr ParseResult operator()(maybe_out<Vector<T, ALLOCATOR>> result, StringView to_parse) const noexcept
+    {
+      if (to_parse.size() < 2 || (to_parse.front() != '[' && to_parse.back() != ']'))
+        return ParseResult{ to_parse.end(), ParseErrorCode::INVALID_FMT };
+      //Pop '[' and ']'
+      to_parse.pop_front(); //to_parse.pop_back();
+      
+      //Construct the Vector
+      result.construct();
+
+      u64 offset = 0;
+      u64 find_i;
+      while ((find_i = to_parse.find(',')) != StringView::npos)
+      {
+        auto obj = StringView{ to_parse.begin(), to_parse.begin() + find_i }.strip();
+        uninit<T> try_obj;
+        auto [ptr, err] = clt::parser<T>{}(try_obj, obj);
+        if (err != ParseErrorCode::SUCCESS)
+        {
+          //Destroy, as we could not construct Vector...
+          result.underlying().destruct();
+          return ParseResult{ obj.end(), err };
+        }
+        ON_SCOPE_EXIT{
+          //Destroy the object as it was constructed...
+          try_obj.destruct();
+        };
+        
+        if (ptr != obj.end())
+        {
+          //Destroy, as we could not construct Vector...
+          result.underlying().destruct();          
+          return ParseResult{ ptr, ParseErrorCode::INVALID_FMT };
+        }
+        result.data().push_back(std::move(try_obj.data()));
+        //After ','
+        offset = find_i + 1;
+      }
+      return ParseResult{ to_parse.end(), ParseErrorCode::SUCCESS };
+    }
+  };
 }
 
 template<typename T, auto ALLOCATOR> requires fmt::is_formattable<T>::value
@@ -452,10 +497,12 @@ struct fmt::formatter<clt::Vector<T, ALLOCATOR>>
     {
       if (!vec.is_empty())
         fmt_to = fmt::format_to(fmt_to, "{}", vec.front());
-      for (size_t i = 1; i < vec.size() - 1; i++)
-        fmt_to = fmt::format_to(fmt_to, ", {}", vec[i]);
-      if (vec.size() != 1)
+      if (vec.size() > 1)
+      {
+        for (size_t i = 1; i < vec.size() - 1; i++)
+          fmt_to = fmt::format_to(fmt_to, ", {}", vec[i]);
         fmt_to = fmt::format_to(fmt_to, " and {}", vec.back());
+      }
       return fmt_to;
     }
     else
