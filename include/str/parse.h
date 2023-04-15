@@ -118,6 +118,17 @@ namespace clt
     }
   };
 
+  template<>
+  /// @brief Overload for StringView
+  struct parser<StringView>
+  {
+    constexpr ParseResult operator()(maybe_out<StringView> str, StringView to_parse) const noexcept
+    {
+      str.construct(to_parse);
+      return ParseResult{ to_parse.end(), ParseErrorCode::SUCCESS };
+    }
+  };
+
   namespace meta
   {
     template<typename T>
