@@ -7,12 +7,15 @@
 #include "./span.h"
 #include "../str/distance.h"
 #include "../str/ascii.h"
-#include "../refl/enum.h"
-
-DECLARE_ENUM_WITH_TYPE(u8, clt, StringEncoding, ASCII, UTF8, UTF32);
 
 namespace clt
 {
+  /// @brief Possible String encoding provided by the library
+  enum class StringEncoding
+  {
+    ASCII, UTF8, UTF32
+  };
+
   template<StringEncoding>
   class BasicStringView {};
 
@@ -20,9 +23,9 @@ namespace clt
   class BasicStringView<StringEncoding::ASCII>
     : public View<char>
   {
+    /// @brief char
     using CharT = char;
 
-    static_assert(std::is_same_v<CharT, char>, "BasicStringView only supports char for now!");
     /// @brief Helper type
     using ViewT = View<CharT>;
 
