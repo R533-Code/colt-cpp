@@ -33,6 +33,13 @@ namespace clt
   {
     return ColtDebugLevel != COLT_NO_DEBUG;
   }
+
+  /// @brief Check if the library is on release configuration or not
+  /// @return True if not on debug
+  consteval bool is_release() noexcept
+  {
+    return !is_debug();
+  }
 }
 
 #endif //!HG_COLT_DEBUG_LEVEL
