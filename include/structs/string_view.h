@@ -135,14 +135,7 @@ namespace clt
       }
       return true;
     }
-
-    /// @brief Conversion operator
-    /// @return View
-    constexpr operator View<CharT>() const noexcept
-    {
-      return { ViewT::begin(), ViewT::end() };
-    }
-
+    
     /// @brief Uses comparison operators of View
     /// @return Result of comparison
     friend constexpr auto operator<=>(const BasicStringView&, const BasicStringView&) noexcept = default;
