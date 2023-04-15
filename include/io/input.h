@@ -124,8 +124,8 @@ namespace clt::io
         return { Error, IOError::OUT_OF_RANGE };
       colt_unreachable("Invalid ParseErrorCode!");
     }
-    
-    //As the object was constructed, we need to take destruct it
+    //err == SUCCESS, the object was constructed,
+    //We need to destruct it.
     ON_SCOPE_EXIT{
       result.destruct();
     };
