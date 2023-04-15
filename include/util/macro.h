@@ -1,6 +1,9 @@
 #ifndef HG_COLT_MACRO
 #define HG_COLT_MACRO
 
+#include <cstdio>
+#include <cstdlib>
+
 #if defined(__has_builtin)
   #if __has_builtin(__builtin_debugtrap)
     /// @brief Intrinsic trap
