@@ -50,6 +50,8 @@ namespace clt
     constexpr StringViewOf& operator=(const StringViewOf&) noexcept = default;
     constexpr StringViewOf& operator=(StringViewOf&&) noexcept = default;
 
+    /// @brief Strips whitespace from the beginning of the string 
+    /// @return Self
     constexpr StringViewOf strip_prefix() noexcept
     {
       while (!ViewT::is_empty())
@@ -61,8 +63,8 @@ namespace clt
       return *this;
     }
     
-    /// @brief Strips a suffix
-    /// @return 
+    /// @brief Strips whitespace from the end of the string 
+    /// @return Self
     constexpr StringViewOf strip_suffix() noexcept
     {
       while (!ViewT::is_empty())
@@ -75,6 +77,7 @@ namespace clt
 
     /// @brief Pops all spaces from the beginning and the end of the StringView.
     /// The characters that are considered spaces are '\n', ' ', '\v', '\t'.
+    /// @return Self
     constexpr StringViewOf strip() noexcept
     {
       return strip_prefix(), strip_suffix();
