@@ -163,6 +163,96 @@ namespace clt
   {
     return clt::log2(static_cast<Fp>(x));
   }
+
+  template<meta::FloatingPoint Fp>
+  constexpr Fp round(Fp x) noexcept
+  {
+    if (std::is_constant_evaluated())
+    {
+      if (x >= (std::numeric_limits<Fp>::radix / std::numeric_limits<Fp>::epsilon()))
+        return x;
+      if (x <= -(std::numeric_limits<Fp>::radix / std::numeric_limits<Fp>::epsilon()))
+        return x;
+
+      if (x > 0)
+      {
+        auto floor_x = (Fp)(uintmax_t)x;
+        if (x - floor_x >= static_cast<Fp>(0.5))
+          floor_x += static_cast<Fp>(1.0);
+        return floor_x;
+      }
+
+      if (x < 0)
+        return -clt::round(-x);
+      return x; //  x is 0.0, -0.0 or NaN
+    }
+    else
+      return std::round(x);
+  }
+
+  template<meta::FloatingPoint Fp = double, meta::Integral Int>
+  constexpr Fp round(Int x) noexcept
+  {
+    return clt::round(static_cast<Fp>(x));
+  }
+
+  template<meta::FloatingPoint Fp>
+  //Forward declaration as 'ceil' makes use of 'floor'
+  constexpr Fp floor(Fp x) noexcept;
+
+  template<meta::FloatingPoint Fp>
+  constexpr Fp ceil(Fp x) noexcept
+  {
+    if (std::is_constant_evaluated())
+    {
+      if (x >= (std::numeric_limits<Fp>::radix / std::numeric_limits<Fp>::epsilon()))
+        return x;
+      if (x <= -(std::numeric_limits<Fp>::radix / std::numeric_limits<Fp>::epsilon()))
+        return x;
+
+      if (x > 0)
+        return (Fp)((uintmax_t)x + 1);
+
+      if (x < 0)
+        return -clt::floor(-x);
+      return x; // x is 0.0, -0.0 or NaN
+    }    
+    else
+      return std::ceil(x);
+  }
+
+  template<meta::FloatingPoint Fp = double, meta::Integral Int>
+  constexpr Fp ceil(Int x) noexcept
+  {
+    return clt::ceil(static_cast<Fp>(x));
+  }
+
+  template<meta::FloatingPoint Fp>
+  constexpr Fp floor(Fp x) noexcept
+  {
+    if (std::is_constant_evaluated())
+    {
+      if (x >= (std::numeric_limits<Fp>::radix / std::numeric_limits<Fp>::epsilon()))
+        return x;
+      if (x <= -(std::numeric_limits<Fp>::radix / std::numeric_limits<Fp>::epsilon()))
+        return x;
+
+      if (x > 0)
+        return (Fp)(uintmax_t)x;
+
+      if (x < 0)
+        return -clt::ceil(-x);
+      return x; // x is 0.0, -0.0 or NaN
+    }
+    else
+      return std::floor(x);
+  }
+
+  template<meta::FloatingPoint Fp = double, meta::Integral Int>
+  constexpr Fp floor(Int x) noexcept
+  {
+    return clt::floor(static_cast<Fp>(x));
+  }
 }
 
 #endif //!HG_COLT_MATH
