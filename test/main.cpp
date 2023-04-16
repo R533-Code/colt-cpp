@@ -1,5 +1,4 @@
 #define _CRT_SECURE_NO_WARNINGS
-#include "util/params.h"
 #include "util/benchmark.h"
 #include "io/print.h"
 #include "meta/type_list.h"
@@ -44,16 +43,11 @@ struct AB
 };
 COLT_DECLARE_TYPE(AB, a, b, c);
 
-void init_AB(out<AB> param)
-{
-  param.construct(AB{ {20, 10 }, 10, { 30, 20} });
-}
-
 int main(int argc, char** argv)
 {
   std::atexit([]() { clt::bench::save_tracing_to("Test.json"); });
-  
-  auto result = input<u64>("Enter your age: ");
+
+  auto result = input<Vector<String>>("Enter a Vector of int: ");
   while (result.is_error())
   {
     if (result.error() == IOError::FILE_EOF)
@@ -61,10 +55,10 @@ int main(int argc, char** argv)
       print_fatal("EOF detected!");
       std::exit(1);
     }
-    result = input<u64>("Invalid value ({})! Please enter a valid number: ",
+    result = input<Vector<String>>("Invalid value ({})! Please enter a valid Vector of int: ",
       result.error());
   }
-  const u64& age = *result;
+  print("Result: {:h}", *result);
 
   auto result1 = input("Enter your name: ");
   if (result1.is_error())
@@ -74,5 +68,5 @@ int main(int argc, char** argv)
   }
   StringView strv = *result1;
 
-  print("Your age is {} and your name is {}!", age, strv);
+  print("Your name is {}!", strv);
 }
