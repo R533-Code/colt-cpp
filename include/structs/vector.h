@@ -423,7 +423,8 @@ namespace clt
 
   template<meta::Parsable T, auto ALLOCATOR> requires meta::AllocatorScope<ALLOCATOR>
   /// @brief Overload for Vector
-  struct parser<Vector<T, ALLOCATOR>>
+  struct str::parser<Vector<T, ALLOCATOR>>
+    : str::Recommended<str::recommended_size<T>() * 6>
   {
     constexpr ParseResult operator()(maybe_out<Vector<T, ALLOCATOR>> result, StringView to_parse) const noexcept
     {
@@ -447,7 +448,7 @@ namespace clt
         obj.strip();
         
         uninit<T> try_obj;
-        auto [ptr, err] = clt::parser<T>{}(try_obj, obj);
+        auto [ptr, err] = clt::str::parser<T>{}(try_obj, obj);
         if (err != ParseErrorCode::SUCCESS)
         {
           //Destroy the object as it was constructed...
