@@ -55,6 +55,6 @@ namespace clt::details
 /// @brief Asserts that all condition are true
 #define assert_true(MESSAGE, COND, ...) clt::details::assert_true_multiple(MESSAGE, COLT_FUNCTION_NAME COLT_DETAILS_TO_ASSERTION(COND) COLT_FOR_EACH(COLT_DETAILS_TO_ASSERTION, __VA_ARGS__))
 /// @brief Marks a branch as unreachable
-#define colt_unreachable(MESSAGE) { std::printf("UNREACHABLE BRANCH HIT: in function:\n\"%s\"\n%s", COLT_FUNCTION_NAME, MESSAGE); colt_intrinsic_dbreak(); }
+#define colt_unreachable(MESSAGE) std::printf("UNREACHABLE BRANCH HIT: in function:\n\"%s\"\n%s", COLT_FUNCTION_NAME, MESSAGE), colt_intrinsic_dbreak()
 
 #endif //!HG_COLT_ASSERT_TRUE
