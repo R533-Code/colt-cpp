@@ -123,7 +123,8 @@ namespace clt
 
   template<>
   /// @brief Overload for String
-  struct parser<String>
+  struct str::parser<String>
+    : str::Recommended<128>
   {
     constexpr ParseResult operator()(maybe_out<String> str, StringView to_parse) const noexcept
     {
@@ -132,5 +133,24 @@ namespace clt
     }
   };
 }
+
+template<>
+struct fmt::formatter<clt::String>
+{
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    auto it = ctx.begin();
+    auto end = ctx.end();
+    assert_true("Possible format for StringView is: {}!", it == end);
+    return it;
+  }
+
+  template<typename FormatContext>
+  auto format(const clt::String& str, FormatContext& ctx)
+  {
+    return fmt::format_to(ctx.out(), "{:.{}}", str.data(), str.size());
+  }
+};
 
 #endif //!HG_COLT_STRING
