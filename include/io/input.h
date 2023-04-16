@@ -102,26 +102,29 @@ namespace clt::io
   }
   COLT_POST()
 
-  template<meta::Parsable T = String, meta::StringLiteral endl = "", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::Inputable T = String, meta::StringLiteral endl = "", typename... Args> requires (Formatable<Args> && ...)
   inline Expect<T, IOError> input(std::FILE* file, fmt_str<Args...> fmt, Args&&... args) noexcept
   {
     //Print the message...
     print<endl>(fmt, std::forward<Args>(args)...);
     //Ask for input...
-    auto str = String::getLine(file, 128);
+    auto str = String::getLine(file, str::recommended_size<T>(),
+      !meta::NoStripParsable<T>);
     if (str.is_error()) //FILE_EOF or FILE_ERROR
       return { Error, str.error() };
     
     //The string to parse.
     //As String::getLine strips the spaces from the front,
     //we only strip the spaces in the back.
-    auto strv = StringView{ str->begin(), str->end() }.strip_suffix();
+    auto strv = StringView{ str->begin(), str->end() };
+    if constexpr (!meta::NoStripParsable<T>)
+      strv.strip_suffix();
     
     //The variable in which to store the result
     uninit<T> result;
     
     //Parse the line
-    auto [ptr, err] = clt::parser<T>{}(result, strv);
+    auto [ptr, err] = clt::str::parser<T>{}(result, strv);
     if (err != ParseErrorCode::SUCCESS)
     {
       if (err == ParseErrorCode::INVALID_FMT)
@@ -144,7 +147,7 @@ namespace clt::io
     return { InPlace, std::move(result.data()) };
   }
 
-  template<meta::Parsable T = String, meta::StringLiteral endl = "", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::Inputable T = String, meta::StringLiteral endl = "", typename... Args> requires (Formatable<Args> && ...)
   inline Expect<T, IOError> input(fmt_str<Args...> fmt, Args&&... args) noexcept
   {
     return input<T>(stdin, fmt, std::forward<Args>(args)...);
