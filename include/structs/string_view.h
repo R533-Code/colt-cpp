@@ -184,6 +184,8 @@ struct fmt::formatter<clt::StringView>
   template<typename FormatContext>
   auto format(const clt::StringView& str, FormatContext& ctx)
   {
+    if (str.is_empty())
+      return ctx.out();
     return fmt::format_to(ctx.out(), "{:.{}}", str.data(), str.size());
   }
 };
