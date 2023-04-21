@@ -6,6 +6,7 @@
 #include "structs/vector.h"
 #include "structs/expect.h"
 #include "structs/option.h"
+#include "str/distance.h"
 #include "refl/refl.h"
 #include "io/input.h"
 
@@ -47,26 +48,13 @@ int main(int argc, char** argv)
 {
   std::atexit([]() { clt::bench::save_tracing_to("Test.json"); });
 
-  auto result = input<Vector<String>>("Enter a Vector of int: ");
-  while (result.is_error())
+  for (;;)
   {
-    if (result.error() == IOError::FILE_EOF)
-    {
-      print_fatal("EOF detected!");
-      std::exit(1);
-    }
-    result = input<Vector<String>>("Invalid value ({})! Please enter a valid Vector of int: ",
-      result.error());
+    auto result1 = input("Enter your name: ");
+    if (result1.is_error())
+      break;
+    StringView strv = *result1;  
+    print("Your name is {}!\nRequired transformation to \"Raphael\": {}",
+      strv, str::levenshtein_distance("Raphael", strv));
   }
-  print("Result: {:h}", *result);
-
-  auto result1 = input("Enter your name: ");
-  if (result1.is_error())
-  {
-    print_fatal("EOF detected!");
-    std::exit(1);
-  }
-  StringView strv = *result1;
-
-  print("Your name is {}!", strv);
 }
