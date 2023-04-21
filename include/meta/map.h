@@ -20,7 +20,11 @@ namespace clt::meta
     constexpr ConstexprMap(std::array<std::pair<Key, Value>, Size> data)
       : data(data)
     {
-      std::sort(data.begin(), data.end());
+      using pair_t = std::pair<Key, Value>;
+
+      std::sort(this->data.begin(), this->data.end(),
+        [](const pair_t& a, const pair_t& b) { return a.first < b.first; });
+
       assert_true("Items not unique!",
         std::adjacent_find(data.begin(), data.end()) == data.end());
     }
@@ -35,13 +39,13 @@ namespace clt::meta
       u64 R = Size - 1;
       while (L <= R)
       {
-        u64 M = std::midpoint(L, R);
-        if (data[M].first < key)
-          L = M + 1;
-        else if (data[M].first > key)
-          R = M - 1;
+        u64 m = std::midpoint(L, R);
+        if (data[m].first < key)
+          L = m + 1;
+        else if (data[m].first > key)
+          R = m - 1;
         else
-          return data[M].second;
+          return data[m].second;
       }
       return None;
     }
