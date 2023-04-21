@@ -12,6 +12,38 @@
 
 namespace clt
 {
+  template<std::forward_iterator ForwardIt>
+  constexpr ForwardIt min_element(ForwardIt first, ForwardIt last)
+  {
+    if (first == last)
+      return last;
+
+    ForwardIt smallest = first;
+    ++first;
+
+    for (; first != last; ++first)
+      if (*first < *smallest)
+        smallest = first;
+
+    return smallest;
+  }
+
+  template<std::forward_iterator ForwardIt>
+  constexpr ForwardIt max_element(ForwardIt first, ForwardIt last)
+  {
+    if (first == last)
+      return last;
+
+    ForwardIt largest = first;
+    ++first;
+
+    for (; first != last; ++first)
+      if (*largest < *first)
+        largest = first;
+
+    return largest;
+  }
+
   template<meta::Integral Int> requires std::is_signed_v<Int>
   /// @brief Returns the absolute value (distance from zero) of an integer
   /// @param value The value whose absolute value to compute
@@ -52,10 +84,22 @@ namespace clt
     return (b < a) ? b : a;
   }
 
+  template<typename T>
+  constexpr T min(std::initializer_list<T> ilist)
+  {
+    return *clt::min_element(ilist.begin(), ilist.end());
+  }
+
   template<meta::Integral Int>
   constexpr Int max(Int a, Int b) noexcept
   {
     return (a < b) ? b : a;
+  }
+
+  template<typename T>
+  constexpr T max(std::initializer_list<T> ilist) noexcept
+  {
+    return *clt::max_element(ilist.begin(), ilist.end());
   }
 
   template<meta::FloatingPoint Fp>
