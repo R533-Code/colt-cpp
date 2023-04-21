@@ -9,6 +9,7 @@
 #include "str/distance.h"
 #include "refl/refl.h"
 #include "io/input.h"
+#include "cmd/parse_args.h"
 
 using namespace std::chrono_literals;
 using namespace clt;
@@ -44,13 +45,21 @@ struct AB
 };
 COLT_DECLARE_TYPE(AB, a, b, c);
 
+StringView file_out = "Default.txt";
+f64 test = 1e15;
+
 int main(int argc, char** argv)
 {
-  std::atexit([]() { clt::bench::save_tracing_to("Test.json"); });
+  using CMDs = meta::type_list<
+    cl::Opt<&file_out, "o", "Specify output filename", "filename">,
+    cl::Opt<&test, "e", "Specify a seed", "test">
+  >;
+  cl::parse_command_line_options<CMDs>(argc, argv);
+  io::print("test: {}, file_out: {}", test, file_out);
 
   for (;;)
   {
-    auto result1 = input("Enter your name: ");
+    auto result1 = input("Enter your name : ");
     if (result1.is_error())
       break;
     StringView strv = *result1;  
