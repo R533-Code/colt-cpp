@@ -110,10 +110,11 @@ namespace clt
     /// @param ...args The argument pack
     constexpr Vector(AllocT& alloc, size_t size, meta::InPlaceT, Args&&... args)
       noexcept(std::is_nothrow_constructible_v<T, Args...>)
-      : allocator(alloc), blk_size(size)
+      : allocator(alloc)
     {
       reserve_obj(size);
       details::contiguous_construct(blk_ptr, size, std::forward<Args>(args)...);
+      blk_size = size;
     }
 
     template<typename... Args> requires is_global
@@ -124,10 +125,10 @@ namespace clt
     /// @param ...args The argument pack
     constexpr Vector(size_t size, meta::InPlaceT, Args&&... args)
       noexcept(std::is_nothrow_constructible_v<T, Args...>)
-      : blk_size(size)
     {
       reserve_obj(size);
       details::contiguous_construct(blk_ptr, size, std::forward<Args>(args)...);
+      blk_size = size;
     }
 
     template<meta::Allocator AllocT> requires is_local
