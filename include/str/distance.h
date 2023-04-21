@@ -3,23 +3,43 @@
 
 #include <type_traits>
 #include <cstring>
+#include "../structs/string_view.h"
+#include "../structs/vector.h"
 
-namespace clt
+namespace clt::str
 {
-  /// @brief constexpr version of 'strlen'
-  /// @param str The string whose size to find
-  /// @return The size of the string
-  constexpr size_t strlen(const char* str) noexcept
+  constexpr u64 levenshtein_distance(StringView source, StringView target) noexcept
   {
-    if (std::is_constant_evaluated())
-    {
-      size_t ret = 0;
-      while (str[ret] != '\0')
-        ++ret;
-      return ret;
+    if (source.size() > target.size()) {
+      return levenshtein_distance(target, source);
     }
-    else
-      return std::strlen(str);
+
+    const u64 min_size = source.size();
+    const u64 max_size = target.size();
+    mem::FallbackAllocator<mem::StackAllocator<1024>, mem::Mallocator> ALLOCATOR;
+    auto lev_dist = clt::make_local_vector<u64>(ALLOCATOR, min_size + 1, InPlace);
+
+    for (u64 i = 0; i <= min_size; ++i)
+      lev_dist[i] = i;
+
+    for (u64 j = 1; j <= max_size; ++j) {
+      u64 previous_diagonal = lev_dist[0];
+      u64 previous_diagonal_save;
+      ++lev_dist[0];
+
+      for (u64 i = 1; i <= min_size; ++i) {
+        previous_diagonal_save = lev_dist[i];
+
+        if (source[i - 1] == target[j - 1])
+          lev_dist[i] = previous_diagonal;
+        else
+          lev_dist[i] = clt::min({ lev_dist[i - 1], lev_dist[i], previous_diagonal }) + 1;
+
+        previous_diagonal = previous_diagonal_save;
+      }
+    }
+
+    return lev_dist[min_size];
   }
 }
 
