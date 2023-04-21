@@ -103,6 +103,8 @@ namespace clt::meta
   /// @tparam ...Ts The types to hold
   struct type_list
   {
+    static constexpr bool is_type_list = true;
+
     /// @brief The type of the current list (not very useful)
     using this_list = type_list<Ts...>;
 
@@ -149,6 +151,9 @@ namespace clt::meta
     /// @brief Removes all void types from the type list
     using remove_void = remove_all<void>;
   };
+
+  template<typename T>
+  concept TypeList = T::is_type_list;
 }
 
 #endif //!HG_COLT_TYPE_LIST
