@@ -42,7 +42,7 @@ namespace clt
     /// @param end The end of the view
     constexpr Span(T* begin, T* end) noexcept
       : begin_ptr(begin), count(end - begin)
-    COLT_PRE(begin < end) COLT_POST()
+    COLT_PRE(begin <= end) COLT_POST()
 
     /// @brief Returns an iterator to the beginning of the view.
     /// @return Iterator to the beginning of the view
