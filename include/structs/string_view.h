@@ -4,11 +4,26 @@
 #include <type_traits>
 
 #include "./span.h"
-#include "../str/distance.h"
 #include "../str/ascii.h"
 
 namespace clt
 {
+  /// @brief constexpr version of 'strlen'
+  /// @param str The string whose size to find
+  /// @return The size of the string
+  constexpr size_t strlen(const char* str) noexcept
+  {
+    if (std::is_constant_evaluated())
+    {
+      size_t ret = 0;
+      while (str[ret] != '\0')
+        ++ret;
+      return ret;
+    }
+    else
+      return std::strlen(str);
+  }
+
   /// @brief Possible String encoding provided by the library
   enum class StringEncoding
   {
