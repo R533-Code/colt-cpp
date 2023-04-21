@@ -93,7 +93,7 @@ namespace clt::str
   template<meta::FloatingPoint T>
   /// @brief Overload for floating-points
   struct parser<T>
-    : Recommended<std::numeric_limits<T>::max_digits10()>
+    : Recommended<std::numeric_limits<T>::max_digits10>
   {
     ParseResult operator()(maybe_out<T> value, StringView to_parse) const noexcept
     {
