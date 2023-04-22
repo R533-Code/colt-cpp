@@ -30,32 +30,16 @@ Option<int> div_option(int a, int b)
   return { None };
 }
 
-struct Test
-{
-  u64 a;
-  u64 b;
-};
-COLT_DECLARE_TYPE(Test, a, b);
-
-struct AB
-{
-  Test a;
-  u64 b;
-  Test c;
-};
-COLT_DECLARE_TYPE(AB, a, b, c);
-
 StringView file_out = "Default.txt";
-f64 test = 1e15;
+StringView cmp_strv = "Raphael";
 
 int main(int argc, char** argv)
 {
   using CMDs = meta::type_list<
-    cl::Opt<&file_out, "o", "Specify output filename", "filename">,
-    cl::Opt<&test, "e", "Specify a seed", "test">
+    cl::Opt<"o", cl::value_desc<"filename">, cl::desc<"Specify output filename">, cl::location<file_out>>,
+    cl::Opt<"str", cl::value_desc<"str">, cl::desc<"Specify string to compare against">, cl::location<cmp_strv>>
   >;
   cl::parse_command_line_options<CMDs>(argc, argv);
-  io::print("test: {}, file_out: {}", test, file_out);
 
   for (;;)
   {
@@ -63,7 +47,7 @@ int main(int argc, char** argv)
     if (result1.is_error())
       break;
     StringView strv = *result1;  
-    print("Your name is {}!\nRequired transformation to \"Raphael\": {}",
-      strv, str::levenshtein_distance("Raphael", strv));
+    print("Your name is {}!\nRequired transformation to \"{}\": {}",
+      strv, cmp_strv, str::levenshtein_distance(cmp_strv, strv));
   }
 }
