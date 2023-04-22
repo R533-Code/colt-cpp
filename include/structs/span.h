@@ -10,13 +10,14 @@ namespace clt
   template<typename T>
   /// @brief [Non]-Owning view over contiguous objects
   /// @tparam T The type of the objects (if const then non-owning)
-  class Span
+  struct Span
   {
     /// @brief Pointer to the beginning of the view, can be null
-    T* begin_ptr;
+    T* _begin_ptr;
     /// @brief Count of items in the view
-    size_t count;
+    size_t _count;
 
+  private:
     /// @brief Helper type for non-owning optimization
     using ref_or_copy = std::conditional_t<std::is_const_v<T>, meta::copy_trivial_t<T&>, T&>;
 
@@ -35,47 +36,47 @@ namespace clt
     /// @param begin The beginning of the view
     /// @param view_size The size of the view
     constexpr Span(T* begin, size_t view_size) noexcept
-      : begin_ptr(begin), count(view_size) {}
+      : _begin_ptr(begin), _count(view_size) {}
 
     /// @brief Constructs a view over the range [begin, end).
     /// @param begin The beginning of the view
     /// @param end The end of the view
     constexpr Span(T* begin, T* end) noexcept
-      : begin_ptr(begin), count(end - begin)
+      : _begin_ptr(begin), _count(end - begin)
     COLT_PRE(begin <= end) COLT_POST()
 
     /// @brief Returns an iterator to the beginning of the view.
     /// @return Iterator to the beginning of the view
-    constexpr T* begin() const noexcept { return begin_ptr; }
+    constexpr T* begin() const noexcept { return _begin_ptr; }
 
     /// @brief Returns an iterator past the end of the view.
     /// @return Iterator to the end of the view
-    constexpr T* end() const noexcept { return begin_ptr + count; }
+    constexpr T* end() const noexcept { return _begin_ptr + _count; }
 
     /// @brief Returns a pointer to the beginning of the view.
     /// @return Pointer to the beginning of the view
-    constexpr T* data() const noexcept { return begin_ptr; }
+    constexpr T* data() const noexcept { return _begin_ptr; }
 
     /// @brief Returns the count of object the view spans on.
     /// @return The count of objects
-    constexpr size_t size() const noexcept { return count; }
+    constexpr size_t size() const noexcept { return _count; }
 
     /// @brief Check if the view is empty.
     /// @return True if the size of the view is 0
-    constexpr bool is_empty() const noexcept { return count == 0; }
+    constexpr bool is_empty() const noexcept { return _count == 0; }
 
     /// @brief Get the front of the view.
     /// @return The first item of the view
     constexpr ref_or_copy front() const noexcept
       COLT_PRE(!is_empty())
-      return *begin_ptr;
+      return *_begin_ptr;
     COLT_POST()
 
     /// @brief Get the back of the view.
     /// @return The last item of the view
     constexpr ref_or_copy back() const noexcept
       COLT_PRE(!is_empty())
-      return begin_ptr[count - 1];
+      return _begin_ptr[_count - 1];
     COLT_POST()
 
     /// @brief Shortens the view from the front by 1.
@@ -83,8 +84,8 @@ namespace clt
     constexpr Span pop_front() noexcept
       COLT_PRE(!is_empty())
     {
-      ++begin_ptr;
-      --count;
+      ++_begin_ptr;
+      --_count;
       return *this;
     }
     COLT_POST()
@@ -95,8 +96,8 @@ namespace clt
     constexpr Span pop_front_n(size_t N) noexcept
       COLT_PRE(N <= this->size())
     {
-      begin_ptr += N;
-      count -= N;
+      _begin_ptr += N;
+      _count -= N;
       return *this;
     }
     COLT_POST()
@@ -106,7 +107,7 @@ namespace clt
     constexpr Span pop_back() noexcept
       COLT_PRE(!is_empty())
     {
-      --count;
+      --_count;
       return *this;
     }
     COLT_POST()
@@ -117,7 +118,7 @@ namespace clt
     constexpr Span pop_back_n(size_t N) noexcept
       COLT_PRE(N <= this->size())
     {
-      count -= N;
+      _count -= N;
       return *this;
     }
     COLT_POST()
@@ -127,7 +128,7 @@ namespace clt
     /// @return The object at index 'index'
     constexpr ref_or_copy operator[](size_t index) const noexcept
       COLT_PRE(index < this->size())
-      return begin_ptr[index];
+      return _begin_ptr[index];
     COLT_POST()
 
     /// @brief Check if every object of v1 and v2 are equal
