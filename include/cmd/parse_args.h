@@ -11,31 +11,124 @@
 
 namespace clt::cl
 {
-  template<auto PTR, meta::StringLiteral Name, meta::StringLiteral Description, meta::StringLiteral ValueDesc>
-    requires (std::is_pointer_v<decltype(PTR)>) && meta::Parsable<std::remove_cv_t<std::remove_pointer_t<decltype(PTR)>>>
+  namespace details
+  {
+    template<meta::StringLiteral DESC>
+    struct Description
+    {
+      static constexpr bool is_desc = true;
+
+      static constexpr StringView desc = DESC.value;
+    };
+
+    template<typename T>
+    concept IsDescription = T::is_desc;
+
+    template<typename T>
+    struct is_description
+    {
+      static constexpr bool value = IsDescription<T>;
+    };
+
+    template<meta::StringLiteral DESC>
+    struct ValueDescription
+    {
+      static constexpr bool is_value_desc = true;
+      
+      static constexpr StringView desc = DESC.value;
+    };
+
+    template<typename T>
+    concept IsValueDescription = T::is_value_desc;
+
+    template<typename T>
+    struct is_value_description
+    {
+      static constexpr bool value = IsValueDescription<T>;
+    };
+
+    template<auto T>
+    struct Location
+    {
+      static constexpr bool is_location = true;
+
+      static constexpr auto ptr = T;
+    };
+
+    template<typename T>
+    concept IsLocation = T::is_location;
+
+    template<typename T>
+    struct is_location
+    {
+      static constexpr bool value = IsLocation<T>;
+    };
+
+    template<meta::StringLiteral Name>
+    struct Alias
+    {
+      static constexpr bool is_alias = true;
+      static constexpr StringView name = Name.value;
+    };
+
+    template<typename T>
+    concept IsAlias = T::is_alias;
+
+    template<typename T>
+    struct is_alias
+    {
+      static constexpr bool value = IsAlias<T>;
+    };    
+
+    template<typename T, typename... Ts>
+    /// @brief Finds a Description type in the parameter pack, or returns Description<"">
+    using find_description_t = meta::find_first_match_t<is_description, Description<"">, T, Ts...>;
+
+    template<typename T, typename... Ts>
+    /// @brief Finds a Description type in the parameter pack, or returns ValueDescription<"">
+    using find_value_description_t = meta::find_first_match_t<is_value_description, ValueDescription<"">, T, Ts...>;
+
+    template<typename T, typename... Ts>
+    /// @brief Finds a Description type in the parameter pack, or returns Location<nullptr>
+    using find_location_t = meta::find_first_match_t<is_location, Location<nullptr>, T, Ts...>;
+
+    template<typename T, typename... Ts>
+    /// @brief Finds a Description type in the parameter pack, or returns Alias<"">
+    using find_alias_t = meta::find_first_match_t<is_alias, Alias<"">, T, Ts...>;
+  }
+
+  template<meta::StringLiteral T>
+  /// @brief Adds a description for a Opt
+  using desc = details::Description<T>;
+
+  template<meta::StringLiteral T>
+  /// @brief Adds a description for the value accepted by the Opt
+  using value_desc = details::ValueDescription<T>;
+
+  template<meta::StringLiteral T>
+  /// @brief Adds an alias for an Opt
+  using alias = details::Alias<T>;
+
+  template<auto& REF> requires std::is_reference_v<decltype(REF)> && (!std::is_const_v<decltype(REF)>) && meta::Parsable<std::remove_reference_t<decltype(REF)>>
+  /// @brief Adds the location in which to store the result for an Opt
+  using location = details::Location<&REF>;  
+  
+  template<meta::StringLiteral Name, typename T, typename... Ts>
   struct Opt
   {
     static constexpr bool is_opt = true;
     static constexpr StringView name = Name.value;
-    static constexpr StringView desc = Description.value;
-    static constexpr StringView value_desc = ValueDesc.value;
-    static constexpr decltype(PTR) location = PTR;
-  };
+    static constexpr StringView desc = details::find_description_t<T, Ts...>::desc;
+    static constexpr StringView value_desc = details::find_value_description_t<T, Ts...>::desc;
+    static constexpr auto location = details::find_location_t<T, Ts...>::ptr;
 
-  template<meta::StringLiteral Name>
-  struct Alias
-  {
-    static constexpr bool is_alias = true;
-    static constexpr StringView name = Name.value;
-  };
+    static_assert(location != nullptr, "cl::location<...> of the Opt must be specified!");
+  };  
 
   namespace details
   {
     template<typename T>
     concept IsOpt = T::is_opt;
-
-    template<typename T>
-    concept IsAlias = T::is_alias;
 
     template<meta::TypeList list>
     consteval u64 recursively_get_opt_count() noexcept
