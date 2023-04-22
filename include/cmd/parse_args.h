@@ -46,6 +46,18 @@ namespace clt::cl
       return list::size;
     }
 
+    template<typename... Args>
+    consteval u64 recursively_get_max_name_size(meta::type_list<Args...> list) noexcept
+    {
+      return clt::max({ Args::name.size()... }) + 1;
+    }
+
+    template<typename... Args>
+    consteval u64 recursively_get_max_desc_size(meta::type_list<Args...> list) noexcept
+    {
+      return clt::max({ Args::value_desc.size()... });
+    }
+
     template<IsOpt opt>
     ParseErrorCode parse_and_write(StringView strv) noexcept
     {
@@ -76,6 +88,24 @@ namespace clt::cl
       return array;
     }
 
+    template<typename... Args>
+    [[noreturn]]
+    void print_help(meta::type_list<Args...> list, StringView description) noexcept
+    {
+      // 5 is for "-help"
+      constexpr u64 max_size = clt::max(
+        recursively_get_max_name_size(list), 5ULL
+      );
+      constexpr u64 max_desc = recursively_get_max_desc_size(list);
+      
+      io::print("{}\nOPTIONS:", description);
+      //Print commands in format -NAME <VALUE_DESC> - DESC aligning all options.
+      (io::print("   -{: <{}}<{}>{: <{}}  - {}", Args::name.data(), max_size, Args::value_desc.data(), "", max_desc - Args::value_desc.size(), Args::desc), ...);
+      //Print help command description
+      io::print("   -{: <{}}{: <{}}  - {}", "help", max_size, "", max_desc + 2, "Display available options");
+      std::exit(0);
+    }
+
     void handle_non_positional(StringView arg, u64& i, u64 argc, char** argv, auto& CONST_MAP) noexcept
     {
       StringView to_parse = arg; to_parse.pop_front();
@@ -99,18 +129,20 @@ namespace clt::cl
   }
 
   template<meta::TypeList list>
-  void parse_command_line_options(int argc, char** argv) noexcept
+  void parse_command_line_options(int argc, char** argv, StringView description = {}) noexcept
   {
     static constexpr meta::ConstexprMap CONST_MAP = details::generate_array(list{});
-    auto argn = static_cast<u64>(argc);
-    for (u64 i = 1; i < argn; i++)
+    
+    for (u64 i = 1; i < static_cast<u64>(argc); i++)
     {
       StringView arg = argv[i];
       if (arg.front() == '-')
       {
-        if (arg == '-help')
-          details::print_help<list>();
-        details::handle_arg(arg, i, argc, argv, CONST_MAP);
+        if (arg == "-help")
+          details::print_help(list{}, description);
+        else
+          details::handle_non_positional(arg, i,
+            static_cast<u64>(argc), argv, CONST_MAP);
       }
     }
   }
