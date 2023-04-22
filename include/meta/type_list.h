@@ -85,6 +85,15 @@ namespace clt::meta
       >...
     >;
 
+    template<template<typename> typename predicate, typename...Ts>
+    using remove_if_not_t = tuple_cat_t<
+      typename std::conditional_t<
+      !predicate<Ts>::value,
+      std::tuple<>,
+      std::tuple<Ts>
+      >...
+    >;
+
     template<typename... Ts>
     type_list<Ts...> from_tuple_to_type_list(std::tuple<Ts...>) noexcept;
     /*{
@@ -148,12 +157,37 @@ namespace clt::meta
     template<template<typename> typename predicate>
     using remove_if = tuple_to_type_list_t<details::remove_if_t<predicate, Ts...>>;
 
+    template<template<typename> typename predicate>
+    using remove_if_not = tuple_to_type_list_t<details::remove_if_not_t<predicate, Ts...>>;
+
     /// @brief Removes all void types from the type list
     using remove_void = remove_all<void>;
   };
 
   template<typename T>
   concept TypeList = T::is_type_list;
+
+  template<template<typename> typename predicate, typename NOT_FOUND, typename T, typename... Ts>
+  /// @brief Non-specialized helper
+  struct find_first_match {};
+
+  template<template<typename> typename predicate, typename NOT_FOUND, typename T, typename... Ts> requires (meta::type_list<T, Ts...>::template remove_if_not<predicate>::size == 0)
+    /// @brief Finds the first type for which the predicate returned true, or NOT_FOUND if none exist
+    struct find_first_match<predicate, NOT_FOUND, T, Ts...>
+  {
+    using type = NOT_FOUND;
+  };
+
+  template<template<typename> typename predicate, typename NOT_FOUND, typename T, typename... Ts> requires (meta::type_list<T, Ts...>::template remove_if_not<predicate>::size != 0)
+    /// @brief Finds the first type for which the predicate returned true, or NOT_FOUND if none exist
+    struct find_first_match<predicate, NOT_FOUND, T, Ts...>
+  {
+    using type = typename meta::type_list<T, Ts...>::template remove_if_not<predicate>::template get<0>;
+  };
+
+  template<template<typename> typename predicate, typename NOT_FOUND, typename T, typename... Ts>
+  /// @brief Finds the first type for which the predicate returned true, or NOT_FOUND if none exist
+  using find_first_match_t = typename find_first_match<predicate, NOT_FOUND, T, Ts...>::type;
 }
 
 #endif //!HG_COLT_TYPE_LIST
