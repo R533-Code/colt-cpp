@@ -16,6 +16,7 @@ namespace clt::cl
     template<meta::StringLiteral DESC>
     struct Description
     {
+      /// @brief Concept helper
       static constexpr bool is_desc = true;
 
       static constexpr StringView desc = DESC.value;
@@ -33,6 +34,7 @@ namespace clt::cl
     template<meta::StringLiteral DESC>
     struct ValueDescription
     {
+      /// @brief Concept helper
       static constexpr bool is_value_desc = true;
       
       static constexpr StringView desc = DESC.value;
@@ -50,6 +52,7 @@ namespace clt::cl
     template<auto T>
     struct Location
     {
+      /// @brief Concept helper
       static constexpr bool is_location = true;
 
       static constexpr auto ptr = T;
@@ -67,7 +70,9 @@ namespace clt::cl
     template<meta::StringLiteral Name>
     struct Alias
     {
+      /// @brief Concept helper
       static constexpr bool is_alias = true;
+      
       static constexpr StringView name = Name.value;
     };
 
@@ -114,14 +119,24 @@ namespace clt::cl
   using location = details::Location<&REF>;  
   
   template<meta::StringLiteral Name, typename T, typename... Ts>
+  /// @brief Represents an command line option
   struct Opt
   {
+    /// @brief Concept helper
     static constexpr bool is_opt = true;
+    
+    /// @brief The name of the Opt (required, and not "")
     static constexpr StringView name = Name.value;
+    /// @brief The description of the Opt (can be empty)
     static constexpr StringView desc = details::find_description_t<T, Ts...>::desc;
+    /// @brief The description of the value (can be empty)
     static constexpr StringView value_desc = details::find_value_description_t<T, Ts...>::desc;
+    /// @brief An alias for the Opt (can be empty)
+    static constexpr StringView alias = details::find_alias_t<T, Ts...>::name;
+    /// @brief The location were the result is written (never null)
     static constexpr auto location = details::find_location_t<T, Ts...>::ptr;
 
+    static_assert(name != "", "Empty name is not allowed!");
     static_assert(location != nullptr, "cl::location<...> of the Opt must be specified!");
   };  
 
@@ -204,10 +219,12 @@ namespace clt::cl
       StringView to_parse = arg; to_parse.pop_front();
       if (auto opt = CONST_MAP.find(to_parse))
       {
-        io::print_message("'{}' is an option!", arg);
         //not enough arguments...
         if (i == argc - 1)
-          return io::print_fatal("'{}' expects an option!", arg);
+        {
+          io::print_error("'{}' expects an argument!", arg);
+          std::exit(1);
+        }
         //invoke callback...
         ParseErrorCode err = (**opt)(argv[++i]);
         if (err != ParseErrorCode::SUCCESS)
@@ -217,7 +234,10 @@ namespace clt::cl
         }
       }
       else
-        io::print_error("'{}' is not an option!", arg);
+      {
+        io::print_error("'{}' is not an option!\nUse '-help' to enumerate possible options.", arg);
+        std::exit(1);
+      }
     }
   }
 
