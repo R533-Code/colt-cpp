@@ -4,6 +4,16 @@
 #include <cstdio>
 #include <cstdlib>
 
+namespace clt::details
+{
+  [[noreturn]]
+  static void dbreak() noexcept
+  {
+    (void)std::fgetc(stdin);
+    std::abort();
+  }
+}
+
 #if defined(__has_builtin)
   #if __has_builtin(__builtin_debugtrap)
     /// @brief Intrinsic trap
@@ -20,7 +30,7 @@
     #define colt_intrinsic_dbreak() __debugbreak()
   #else
     /// @brief Intrinsic trap
-    #define colt_intrinsic_dbreak() do { (void)std::fgetc(stdin); std::abort(); } while (0)
+    #define colt_intrinsic_dbreak() clt::details::dbreak()
   #endif
 #endif
 
