@@ -34,8 +34,10 @@ StringView file_out = "Default.txt";
 StringView cmp_strv = "Raphael";
 
 using CMDs = meta::type_list<
+  
   cl::Opt<"o", cl::location<file_out>,
     cl::desc<"Specify output filename">, cl::value_desc<"filename">>,
+  
   cl::Opt<"str", cl::location<cmp_strv>, cl::alias<"s">,
     cl::value_desc<"str">, cl::desc<"Specify string to compare against">>
 >;
