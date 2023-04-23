@@ -52,7 +52,7 @@ int main(int argc, char** argv)
     if (result1.is_error())
       break;
     StringView strv = *result1;  
-    print("Your name is {}!\nRequired transformation to \"{}\": {}",
+    print_message("Your name is {}!\nRequired transformation to \"{}\": {}",
       strv, cmp_strv, str::levenshtein_distance(cmp_strv, strv));
   }
 }
