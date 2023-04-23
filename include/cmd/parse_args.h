@@ -234,7 +234,7 @@ namespace clt::cl
     {
       using pair_t = std::pair<StringView, parse_and_write_t>;
 
-      constexpr u64 opt_count = opt_count(list);
+      constexpr u64 opt_size = opt_count(list);
       //unfiltered_array contains a pair of StringView mapping to
       //the respective callback.
       //The first half of the unfiltered_array contains Opt::name and
@@ -242,7 +242,7 @@ namespace clt::cl
       //As aliases are optional (and are represented as "" if not specified
       //by the used), we also expand them, but need another array that will
       //only hold pairs of alias that are not empty.
-      std::array<pair_t, opt_count * 2> unfiltered_array = {
+      std::array<pair_t, opt_size * 2> unfiltered_array = {
         pair_t{ Args::name, &parse_and_write<Args>}...,
         pair_t{ Args::alias, &parse_and_write<Args>}...
       };
@@ -252,15 +252,15 @@ namespace clt::cl
       //The first half of unfiltered_array contains valid pairs,
       //so copy them.
       //The second half contains the "alias" pairs.
-      //Half the size of unfiltered_array is 'opt_count'.
+      //Half the size of unfiltered_array is 'opt_size'.
 
       //Copy non-alias pair
-      for (size_t i = 0; i < opt_count; i++)
+      for (size_t i = 0; i < opt_size; i++)
         array[i] = unfiltered_array[i];
 
-      size_t index = opt_count;
+      size_t index = opt_size;
       //Only copy alias pair if an alias exist (!= "")
-      for (size_t i = opt_count; i < opt_count * 2; i++)
+      for (size_t i = opt_size; i < opt_size * 2; i++)
       {
         if (unfiltered_array[i].first == "")
           continue;
