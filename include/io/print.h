@@ -78,7 +78,7 @@ namespace clt::io
   constexpr void print_message(fmt_str<Args...> fmt, Args&&... args) noexcept
   {
     fmt::basic_memory_buffer<char, 4096> buffer;
-    fmt::format_to(std::back_inserter(buffer), "{}Message:{} ", CyanF, Reset);
+    fmt::format_to(std::back_inserter(buffer), "{}Message:{} ", BrightCyanF, Reset);
     fmt::format_to(std::back_inserter(buffer), fmt, std::forward<Args>(args)...);
     if constexpr (endl.size() != 0)
       fmt::format_to(std::back_inserter(buffer), "{}", fmt::string_view{ endl.value, endl.size() });

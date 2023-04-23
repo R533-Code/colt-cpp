@@ -50,9 +50,13 @@ int main(int argc, char** argv)
   {
     auto result1 = input("Enter your name : ");
     if (result1.is_error())
+    {
+      print_warn("EOF detected!");
       break;
-    StringView strv = *result1;  
+    }
+    StringView strv = *result1;
     print_message("Your name is {}!\nRequired transformation to \"{}\": {}",
       strv, cmp_strv, str::levenshtein_distance(cmp_strv, strv));
   }
+  press_to_continue();
 }
