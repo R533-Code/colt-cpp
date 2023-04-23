@@ -173,10 +173,10 @@ struct fmt::formatter<clt::io::Color>
   /// @param op The BinaryOperator to write
   /// @param ctx The context
   /// @return context
-  auto format(const colt::io::Color& op, FormatContext& ctx)
+  auto format(const clt::io::Color& op, FormatContext& ctx)
   {
     return fmt::format_to(ctx.out(), "{}",
-      clt::io::details::CONSOLE_COLORS[op.index * static_cast<colt::u64>(!colt::args::NoColor)]);
+      clt::io::details::CONSOLE_COLORS[op.index * static_cast<u64>(clt::io::OutputColor)]);
   }
 };
 
