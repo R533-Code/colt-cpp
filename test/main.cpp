@@ -34,7 +34,9 @@ StringView file_out = "Default.txt";
 StringView cmp_strv = "Raphael";
 
 using CMDs = meta::type_list<
-  
+  cl::Opt<"color", cl::location<io::OutputColor>,
+    cl::desc<"Turns colored output on/off.">, cl::value_desc<"true/false">>,
+
   cl::Opt<"o", cl::location<file_out>,
     cl::desc<"Specify output filename">, cl::value_desc<"filename">>,
   
