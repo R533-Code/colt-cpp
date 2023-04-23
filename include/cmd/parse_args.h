@@ -230,11 +230,11 @@ namespace clt::cl
     using parse_and_write_t = ParseErrorCode(*)(StringView) noexcept;
 
     template<typename... Args>
-    consteval auto generate_map(meta::type_list<Args...> list) noexcept
+    constexpr auto generate_map(meta::type_list<Args...> list) noexcept
     {
       using pair_t = std::pair<StringView, parse_and_write_t>;
 
-      constexpr u64 map_size = opt_count(list);
+      constexpr u64 opt_count = opt_count(list);
       //unfiltered_array contains a pair of StringView mapping to
       //the respective callback.
       //The first half of the unfiltered_array contains Opt::name and
@@ -242,20 +242,25 @@ namespace clt::cl
       //As aliases are optional (and are represented as "" if not specified
       //by the used), we also expand them, but need another array that will
       //only hold pairs of alias that are not empty.
-      std::array<pair_t, map_size * 2> unfiltered_array = {
+      std::array<pair_t, opt_count * 2> unfiltered_array = {
         pair_t{ Args::name, &parse_and_write<Args>}...,
         pair_t{ Args::alias, &parse_and_write<Args>}...
       };
       //Final array that will hold non-empty Keys
       std::array<pair_t, opt_and_alias_count(list)> array;
 
+      //The first half of unfiltered_array contains valid pairs,
+      //so copy them.
+      //The second half contains the "alias" pairs.
+      //Half the size of unfiltered_array is 'opt_count'.
+
       //Copy non-alias pair
-      for (size_t i = 0; i < unfiltered_array.size() / 2; i++)
+      for (size_t i = 0; i < opt_count; i++)
         array[i] = unfiltered_array[i];
 
-      size_t index = 0;
+      size_t index = opt_count;
       //Only copy alias pair if an alias exist (!= "")
-      for (size_t i = unfiltered_array.size() / 2; i < unfiltered_array.size(); i++)
+      for (size_t i = opt_count; i < opt_count * 2; i++)
       {
         if (unfiltered_array[i].first == "")
           continue;
@@ -268,14 +273,19 @@ namespace clt::cl
     void print_help_for_arg(u64 max_size, u64 max_desc) noexcept
     {
       if constexpr (Arg::alias.is_empty())
-        io::print("   -{: <{}}<{}>{: <{}}  - {}",
-          Arg::name.data(), max_size, Arg::value_desc.data(),
-          "", max_desc - Arg::value_desc.size(), Arg::desc);
+        io::print<"">("   -{: <{}}", Arg::name.data(), max_size);
       else
-        io::print("   -{}, -{}{: <{}}<{}>{: <{}}  - {}",
-          Arg::name.data(), Arg::alias.data(),
-          "", max_size - Arg::name.size() - Arg::alias.size() - 3, Arg::value_desc.data(),
-          "", max_desc - Arg::value_desc.size(), Arg::desc);
+        io::print<"">("   -{}, -{}{: <{}}", Arg::name.data(), Arg::alias.data(), "", max_size - Arg::name.size() - Arg::alias.size() - 3);
+      
+      if constexpr (Arg::value_desc.is_empty())
+        io::print<"">("{: <{}}", "", max_desc);
+      else
+        io::print<"">("<{}>{: <{}}", Arg::value_desc.data(), "", max_desc - Arg::value_desc.size());
+      
+      if constexpr (Arg::desc.is_empty())
+        io::print("  - {}", Arg::desc);
+      else
+        io::print("");
     }
 
     template<typename... Args>
