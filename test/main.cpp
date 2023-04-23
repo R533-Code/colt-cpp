@@ -33,12 +33,15 @@ Option<int> div_option(int a, int b)
 StringView file_out = "Default.txt";
 StringView cmp_strv = "Raphael";
 
+using CMDs = meta::type_list<
+  cl::Opt<"o", cl::location<file_out>,
+    cl::desc<"Specify output filename">, cl::value_desc<"filename">>,
+  cl::Opt<"str", cl::location<cmp_strv>, cl::alias<"s">,
+    cl::value_desc<"str">, cl::desc<"Specify string to compare against">>
+>;
+
 int main(int argc, char** argv)
-{
-  using CMDs = meta::type_list<
-    cl::Opt<"o", cl::value_desc<"filename">, cl::desc<"Specify output filename">, cl::location<file_out>>,
-    cl::Opt<"str", cl::alias<"s">, cl::value_desc<"str">, cl::desc<"Specify string to compare against">, cl::location<cmp_strv>>
-  >;
+{  
   cl::parse_command_line_options<CMDs>(argc, argv);
 
   for (;;)
