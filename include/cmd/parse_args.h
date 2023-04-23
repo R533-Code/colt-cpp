@@ -14,72 +14,88 @@ namespace clt::cl
   namespace details
   {
     template<meta::StringLiteral DESC>
+    /// @brief Represents the description of an option
     struct Description
     {
       /// @brief Concept helper
       static constexpr bool is_desc = true;
 
+      /// @brief The description value
       static constexpr StringView desc = DESC.value;
     };
 
     template<typename T>
+    /// @brief True if Description
     concept IsDescription = T::is_desc;
 
     template<typename T>
+    /// @brief ::value is true if T IsDescription
     struct is_description
     {
       static constexpr bool value = IsDescription<T>;
     };
 
     template<meta::StringLiteral DESC>
+    /// @brief Represents the description of the value accepted by an option
     struct ValueDescription
     {
       /// @brief Concept helper
       static constexpr bool is_value_desc = true;
       
+      /// @brief The description value
       static constexpr StringView desc = DESC.value;
     };
 
     template<typename T>
+    /// @brief True if ValueDescription
     concept IsValueDescription = T::is_value_desc;
 
     template<typename T>
+    /// @brief ::value is true if T IsValueDescription
     struct is_value_description
     {
       static constexpr bool value = IsValueDescription<T>;
     };
 
     template<auto T>
+    /// @brief Represents the location of an option
     struct Location
     {
       /// @brief Concept helper
       static constexpr bool is_location = true;
 
+      /// @brief The location value (should be non-const pointer to Parsable)
       static constexpr auto ptr = T;
     };
 
     template<typename T>
+    /// @brief True if Location
     concept IsLocation = T::is_location;
 
     template<typename T>
+    /// @brief ::value is true if T IsLocation
     struct is_location
     {
       static constexpr bool value = IsLocation<T>;
     };
 
     template<meta::StringLiteral Name>
+    /// @brief Represents an alias of an option
     struct Alias
     {
       /// @brief Concept helper
       static constexpr bool is_alias = true;
-      
+
+      /// @brief The alias value
       static constexpr StringView name = Name.value;
     };
 
     template<typename T>
+    /// @brief True if Alias
     concept IsAlias = T::is_alias;
 
     template<typename T>
+    /// @brief ::value is true if T IsAlias
     struct is_alias
     {
       static constexpr bool value = IsAlias<T>;
@@ -143,9 +159,13 @@ namespace clt::cl
   namespace details
   {
     template<typename T>
+    /// @brief True if Opt
     concept IsOpt = T::is_opt;
 
     template<typename... Args>
+    /// @brief Counts the number of Opt specified in 'list'
+    /// @param list The list of Opt
+    /// @return Count of Opt
     consteval u64 opt_count(meta::type_list<Args...> list) noexcept
     {
       //For now only return the size of the list.
@@ -155,6 +175,9 @@ namespace clt::cl
     }
 
     template<typename... Args>
+    /// @brief Counts the number of Opt and their aliases specified in 'list'
+    /// @param list The list of Opt
+    /// @return Count of Opt + non-empty aliases
     consteval u64 opt_and_alias_count(meta::type_list<Args...> list) noexcept
     {
       //For now only return the size of the list.
@@ -164,14 +187,23 @@ namespace clt::cl
     }
 
     template<typename... Args>
+    /// @brief Computes the maximum count of chars that the name and alias will take.
+    /// Takes into account "help", and for aliases adds 3 to represent ", -".
+    /// Adds one to the result to take into account the "-" for the name.
+    /// @param list The list of Opt
+    /// @return Maximum count of chars
     consteval u64 max_name_size(meta::type_list<Args...> list) noexcept
     {
       // 4ULL for "help"
       // + 3ULL is for ", -" between name and alias
+      // + 1ULL is for "-"
       return clt::max({ (Args::name.size() + (!Args::alias.is_empty()) * (Args::alias.size() + 3)) ..., 4ULL }) + 1;
     }
 
     template<typename... Args>
+    /// @brief Computes the maximum count of chars that the value description will take.
+    /// @param list The list of Opt
+    /// @return Maximum count of chars
     consteval u64 max_desc_size(meta::type_list<Args...> list) noexcept
     {
       return clt::max({ Args::value_desc.size()... });
