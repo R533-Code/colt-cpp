@@ -1,3 +1,7 @@
+/** @file input.h
+* Contains input<>() functions for getting input from the console.
+*/
+
 #ifndef HG_COLT_INPUT
 #define HG_COLT_INPUT
 

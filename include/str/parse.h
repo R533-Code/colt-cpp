@@ -1,3 +1,7 @@
+/** @file parse.h
+* Contains parser<> template for most built-in type.
+*/
+
 #ifndef HG_COLT_PARSE
 #define HG_COLT_PARSE
 

@@ -1,5 +1,5 @@
 /** @file typedefs.h
-* Contains typedefs used throughout the front end.
+* Contains typedefs of built-in types.
 */
 
 #ifndef HG_COLT_TYPEDEFS

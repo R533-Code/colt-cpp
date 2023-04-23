@@ -1,3 +1,7 @@
+/** @file span.h
+* Contains Span<> and View<> templates.
+*/
+
 #ifndef HG_COLT_SPAN
 #define HG_COLT_SPAN
 

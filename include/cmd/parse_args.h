@@ -1,3 +1,7 @@
+/** @file parse_args.h
+* Contains a command line argument parser.
+*/
+
 #ifndef HG_COLT_PARSE_ARGS
 #define HG_COLT_PARSE_ARGS
 

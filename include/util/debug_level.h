@@ -1,3 +1,7 @@
+/** @file debug_level.h
+* Contains is_debug/is_release functions to detect at compile-time target configuration.
+*/
+
 #ifndef HG_COLT_DEBUG_LEVEL
 #define HG_COLT_DEBUG_LEVEL
 

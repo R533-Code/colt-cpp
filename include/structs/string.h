@@ -1,3 +1,7 @@
+/** @file string.h
+* Contains String class.
+*/
+
 #ifndef HG_COLT_STRING
 #define HG_COLT_STRING
 

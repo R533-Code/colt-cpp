@@ -1,3 +1,7 @@
+/** @file simple_alloc.h
+* Contains simple allocators used as building blocks for more advanced allocators.
+*/
+
 #ifndef HG_COLT_SIMPLE_ALLOC
 #define HG_COLT_SIMPLE_ALLOC
 

@@ -1,3 +1,7 @@
+/** @file string_view.h
+* Contains the StringView class.
+*/
+
 #ifndef HG_COLT_STRING_VIEW
 #define HG_COLT_STRING_VIEW
 

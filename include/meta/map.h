@@ -1,3 +1,7 @@
+/** @file map.h
+* Contains ConstexprMap.
+*/
+
 #ifndef HG_COLT_MAP
 #define HG_COLT_MAP
 

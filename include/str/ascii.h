@@ -1,3 +1,7 @@
+/** @file ascii.h
+* Contains helpers to identify the category of ASCII character.
+*/
+
 #ifndef HG_COLT_ASCII
 #define HG_COLT_ASCII
 

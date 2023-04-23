@@ -1,3 +1,7 @@
+/** @file params.h
+* Contains parameter helpers and uninit<> template.
+*/
+
 #ifndef HG_COLT_PARAMS
 #define HG_COLT_PARAMS
 

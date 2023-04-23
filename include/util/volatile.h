@@ -1,3 +1,7 @@
+/** @file volatile.h
+* Contains 'do_not_optimize()' and volatile_load/store helpers.
+*/
+
 #ifndef HG_COLT_VOLATILE
 #define HG_COLT_VOLATILE
 

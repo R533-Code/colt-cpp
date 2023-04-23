@@ -1,3 +1,7 @@
+/** @file rtti.h
+* Contains custom run-time type informations to help with down-casts.
+*/
+
 #ifndef HG_COLT_RTTI
 #define HG_COLT_RTTI
 

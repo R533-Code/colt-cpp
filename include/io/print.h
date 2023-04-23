@@ -1,3 +1,7 @@
+/** @file print.h
+* Contains print() functions to output to the console.
+*/
+
 #ifndef HG_COLT_PRINT
 #define HG_COLT_PRINT
 

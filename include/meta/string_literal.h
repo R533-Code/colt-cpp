@@ -1,3 +1,7 @@
+/** @file string_literal.h
+* Contains a helper to pass string literals as template parameters.
+*/
+
 #ifndef HG_COLT_STRING_LITERAL
 #define HG_COLT_STRING_LITERAL
 

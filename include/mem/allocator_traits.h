@@ -1,3 +1,7 @@
+/** @file allocator_traits.h
+* Contains concepts to identify allocators.
+*/
+
 #ifndef HG_COLT_ALLOCATOR_TRAITS
 #define HG_COLT_ALLOCATOR_TRAITS
 

@@ -1,3 +1,7 @@
+/** @file enum.h
+* Contains magic enums helpers to simplify dealing with enums.
+*/
+
 #ifndef HG_COLT_ENUM
 #define HG_COLT_ENUM
 
@@ -13,13 +17,17 @@
 namespace clt::iter
 {  
   template<u64 begin, u64 end>
+  /// @brief Iterator from that returns value from [begin, end]
   class RangeIterator
   {
+    /// @brief The beginning of the Range
     u64 current = begin;
 
   public:
+    /// @brief Default constructor
     constexpr RangeIterator() noexcept = default;
-
+    /// @brief Set the starting value to current
+    /// @param current The starting value
     constexpr RangeIterator(u64 current) noexcept
       : current(current) {}
 
@@ -27,23 +35,29 @@ namespace clt::iter
     /// @return The current value of the range
     constexpr u64 operator*() const noexcept { return current; }
     
-    /// @brief Advances the iterator to the next value in the range
+    /// @brief Increments the iterator to the next value in the range
     /// @return Self
     constexpr RangeIterator& operator++() noexcept
     {
       ++current; return *this;
     }
 
+    /// @brief Increments the iterator to the next value in the range, returning the old value
+    /// @return Copy of old iterator
     constexpr RangeIterator operator++(int) noexcept 
     {
       RangeIterator tmp = *this; ++(*this); return tmp;
     }
 
+    /// @brief Decrements the iterator to the next value in the range
+    /// @return Self
     constexpr RangeIterator& operator--() noexcept
     {
       --current; return *this;
     }
 
+    /// @brief Decrements the iterator to the next value in the range, returning the old value
+    /// @return Copy of old iterator
     constexpr RangeIterator operator--(int) noexcept
     {
       RangeIterator tmp = *this; --(*this); return tmp;
@@ -52,34 +66,47 @@ namespace clt::iter
     friend constexpr bool operator==(const RangeIterator&, const RangeIterator&) = default;
   };
   template<typename To, typename Iter>
+  /// @brief Converts the return of an iterator to another type
   class ConvertIterator
   {
+    /// @brief The internal iterator
     Iter iterator;
 
   public:
+    /// @brief Default constructor
     constexpr ConvertIterator() noexcept = default;
 
     template<typename U, typename... Args> requires (!std::same_as<ConvertIterator, std::remove_cvref_t<U>>)
     constexpr ConvertIterator(U&& ref, Args&&... args) noexcept
       : iterator(std::forward<U>(ref), std::forward<Args>(args)...) {}
 
+    /// @brief Reads the current value of the range
+    /// @return The current value of the range
     constexpr To operator*() const noexcept { return static_cast<To>(*iterator); }
 
+    /// @brief Increments the iterator to the next value in the range
+    /// @return Self
     constexpr ConvertIterator& operator++() noexcept
     {
       ++iterator; return *this;
     }
 
+    /// @brief Increments the iterator to the next value in the range, returning the old value
+    /// @return Copy of old iterator
     constexpr ConvertIterator operator++(int) noexcept
     {
       ConvertIterator tmp = *this; ++(*this); return tmp;
     }
 
+    /// @brief Decrements the iterator to the next value in the range
+    /// @return Self
     constexpr ConvertIterator& operator--() noexcept
     {
       --iterator; return *this;
     }
-
+    
+    /// @brief Decrements the iterator to the next value in the range, returning the old value
+    /// @return Copy of old iterator
     constexpr ConvertIterator operator--(int) noexcept
     {
       ConvertIterator tmp = *this; --(*this); return tmp;
@@ -89,9 +116,14 @@ namespace clt::iter
   };
 
   template<typename Enum, u64 BEGIN, u64 END>
+  /// @brief Iterator over an contiguous enum range
   struct EnumIter
   {
+    /// @brief Returns the start of the enum range
+    /// @return Start of the enum range
     constexpr ConvertIterator<Enum, RangeIterator<BEGIN, END>> begin() const noexcept { return {}; }
+    /// @brief Returns the end of the enum range
+    /// @return End of the enum range
     constexpr ConvertIterator<Enum, RangeIterator<BEGIN, END>> end()   const noexcept { return END + 1; }
   };
 }

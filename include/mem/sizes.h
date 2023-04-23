@@ -1,3 +1,7 @@
+/** @file sizes.h
+* Contains an abstraction for byte sizes.
+*/
+
 #ifndef HG_COLT_SIZES
 #define HG_COLT_SIZES
 

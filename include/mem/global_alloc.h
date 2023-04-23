@@ -1,3 +1,7 @@
+/** @file global_alloc.h
+* Contains the global allocator, and descriptions helpers.
+*/
+
 #ifndef HG_COLT_GLOBAL_ALLOC
 #define HG_COLT_GLOBAL_ALLOC
 
@@ -40,8 +44,8 @@ namespace clt::mem
   /// @brief Function pointer to an owning function
   using OwnFn     = bool(*)(MemBlock) noexcept;
   
-  /// @brief Describes a global allocator
   template<AllocFn A, DeallocFn D, ReallocFn R, ExpandFn E, OwnFn O>
+  /// @brief Describes a global allocator
   struct AllocatorDescription
   {
     static_assert(A != nullptr && D != nullptr,

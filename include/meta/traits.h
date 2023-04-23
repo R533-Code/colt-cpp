@@ -1,3 +1,7 @@
+/** @file traits.h
+* Contains common meta-programming helpers.
+*/
+
 #ifndef HG_COLT_TRAITS
 #define HG_COLT_TRAITS
 

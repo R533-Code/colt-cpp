@@ -1,3 +1,7 @@
+/** @file composable_alloc.h
+* Contains composable allocators.
+*/
+
 #ifndef HG_COLT_COMPOSABLE_ALLOC
 #define HG_COLT_COMPOSABLE_ALLOC
 

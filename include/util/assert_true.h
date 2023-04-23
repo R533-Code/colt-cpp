@@ -1,3 +1,7 @@
+/** @file assert_true.h
+* Contains assertions helpers that work also work at compile-time.
+*/
+
 #ifndef HG_COLT_ASSERT_TRUE
 #define HG_COLT_ASSERT_TRUE
 

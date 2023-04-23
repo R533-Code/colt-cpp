@@ -1,3 +1,7 @@
+/** @file refl.h
+* Adds reflection for built-in types.
+*/
+
 #ifndef HG_COLT_REFL
 #define HG_COLT_REFL
 

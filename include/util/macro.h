@@ -1,3 +1,7 @@
+/** @file macro.h
+* Contains common macro helpers.
+*/
+
 #ifndef HG_COLT_MACRO
 #define HG_COLT_MACRO
 

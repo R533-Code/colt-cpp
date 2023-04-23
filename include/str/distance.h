@@ -1,3 +1,7 @@
+/** @file distance.h
+* Contains helpers to compute distances between strings of text.
+*/
+
 #ifndef HG_COLT_DISTANCE
 #define HG_COLT_DISTANCE
 
@@ -8,6 +12,10 @@
 
 namespace clt::str
 {
+  /// @brief Computes the Levenshtein distance of two StringView
+  /// @param source The first StringView
+  /// @param target The second StringView
+  /// @return Required transformation count from source to target
   constexpr u64 levenshtein_distance(StringView source, StringView target) noexcept
   {
     if (source.size() > target.size()) {

@@ -1,3 +1,7 @@
+/** @file block.h
+* Contains MemBlock which represents the result of an allocation.
+*/
+
 #ifndef HG_COLT_BLOCK
 #define HG_COLT_BLOCK
 

@@ -1,3 +1,7 @@
+/** @file enum.h
+* Contains ON_SCOPE_EXIT helper.
+*/
+
 #ifndef HG_COLT_ON_EXIT
 #define HG_COLT_ON_EXIT
 

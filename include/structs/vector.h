@@ -1,3 +1,7 @@
+/** @file vector.h
+* Contains Vector<> template.
+*/
+
 #ifndef HG_COLT_VECTOR
 #define HG_COLT_VECTOR
 

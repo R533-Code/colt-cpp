@@ -1,3 +1,7 @@
+/** @file helper.h
+* Contains common helpers for data-structures.
+*/
+
 #ifndef HG_COLT_HELPER
 #define HG_COLT_HELPER
 

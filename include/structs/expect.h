@@ -1,3 +1,7 @@
+/** @file expect.h
+* Contains Expect<> template.
+*/
+
 #ifndef HG_COLT_EXPECT
 #define HG_COLT_EXPECT
 

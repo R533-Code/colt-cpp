@@ -1,3 +1,7 @@
+/** @file type_list.h
+* Contains a type list helper to simplify working with packs.
+*/
+
 #ifndef HG_COLT_TYPE_LIST
 #define HG_COLT_TYPE_LIST
 

@@ -1,3 +1,7 @@
+/** @file math.h
+* Contains constexpr math functions and helpers.
+*/
+
 #ifndef HG_COLT_MATH
 #define HG_COLT_MATH
 

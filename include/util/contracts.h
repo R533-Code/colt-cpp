@@ -1,3 +1,7 @@
+/** @file contracts.h
+* Contains COLT_PRE, COLT_POST for pre-conditions and post-conditions that work at compile-time.
+*/
+
 #ifndef HG_COLT_CONTRACTS
 #define HG_COLT_CONTRACTS
 

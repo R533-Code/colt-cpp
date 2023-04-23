@@ -1,3 +1,7 @@
+/** @file benchmark.h
+* Contains helpers to benchmark functions and scope.
+*/
+
 #ifndef HG_COLT_BENCHMARK
 #define HG_COLT_BENCHMARK
 
