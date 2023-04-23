@@ -277,9 +277,9 @@ namespace clt::cl
     void print_help_for_arg(u64 max_size, u64 max_desc) noexcept
     {
       if constexpr (Arg::alias.is_empty())
-        io::print<"">("   {}-{: <{}}{}", io::BrightCyanF, Arg::name.data(), max_size, io::Reset);
+        io::print<"">("   -{}{: <{}}{}", io::BrightCyanF, Arg::name.data(), max_size, io::Reset);
       else
-        io::print<"">("   {}-{}{}, {}-{}{}{: <{}}", io::BrightCyanF, Arg::name.data(), io::Reset, io::BrightCyanF, Arg::alias.data(), io::Reset, "", max_size - Arg::name.size() - Arg::alias.size() - 3);
+        io::print<"">("   -{}{}{}, -{}{}{}{: <{}}", io::BrightCyanF, Arg::name.data(), io::Reset, io::BrightCyanF, Arg::alias.data(), io::Reset, "", max_size - Arg::name.size() - Arg::alias.size() - 3);
       
       if constexpr (Arg::value_desc.is_empty())
         io::print<"">("{: <{}}", "", max_desc);
@@ -303,7 +303,7 @@ namespace clt::cl
       //Print commands in format -NAME <VALUE_DESC> - DESC aligning all options.
       (print_help_for_arg<Args>(max_size, max_desc), ...);
       //Print help command description
-      io::print("   {}-{: <{}}{}{: <{}}  - {}", io::BrightCyanF, "help", max_size, io::Reset, "", max_desc + 2, "Display available options");
+      io::print("   -{}{: <{}}{}{: <{}}  - {}", io::BrightCyanF, "help", max_size, io::Reset, "", max_desc + 2, "Display available options");
       std::exit(0);
     }
 
