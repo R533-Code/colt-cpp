@@ -145,17 +145,26 @@ namespace clt::cl
     template<typename T>
     concept IsOpt = T::is_opt;
 
-    template<meta::TypeList list>
-    consteval u64 recursively_get_opt_count() noexcept
+    template<typename... Args>
+    consteval u64 opt_count(meta::type_list<Args...> list) noexcept
     {
       //For now only return the size of the list.
       //When categories are implemented, we need to
       //recurse into each category, skipping positional arguments.
-      return list::size;
+      return sizeof...(Args);
     }
 
     template<typename... Args>
-    consteval u64 recursively_get_max_name_size(meta::type_list<Args...> list) noexcept
+    consteval u64 opt_and_alias_count(meta::type_list<Args...> list) noexcept
+    {
+      //For now only return the size of the list.
+      //When categories are implemented, we need to
+      //recurse into each category, skipping positional arguments.
+      return sizeof...(Args) + (!Args::alias.is_empty() + ...);
+    }
+
+    template<typename... Args>
+    consteval u64 max_name_size(meta::type_list<Args...> list) noexcept
     {
       // 4ULL for "help"
       // + 3ULL is for ", -" between name and alias
@@ -163,7 +172,7 @@ namespace clt::cl
     }
 
     template<typename... Args>
-    consteval u64 recursively_get_max_desc_size(meta::type_list<Args...> list) noexcept
+    consteval u64 max_desc_size(meta::type_list<Args...> list) noexcept
     {
       return clt::max({ Args::value_desc.size()... });
     }
@@ -179,7 +188,9 @@ namespace clt::cl
       auto [ptr, err] = clt::str::parser<ResultType>{}(result, strv);
       if (err != ParseErrorCode::SUCCESS)
         return err;
+      //Write to the memory location
       *(opt::location) = std::move(result.data());
+      //Destroy temporary storage used
       result.destruct();
       return ParseErrorCode::SUCCESS;
     }
@@ -187,14 +198,37 @@ namespace clt::cl
     using parse_and_write_t = ParseErrorCode(*)(StringView) noexcept;
 
     template<typename... Args>
-    consteval auto generate_array(meta::type_list<Args...>) noexcept
+    consteval auto generate_map(meta::type_list<Args...> list) noexcept
     {
       using pair_t = std::pair<StringView, parse_and_write_t>;
 
-      constexpr u64 map_size = recursively_get_opt_count<meta::type_list<Args...>>();
-      std::array<pair_t, map_size> array = {
-        pair_t{ Args::name, &parse_and_write<Args>}...
+      constexpr u64 map_size = opt_count(list);
+      //unfiltered_array contains a pair of StringView mapping to
+      //the respective callback.
+      //The first half of the unfiltered_array contains Opt::name and
+      //the respective callback.
+      //As aliases are optional (and are represented as "" if not specified
+      //by the used), we also expand them, but need another array that will
+      //only hold pairs of alias that are not empty.
+      std::array<pair_t, map_size * 2> unfiltered_array = {
+        pair_t{ Args::name, &parse_and_write<Args>}...,
+        pair_t{ Args::alias, &parse_and_write<Args>}...
       };
+      //Final array that will hold non-empty Keys
+      std::array<pair_t, opt_and_alias_count(list)> array;
+
+      //Copy non-alias pair
+      for (size_t i = 0; i < unfiltered_array.size() / 2; i++)
+        array[i] = unfiltered_array[i];
+
+      size_t index = 0;
+      //Only copy alias pair if an alias exist (!= "")
+      for (size_t i = unfiltered_array.size() / 2; i < unfiltered_array.size(); i++)
+      {
+        if (unfiltered_array[i].first == "")
+          continue;
+        array[index++] = unfiltered_array[i];
+      }
       return array;
     }
 
@@ -216,8 +250,8 @@ namespace clt::cl
     [[noreturn]]
     void print_help(meta::type_list<Args...> list, StringView description) noexcept
     {
-      constexpr u64 max_size = recursively_get_max_name_size(list);
-      constexpr u64 max_desc = recursively_get_max_desc_size(list);
+      constexpr u64 max_size = max_name_size(list);
+      constexpr u64 max_desc = max_desc_size(list);
       
       io::print("{}\nOPTIONS:", description);
       //Print commands in format -NAME <VALUE_DESC> - DESC aligning all options.
@@ -257,8 +291,8 @@ namespace clt::cl
   template<meta::TypeList list>
   void parse_command_line_options(int argc, char** argv, StringView description = {}) noexcept
   {
-    static constexpr meta::ConstexprMap CONST_MAP = details::generate_array(list{});
-    
+    static constexpr meta::ConstexprMap CONST_MAP = details::generate_map(list{});
+
     for (u64 i = 1; i < static_cast<u64>(argc); i++)
     {
       StringView arg = argv[i];
