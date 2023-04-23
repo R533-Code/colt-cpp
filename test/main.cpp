@@ -48,7 +48,7 @@ int main(int argc, char** argv)
 
   for (;;)
   {
-    auto result1 = input("Enter your name : ");
+    auto result1 = input("Enter your name: ");
     if (result1.is_error())
     {
       print_warn("EOF detected!");
@@ -58,5 +58,6 @@ int main(int argc, char** argv)
     print_message("Your name is {}!\nRequired transformation to \"{}\": {}",
       strv, cmp_strv, str::levenshtein_distance(cmp_strv, strv));
   }
+  print_fatal("TEST!");
   press_to_continue();
 }

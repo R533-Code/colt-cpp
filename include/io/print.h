@@ -63,7 +63,7 @@ namespace clt::io
   constexpr void print_warn(fmt_str<Args...> fmt, Args&&... args) noexcept
   {
     fmt::basic_memory_buffer<char, 4096> buffer;
-    fmt::format_to(std::back_inserter(buffer), "{}Warning:{} ", YellowF, Reset);
+    fmt::format_to(std::back_inserter(buffer), "{}Warning:{} ", BrightYellowF, Reset);
     fmt::format_to(std::back_inserter(buffer), fmt, std::forward<Args>(args)...);
     if constexpr (endl.size() != 0)
       fmt::format_to(std::back_inserter(buffer), "{}", fmt::string_view{ endl.value, endl.size() });
@@ -78,7 +78,7 @@ namespace clt::io
   constexpr void print_message(fmt_str<Args...> fmt, Args&&... args) noexcept
   {
     fmt::basic_memory_buffer<char, 4096> buffer;
-    fmt::format_to(std::back_inserter(buffer), "{}Message:{} ", BrightCyanF, Reset);
+    fmt::format_to(std::back_inserter(buffer), "{}Message:{} ", BrightBlueF, Reset);
     fmt::format_to(std::back_inserter(buffer), fmt, std::forward<Args>(args)...);
     if constexpr (endl.size() != 0)
       fmt::format_to(std::back_inserter(buffer), "{}", fmt::string_view{ endl.value, endl.size() });
@@ -93,11 +93,11 @@ namespace clt::io
   constexpr void print_fatal(fmt::format_string<Args...> fmt, Args && ...args)
   {
     fmt::basic_memory_buffer<char, 4096> buffer;
-    fmt::format_to(std::back_inserter(buffer), "{}FATAL:{} {}", BrightRedB, Reset, BrightRedF);
+    fmt::format_to(std::back_inserter(buffer), "{}FATAL:{} {}", RedB, Reset, BrightRedF);
     fmt::format_to(std::back_inserter(buffer), fmt, std::forward<Args>(args)...);
     if constexpr (endl.size() != 0)
       fmt::format_to(std::back_inserter(buffer), "{}", fmt::string_view{ endl.value, endl.size() });
-    fmt::print("{}", fmt::string_view{ buffer.data(), buffer.size() });
+    fmt::print("{}{}", fmt::string_view{ buffer.data(), buffer.size() }, io::Reset);
   }
 }
 
