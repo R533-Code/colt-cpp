@@ -11,7 +11,7 @@
 namespace clt::details
 {
   [[noreturn]]
-  static void dbreak() noexcept
+  inline void dbreak() noexcept
   {
     (void)std::fgetc(stdin);
     std::abort();

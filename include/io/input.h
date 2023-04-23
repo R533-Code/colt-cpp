@@ -23,7 +23,7 @@
 
 namespace clt::io
 {
-  static void toggle_echo() noexcept
+  inline void toggle_echo() noexcept
   {
 #ifdef _WIN32
     HANDLE h;
@@ -45,7 +45,7 @@ namespace clt::io
   }
 
   /// @brief Prints 'Press any key to continue...' and waits for any key input.
-  static void press_to_continue() noexcept
+  inline void press_to_continue() noexcept
   {
     std::fputs("Press any key to continue...", stdout);
     toggle_echo();
@@ -55,7 +55,7 @@ namespace clt::io
   }
 
   
-  Expect<u32, IOError> gets_no_echo(clt::Span<char> span) noexcept
+  inline Expect<u32, IOError> gets_no_echo(clt::Span<char> span) noexcept
     COLT_PRE(!span.is_empty())
   {
     auto n = static_cast<u32>(span.size());
@@ -79,7 +79,7 @@ namespace clt::io
   }
   COLT_POST()
 
-  Expect<u32, IOError> gets(Span<char> span) noexcept
+  inline Expect<u32, IOError> gets(Span<char> span) noexcept
     COLT_PRE(!span.is_empty())
   {
     auto n = static_cast<u32>(span.size());
