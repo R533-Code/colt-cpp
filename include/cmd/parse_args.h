@@ -287,9 +287,9 @@ namespace clt::cl
         io::print<"">("<{}>{: <{}}", Arg::value_desc.data(), "", max_desc - Arg::value_desc.size());
       
       if constexpr (Arg::desc.is_empty())
-        io::print("  - {}", Arg::desc);
-      else
         io::print("");
+      else
+        io::print("  - {}", Arg::desc);
     }
 
     template<typename... Args>
