@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 {
   using CMDs = meta::type_list<
     cl::Opt<"o", cl::value_desc<"filename">, cl::desc<"Specify output filename">, cl::location<file_out>>,
-    cl::Opt<"str", cl::value_desc<"str">, cl::desc<"Specify string to compare against">, cl::location<cmp_strv>>
+    cl::Opt<"str", cl::alias<"s">, cl::value_desc<"str">, cl::desc<"Specify string to compare against">, cl::location<cmp_strv>>
   >;
   cl::parse_command_line_options<CMDs>(argc, argv);
 

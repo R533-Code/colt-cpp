@@ -157,7 +157,9 @@ namespace clt::cl
     template<typename... Args>
     consteval u64 recursively_get_max_name_size(meta::type_list<Args...> list) noexcept
     {
-      return clt::max({ Args::name.size()... }) + 1;
+      // 4ULL for "help"
+      // + 3ULL is for ", -" between name and alias
+      return clt::max({ (Args::name.size() + (!Args::alias.is_empty()) * (Args::alias.size() + 3)) ..., 4ULL }) + 1;
     }
 
     template<typename... Args>
@@ -196,19 +198,30 @@ namespace clt::cl
       return array;
     }
 
+    template<typename Arg>
+    void print_help_for_arg(u64 max_size, u64 max_desc) noexcept
+    {
+      if constexpr (Arg::alias.is_empty())
+        io::print("   -{: <{}}<{}>{: <{}}  - {}",
+          Arg::name.data(), max_size, Arg::value_desc.data(),
+          "", max_desc - Arg::value_desc.size(), Arg::desc);
+      else
+        io::print("   -{}, -{}{: <{}}<{}>{: <{}}  - {}",
+          Arg::name.data(), Arg::alias.data(),
+          "", max_size - Arg::name.size() - Arg::alias.size() - 3, Arg::value_desc.data(),
+          "", max_desc - Arg::value_desc.size(), Arg::desc);
+    }
+
     template<typename... Args>
     [[noreturn]]
     void print_help(meta::type_list<Args...> list, StringView description) noexcept
     {
-      // 5 is for "-help"
-      constexpr u64 max_size = clt::max(
-        recursively_get_max_name_size(list), 5ULL
-      );
+      constexpr u64 max_size = recursively_get_max_name_size(list);
       constexpr u64 max_desc = recursively_get_max_desc_size(list);
       
       io::print("{}\nOPTIONS:", description);
       //Print commands in format -NAME <VALUE_DESC> - DESC aligning all options.
-      (io::print("   -{: <{}}<{}>{: <{}}  - {}", Args::name.data(), max_size, Args::value_desc.data(), "", max_desc - Args::value_desc.size(), Args::desc), ...);
+      (print_help_for_arg<Args>(max_size, max_desc), ...);
       //Print help command description
       io::print("   -{: <{}}{: <{}}  - {}", "help", max_size, "", max_desc + 2, "Display available options");
       std::exit(0);
