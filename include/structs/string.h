@@ -85,9 +85,9 @@ namespace clt
       if (gchar == EOF)
       {
         if (feof(from))
-          return { Error, IOError::FILE_EOF };
+          return { Error, io::IOError::FILE_EOF };
         else
-          return { Error, IOError::FILE_ERROR };
+          return { Error, io::IOError::FILE_ERROR };
       }
       str.reserve(reserve);
       if (strip_front && std::isspace(gchar))
