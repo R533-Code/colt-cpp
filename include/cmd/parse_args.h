@@ -342,7 +342,11 @@ namespace clt::cl
     for (u64 i = 1; i < static_cast<u64>(argc); i++)
     {
       StringView arg = argv[i];
-      if (arg.front() == '-')
+      if (arg.is_empty() || arg.front() != '-')
+      {
+        print_fatal("Not implemented!");
+      }
+      else
       {
         if (arg == "-help")
           details::print_help(list{}, description);

@@ -58,6 +58,5 @@ int main(int argc, char** argv)
     print_message("Your name is {}!\nRequired transformation to \"{}\": {}",
       strv, cmp_strv, str::levenshtein_distance(cmp_strv, strv));
   }
-  print_fatal("TEST!");
   press_to_continue();
 }
