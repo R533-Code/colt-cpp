@@ -45,7 +45,7 @@ namespace clt::cl
     {
       /// @brief Concept helper
       static constexpr bool is_value_desc = true;
-      
+
       /// @brief The description value
       static constexpr StringView desc = DESC.value;
     };
@@ -103,7 +103,29 @@ namespace clt::cl
     struct is_alias
     {
       static constexpr bool value = IsAlias<T>;
-    };    
+    };
+
+    template<auto T>
+    /// @brief Represents the callback of an option
+    struct Callback
+    {
+      /// @brief Concept helper
+      static constexpr bool is_callback = true;
+
+      /// @brief The location value (should be non-const pointer to Parsable)
+      static constexpr auto ptr = T;
+    };
+
+    template<typename T>
+    /// @brief True if Callback
+    concept IsCallback = T::is_callback;
+
+    template<typename T>
+    /// @brief ::value is true if T IsCallback
+    struct is_callback
+    {
+      static constexpr bool value = IsCallback<T>;
+    };
 
     template<typename T, typename... Ts>
     /// @brief Finds a Description type in the parameter pack, or returns Description<"">
@@ -120,6 +142,10 @@ namespace clt::cl
     template<typename T, typename... Ts>
     /// @brief Finds a Description type in the parameter pack, or returns Alias<"">
     using find_alias_t = meta::find_first_match_t<is_alias, Alias<"">, T, Ts...>;
+
+    template<typename T, typename... Ts>
+    /// @brief Finds a Description type in the parameter pack, or returns Alias<"">
+    using find_callback_t = meta::find_first_match_t<is_callback, Callback<nullptr>, T, Ts...>;
   }
 
   template<meta::StringLiteral T>
@@ -136,15 +162,19 @@ namespace clt::cl
 
   template<auto& REF> requires std::is_reference_v<decltype(REF)> && (!std::is_const_v<decltype(REF)>) && meta::Parsable<std::remove_reference_t<decltype(REF)>>
   /// @brief Adds the location in which to store the result for an Opt
-  using location = details::Location<&REF>;  
-  
+  using location = details::Location<&REF>;
+
+  template<void(*CALL)()>
+  /// @brief Adds the location in which to store the result for an Opt
+  using callback = details::Callback<CALL>;
+
   template<meta::StringLiteral Name, typename T, typename... Ts>
   /// @brief Represents an command line option
   struct Opt
   {
     /// @brief Concept helper
     static constexpr bool is_opt = true;
-    
+
     /// @brief The name of the Opt (required, and not "")
     static constexpr StringView name = Name.value;
     /// @brief The description of the Opt (can be empty)
@@ -153,12 +183,16 @@ namespace clt::cl
     static constexpr StringView value_desc = details::find_value_description_t<T, Ts...>::desc;
     /// @brief An alias for the Opt (can be empty)
     static constexpr StringView alias = details::find_alias_t<T, Ts...>::name;
-    /// @brief The location were the result is written (never null)
+    /// @brief The location were the result is written (can be null if callback is not null)
     static constexpr auto location = details::find_location_t<T, Ts...>::ptr;
+    /// @brief The callback to call upon detection (can be null if location is not null)
+    static constexpr auto callback = details::find_callback_t<T, Ts...>::ptr;
 
-    static_assert(name != "", "Empty name is not allowed!");
-    static_assert(location != nullptr, "cl::location<...> of the Opt must be specified!");
-  };  
+    static_assert(name != "",
+      "Empty name is not allowed!");
+    static_assert(location != nullptr || callback != nullptr,
+      "Either cl::location<...> or cl::callback<> of the Opt must be specified!");
+  };
 
   namespace details
   {
@@ -217,17 +251,25 @@ namespace clt::cl
     ParseErrorCode parse_and_write(StringView strv) noexcept
     {
       using ResultType = std::remove_cvref_t<std::remove_pointer_t<decltype(opt::location)>>;
-      //The variable in which to store the result
-      uninit<ResultType> result;
       
-      //Parse the line
-      auto [ptr, err] = clt::str::parser<ResultType>{}(result, strv);
-      if (err != ParseErrorCode::SUCCESS)
-        return err;
-      //Write to the memory location
-      *(opt::location) = std::move(result.data());
-      //Destroy temporary storage used
-      result.destruct();
+      if constexpr (opt::location != nullptr)
+      {
+        //The variable in which to store the result
+        uninit<ResultType> result;
+
+        //Parse the line
+        auto [ptr, err] = clt::str::parser<ResultType>{}(result, strv);
+        if (err != ParseErrorCode::SUCCESS)
+          return err;
+        //Write to the memory location
+        *opt::location = std::move(result.data());
+        //Destroy temporary storage used
+        result.destruct();
+      }
+      //Run callback if it exists.
+      //The callback is only run if parsing was successful.
+      if constexpr (opt::callback != nullptr)
+        (*opt::callback)();
       return ParseErrorCode::SUCCESS;
     }
 
@@ -280,12 +322,12 @@ namespace clt::cl
         io::print<"">("   -{}{: <{}}{}", io::BrightCyanF, Arg::name.data(), max_size, io::Reset);
       else
         io::print<"">("   -{}{}{}, -{}{}{}{: <{}}", io::BrightCyanF, Arg::name.data(), io::Reset, io::BrightCyanF, Arg::alias.data(), io::Reset, "", max_size - Arg::name.size() - Arg::alias.size() - 3);
-      
+
       if constexpr (Arg::value_desc.is_empty())
         io::print<"">("{: <{}}", "", max_desc);
       else
         io::print<"">("{}<{}>{}{: <{}}", io::BrightMagentaF, Arg::value_desc.data(), io::Reset, "", max_desc - Arg::value_desc.size());
-      
+
       if constexpr (Arg::desc.is_empty())
         io::print("");
       else
@@ -298,7 +340,7 @@ namespace clt::cl
     {
       constexpr u64 max_size = max_name_size(list);
       constexpr u64 max_desc = max_desc_size(list);
-      
+
       io::print("{}\nOPTIONS:", description);
       //Print commands in format -NAME <VALUE_DESC> - DESC aligning all options.
       (print_help_for_arg<Args>(max_size, max_desc), ...);

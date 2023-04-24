@@ -45,7 +45,7 @@ using CMDs = meta::type_list<
 >;
 
 int main(int argc, char** argv)
-{  
+{
   cl::parse_command_line_options<CMDs>(argc, argv);
 
   for (;;)
