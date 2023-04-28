@@ -32,6 +32,7 @@ Option<int> div_option(int a, int b)
 
 StringView file_out = "Default.txt";
 StringView cmp_strv = "Raphael";
+StringView input_file = "";
 
 using CMDs = meta::type_list<
   cl::Opt<"color", cl::location<io::OutputColor>,
@@ -41,12 +42,15 @@ using CMDs = meta::type_list<
     cl::desc<"Specify output filename">, cl::value_desc<"filename">>,
   
   cl::Opt<"str", cl::location<cmp_strv>, cl::alias<"s">,
-    cl::value_desc<"str">, cl::desc<"Specify string to compare against">>
+    cl::value_desc<"str">, cl::desc<"Specify string to compare against">>,
+
+  cl::Pos<"input_file", cl::location<input_file>>
 >;
 
 int main(int argc, char** argv)
 {
-  cl::parse_command_line_options<CMDs>(argc, argv);
+  cl::parse_command_line_options<CMDs>(argc, argv,
+    "test", "Helper to test Colt utilities!");
 
   for (;;)
   {

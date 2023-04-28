@@ -189,6 +189,28 @@ namespace clt::cl
     static constexpr auto callback = details::find_callback_t<T, Ts...>::ptr;
 
     static_assert(name != "",
+        "Empty name is not allowed!");
+    static_assert(location != nullptr || callback != nullptr,
+      "Either cl::location<...> or cl::callback<> of the Opt must be specified!");
+  };
+
+  template<meta::StringLiteral Name, typename T, typename... Ts>
+  /// @brief Represents an command line option
+  struct Pos
+  {
+    /// @brief Concept helper
+    static constexpr bool is_pos = true;
+
+    /// @brief The name of the Opt (required, and not "")
+    static constexpr StringView name = Name.value;
+    /// @brief The description of the Opt (can be empty)
+    static constexpr StringView desc = details::find_description_t<T, Ts...>::desc;
+    /// @brief The location were the result is written (can be null if callback is not null)
+    static constexpr auto location = details::find_location_t<T, Ts...>::ptr;
+    /// @brief The callback to call upon detection (can be null if location is not null)
+    static constexpr auto callback = details::find_callback_t<T, Ts...>::ptr;
+
+    static_assert(name != "",
       "Empty name is not allowed!");
     static_assert(location != nullptr || callback != nullptr,
       "Either cl::location<...> or cl::callback<> of the Opt must be specified!");
@@ -199,6 +221,22 @@ namespace clt::cl
     template<typename T>
     /// @brief True if Opt
     concept IsOpt = T::is_opt;
+
+    template<typename T>
+    struct is_opt
+    {
+      static constexpr bool value = IsOpt<T>;
+    };
+
+    template<typename T>
+    /// @brief True if Opt
+    concept IsPos = T::is_pos;
+
+    template<typename T>
+    struct is_pos
+    {
+      static constexpr bool value = IsPos<T>;
+    };
 
     template<typename... Args>
     /// @brief Counts the number of Opt specified in 'list'
@@ -247,11 +285,38 @@ namespace clt::cl
       return clt::max({ Args::value_desc.size()... });
     }
 
+
     template<IsOpt opt>
-    ParseErrorCode parse_and_write(StringView strv) noexcept
+    ParseErrorCode parse_opt(StringView strv) noexcept
     {
       using ResultType = std::remove_cvref_t<std::remove_pointer_t<decltype(opt::location)>>;
       
+      if constexpr (opt::location != nullptr)
+      {
+        //The variable in which to store the result
+        uninit<ResultType> result;
+
+        //Parse the line
+        auto [ptr, err] = clt::str::parser<ResultType>{}(result, strv);
+        if (err != ParseErrorCode::SUCCESS)
+          return err;
+        //Write to the memory location
+        *opt::location = std::move(result.data());
+        //Destroy temporary storage used
+        result.destruct();
+      }
+      //Run callback if it exists.
+      //The callback is only run if parsing was successful.
+      if constexpr (opt::callback != nullptr)
+        (*opt::callback)();
+      return ParseErrorCode::SUCCESS;
+    }
+
+    template<IsPos opt>
+    ParseErrorCode parse_pos(StringView strv) noexcept
+    {
+      using ResultType = std::remove_cvref_t<std::remove_pointer_t<decltype(opt::location)>>;
+
       if constexpr (opt::location != nullptr)
       {
         //The variable in which to store the result
@@ -289,8 +354,8 @@ namespace clt::cl
       //by the used), we also expand them, but need another array that will
       //only hold pairs of alias that are not empty.
       std::array<pair_t, opt_size * 2> unfiltered_array = {
-        pair_t{ Args::name, &parse_and_write<Args>}...,
-        pair_t{ Args::alias, &parse_and_write<Args>}...
+        pair_t{ Args::name, &parse_opt<Args>}...,
+        pair_t{ Args::alias, &parse_opt<Args>}...
       };
       //Final array that will hold non-empty Keys
       std::array<pair_t, opt_and_alias_count(list)> array;
@@ -315,6 +380,12 @@ namespace clt::cl
       return array;
     }
 
+    template<typename... Args>
+    constexpr auto generate_array(meta::type_list<Args...>) noexcept
+    {
+      return std::array<parse_and_write_t, sizeof...(Args)>{ &parse_pos<Args>... };
+    }
+
     template<typename Arg>
     void print_help_for_arg(u64 max_size, u64 max_desc) noexcept
     {
@@ -334,14 +405,25 @@ namespace clt::cl
         io::print("  - {}", Arg::desc);
     }
 
-    template<typename... Args>
+    template<typename Arg>
+    void print_help_for_pos() noexcept
+    {
+      io::print<" ">("<{}>", Arg::name);
+    }
+
+    template<typename... Args, typename... Args2>
     [[noreturn]]
-    void print_help(meta::type_list<Args...> list, StringView description) noexcept
+    void print_help(meta::type_list<Args...> list, meta::type_list<Args2...> pos, StringView name, StringView description) noexcept
     {
       constexpr u64 max_size = max_name_size(list);
       constexpr u64 max_desc = max_desc_size(list);
 
-      io::print("{}\nOPTIONS:", description);
+      if (name.is_empty())
+        io::print<"">("USAGE: [OPTIONS] ");
+      else
+        io::print<"">("USAGE: {} [OPTIONS] ", name);
+      (print_help_for_pos<Args2>(), ...);
+      io::print("\n   {}\n\nOPTIONS:", description);
       //Print commands in format -NAME <VALUE_DESC> - DESC aligning all options.
       (print_help_for_arg<Args>(max_size, max_desc), ...);
       //Print help command description
@@ -374,24 +456,45 @@ namespace clt::cl
         std::exit(1);
       }
     }
+
+    void handle_positional(StringView arg, u64& pos_id, auto& POS_TABLE) noexcept
+    {
+      if (pos_id == POS_TABLE.size())
+      {
+        io::print_warn("Unused argument '{}'!", arg);
+        return;
+      }
+      auto opt = POS_TABLE[pos_id++];
+      //invoke callback...
+      ParseErrorCode err = (*opt)(arg);
+      if (err != ParseErrorCode::SUCCESS)
+      {
+        io::print_error("Invalid argument for '{}' option ({:h})!", arg, err);
+        std::exit(1);
+      }
+    }
   }
 
   template<meta::TypeList list>
-  void parse_command_line_options(int argc, char** argv, StringView description = {}) noexcept
+  void parse_command_line_options(int argc, char** argv, StringView name = {}, StringView description = {}) noexcept
   {
-    static constexpr meta::ConstexprMap CONST_MAP = details::generate_map(list{});
+    using OptList = typename list::template remove_if_not<details::is_opt>;
+    using PosList = typename list::template remove_if_not<details::is_pos>;
 
+    static constexpr meta::ConstexprMap CONST_MAP = details::generate_map(OptList{});
+
+    static constexpr auto POS_TABLE = details::generate_array(PosList{});
+
+    u64 pos_id = 0;
     for (u64 i = 1; i < static_cast<u64>(argc); i++)
     {
       StringView arg = argv[i];
       if (arg.is_empty() || arg.front() != '-')
-      {
-        print_fatal("Not implemented!");
-      }
+        details::handle_positional(arg, pos_id, POS_TABLE);
       else
       {
         if (arg == "-help")
-          details::print_help(list{}, description);
+          details::print_help(OptList{}, PosList{}, name, description);
         else
           details::handle_non_positional(arg, i,
             static_cast<u64>(argc), argv, CONST_MAP);
