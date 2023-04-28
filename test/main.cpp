@@ -36,16 +36,17 @@ StringView input_file = "";
 
 using CMDs = meta::type_list<
   cl::Opt<"color", cl::location<io::OutputColor>,
-    cl::desc<"Turns colored output on/off.">, cl::value_desc<"true/false">>,
+  cl::desc<"Turns colored output on/off.">, cl::value_desc<"true/false">>,
 
   cl::Opt<"o", cl::location<file_out>,
-    cl::desc<"Specify output filename">, cl::value_desc<"filename">>,
-  
-  cl::Opt<"str", cl::location<cmp_strv>, cl::alias<"s">,
-    cl::value_desc<"str">, cl::desc<"Specify string to compare against">>,
+  cl::desc<"Specify output filename">, cl::value_desc<"filename">>,
 
-  cl::Pos<"input_file", cl::location<input_file>>
->;
+  cl::Opt<"str", cl::location<cmp_strv>, cl::alias<"s">,
+  cl::value_desc<"str">, cl::desc<"Specify string to compare against">>,
+
+  cl::Pos<"input_file", cl::location<input_file>>,
+  cl::Pos<"input_file2", cl::location<input_file>>
+  >;
 
 int main(int argc, char** argv)
 {

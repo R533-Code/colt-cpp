@@ -341,7 +341,7 @@ namespace clt::cl
     using parse_and_write_t = ParseErrorCode(*)(StringView) noexcept;
 
     template<typename... Args>
-    constexpr auto generate_map(meta::type_list<Args...> list) noexcept
+    constexpr auto generate_map_table(meta::type_list<Args...> list) noexcept
     {
       using pair_t = std::pair<StringView, parse_and_write_t>;
 
@@ -381,9 +381,15 @@ namespace clt::cl
     }
 
     template<typename... Args>
-    constexpr auto generate_array(meta::type_list<Args...>) noexcept
+    constexpr auto generate_pos_table(meta::type_list<Args...>) noexcept
     {
       return std::array<parse_and_write_t, sizeof...(Args)>{ &parse_pos<Args>... };
+    }
+
+    template<typename... Args>
+    constexpr auto generate_pos_str_table(meta::type_list<Args...>) noexcept
+    {
+      return std::array<StringView, sizeof...(Args)>{ Args::name... };
     }
 
     template<typename Arg>
@@ -483,10 +489,12 @@ namespace clt::cl
 
     //Positional argument table, contains pointers to the function to call
     //when a non-positional argument is detected.
-    static constexpr meta::ConstexprMap CONST_MAP = details::generate_map(OptList{});
+    static constexpr meta::ConstexprMap CONST_MAP = details::generate_map_table(OptList{});
     //Positional argument table, contains pointers to the function to call
     //when a positional argument is detected.
-    static constexpr auto POS_TABLE = details::generate_array(PosList{});
+    static constexpr auto POS_TABLE = details::generate_pos_table(PosList{});
+    
+    static constexpr auto POS_STR_TABLE = details::generate_pos_str_table(PosList{});
 
     u64 pos_id = 0;
     bool is_parsing_pos = false;
@@ -509,6 +517,12 @@ namespace clt::cl
           details::handle_non_positional(arg, i,
             static_cast<u64>(argc), argv, CONST_MAP);
       }
+    }
+    if (pos_id != PosList::size)
+    {
+      io::print_error("Not enough arguments provided! {} missing.",
+        POS_STR_TABLE.size() - pos_id);
+      std::exit(1);
     }
   }
 }
