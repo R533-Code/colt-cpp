@@ -481,18 +481,28 @@ namespace clt::cl
     using OptList = typename list::template remove_if_not<details::is_opt>;
     using PosList = typename list::template remove_if_not<details::is_pos>;
 
+    //Positional argument table, contains pointers to the function to call
+    //when a non-positional argument is detected.
     static constexpr meta::ConstexprMap CONST_MAP = details::generate_map(OptList{});
-
+    //Positional argument table, contains pointers to the function to call
+    //when a positional argument is detected.
     static constexpr auto POS_TABLE = details::generate_array(PosList{});
 
     u64 pos_id = 0;
+    bool is_parsing_pos = false;
     for (u64 i = 1; i < static_cast<u64>(argc); i++)
     {
       StringView arg = argv[i];
-      if (arg.is_empty() || arg.front() != '-')
+      if (arg.is_empty() || arg.front() != '-' || is_parsing_pos)
         details::handle_positional(arg, pos_id, POS_TABLE);
       else
       {
+        if (arg == "--")
+        {
+          is_parsing_pos = true;
+          continue;
+        }
+
         if (arg == "-help")
           details::print_help(OptList{}, PosList{}, name, description);
         else
