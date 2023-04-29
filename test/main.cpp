@@ -1,14 +1,4 @@
-#include "util/benchmark.h"
-#include "io/print.h"
-#include "meta/type_list.h"
-#include "structs/string.h"
-#include "structs/vector.h"
-#include "structs/expect.h"
-#include "structs/option.h"
-#include "str/distance.h"
-#include "refl/refl.h"
-#include "io/input.h"
-#include "cmd/parse_args.h"
+#include "coltcpp.h"
 
 using namespace std::chrono_literals;
 using namespace clt;
@@ -49,6 +39,7 @@ using CMDs = meta::type_list<
 
 int main(int argc, char** argv)
 {
+  clt::install_colt_handlers();
   cl::parse_command_line_options<CMDs>(argc, argv,
     "test", "Helper to test Colt utilities!");
 
