@@ -74,6 +74,9 @@ namespace clt::bench
     duration time_span;
     /// @brief The thread ID
     u64 thread_id;
+
+    constexpr ProfileResult(const ProfileSource& src, time_point st, duration time_span, u64 id) noexcept
+      : src(src), start_time(st), time_span(time_span), thread_id(id) {}
   };
 
   /// @brief Class responsible of storing profiles results
