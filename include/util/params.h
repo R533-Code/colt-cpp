@@ -30,11 +30,11 @@ namespace clt
   }
 
   template<typename T>
-  class uninit
-    : public meta::type_on_debug<bool>
-  {
-    using OnDebugIsConstructed = meta::type_on_debug<bool>;
+  class uninit;
 
+  template<typename T> requires (clt::is_release())
+  class uninit<T>
+  {
     /// @brief Aligned buffer providing storage for the object
     alignas(T) char buffer[sizeof(T)];
 
@@ -56,25 +56,18 @@ namespace clt
     /// @brief No default copy assignment operator
     constexpr uninit& operator=(uninit&&) noexcept = delete;
     /// @brief Constructor, does nothing
-    constexpr uninit() noexcept requires (clt::is_release()) = default;
-    /// @brief Constructor, does nothing (and sets a debug flag)
-    constexpr uninit() noexcept requires (clt::is_debug())
-      : OnDebugIsConstructed(false) {}
+    constexpr uninit() noexcept = default;
 
     /// @brief Returns a reference to the underlying object, but do construct it first!
     /// @return Reference to the data
     constexpr meta::copy_trivial_t<const T&> data() const& noexcept
     {
-      if constexpr (is_debug())
-        assert_true("Uninitialized object not constructed!", OnDebugIsConstructed::value);
       return *details::ptr_to<T*>(buffer);
     }
     /// @brief Returns a reference to the underlying object, but do construct it first!
     /// @return Reference to the data
     constexpr T& data() & noexcept
     {
-      if constexpr (is_debug())
-        assert_true("Uninitialized object not constructed!", OnDebugIsConstructed::value);
       return *details::ptr_to<T*>(buffer);
     }
 
@@ -82,8 +75,6 @@ namespace clt
     /// @return Reference to the data
     constexpr T&& data() && noexcept
     {
-      if constexpr (is_debug())
-        assert_true("Uninitialized object not constructed!", OnDebugIsConstructed::value);
       return std::move(*details::ptr_to<T*>(buffer));
     }
 
@@ -91,43 +82,110 @@ namespace clt
     /// @return Reference to the data
     constexpr meta::copy_trivial_t<const T&&> data() const&& noexcept
     {
-      if constexpr (is_debug())
-        assert_true("Uninitialized object not constructed!", OnDebugIsConstructed::value);
       return *details::ptr_to<T*>(buffer);
     }
 
     template<typename... Args> requires std::is_constructible_v<T, Args...>
     constexpr void construct(Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args...>)
     {
-      if constexpr (is_debug())
-      {
-        assert_true("Uninitialized object already constructed!", !OnDebugIsConstructed::value);
-        OnDebugIsConstructed::value = true;
-      }
+      new(buffer) T(std::forward<Args>(args)...);
+    }
+
+    /// @brief Destructs the underlying object
+    constexpr void destruct() noexcept(std::is_nothrow_destructible_v<T>)
+    {
+      (details::ptr_to<T*>(buffer))->~T();
+    }
+
+    /// @brief Does not destroy internal object
+    constexpr ~uninit() noexcept = default;
+  };
+  
+  template<typename T> requires (clt::is_debug())
+  class uninit<T>
+  {
+    /// @brief Aligned buffer providing storage for the object
+    alignas(T) char buffer[sizeof(T)];
+
+    bool OnDebugIsConstructed = false;
+
+  public:
+    /// @brief Default copy constructor if trivially copyable
+    constexpr uninit(const uninit&) noexcept requires std::is_trivially_default_constructible_v<T> = default;
+    /// @brief No copy constructor if not trivially copyable
+    constexpr uninit(const uninit&) noexcept = delete;
+    /// @brief Default copy constructor if trivially copyable
+    constexpr uninit(uninit&&) noexcept requires std::is_trivially_move_constructible_v<T> = default;
+    /// @brief No copy constructor if not trivially copyable
+    constexpr uninit(uninit&&) noexcept = delete;
+    /// @brief Copy assignment operator
+    constexpr uninit& operator=(const uninit&) noexcept requires std::is_trivially_copy_assignable_v<T> = default;
+    /// @brief No default copy assignment operator
+    constexpr uninit& operator=(const uninit&) noexcept = delete;
+    /// @brief Copy assignment operator
+    constexpr uninit& operator=(uninit&&) noexcept requires std::is_trivially_move_assignable_v<T> = default;
+    /// @brief No default copy assignment operator
+    constexpr uninit& operator=(uninit&&) noexcept = delete;
+    /// @brief Constructor, does nothing (and sets a debug flag)
+    constexpr uninit() noexcept = default;
+
+    /// @brief Returns a reference to the underlying object, but do construct it first!
+    /// @return Reference to the data
+    constexpr meta::copy_trivial_t<const T&> data() const& noexcept
+    {
+      assert_true("Uninitialized object not constructed!", OnDebugIsConstructed);
+      return *details::ptr_to<T*>(buffer);
+    }
+
+    /// @brief Returns a reference to the underlying object, but do construct it first!
+    /// @return Reference to the data
+    constexpr T& data() & noexcept
+    {
+      assert_true("Uninitialized object not constructed!", OnDebugIsConstructed);
+      return *details::ptr_to<T*>(buffer);
+    }
+
+    /// @brief Returns a reference to the underlying object, but do construct it first!
+    /// @return Reference to the data
+    constexpr T&& data() && noexcept
+    {
+      assert_true("Uninitialized object not constructed!", OnDebugIsConstructed);
+      return std::move(*details::ptr_to<T*>(buffer));
+    }
+
+    /// @brief Returns a reference to the underlying object, but do construct it first!
+    /// @return Reference to the data
+    constexpr meta::copy_trivial_t<const T&&> data() const&& noexcept
+    {
+      assert_true("Uninitialized object not constructed!", OnDebugIsConstructed);
+      return *details::ptr_to<T*>(buffer);
+    }
+
+    template<typename... Args> requires std::is_constructible_v<T, Args...>
+    constexpr void construct(Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args...>)
+    {
+      assert_true("Uninitialized object already constructed!", !OnDebugIsConstructed);
+      OnDebugIsConstructed = true;
       new(buffer) T(std::forward<Args>(args)...);
     }
     
     /// @brief Destructs the underlying object
     constexpr void destruct() noexcept(std::is_nothrow_destructible_v<T>)
     {
-      if constexpr (is_debug())
-      {
-        assert_true("Uninitialized object not constructed!", OnDebugIsConstructed::value);
-        OnDebugIsConstructed::value = false;
-      }
+      assert_true("Uninitialized object not constructed!", OnDebugIsConstructed);
+      OnDebugIsConstructed = false;
       (details::ptr_to<T*>(buffer))->~T();
     }
     
     /// @brief Does not destroy internal object
     constexpr ~uninit() noexcept
     {
-      if constexpr (is_debug())
-        assert_true("Initialized object not destructed!", !OnDebugIsConstructed::value);
+      assert_true("Initialized object not destructed!", !OnDebugIsConstructed);
     }
 
     /// @brief DEBUG ONLY: check if the internal object is constructed
     /// @return True if constructed
-    constexpr bool _DEBUG_is_constructed() requires (clt::is_debug()) { return OnDebugIsConstructed::value; }
+    constexpr bool _DEBUG_is_constructed() const noexcept { return OnDebugIsConstructed; }
   };
 
   template<typename T>
