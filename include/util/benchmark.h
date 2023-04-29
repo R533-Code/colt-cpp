@@ -5,20 +5,19 @@
 #ifndef HG_COLT_BENCHMARK
 #define HG_COLT_BENCHMARK
 
+#define _CRT_SECURE_NO_WARNINGS // for fopen
 #include <thread>
 #include <cstdio>
 #include <atomic>
 #include <mutex>
 #include <chrono>
 #include <charconv>
-//TODO: use better data structure
-#include <vector>
-#include <unordered_map>
 
 #include "./typedefs.h"
 #include "../meta/string_literal.h"
 #include "./macro.h"
 #include "./on_exit.h"
+#include "../structs/vector.h"
 
 namespace clt::bench
 {
@@ -81,7 +80,7 @@ namespace clt::bench
   class Instrumentator
   {
     /// @brief Vector to store the ProfileResult
-    std::vector<ProfileResult> profiles {};
+    Vector<ProfileResult> profiles {};
     /// @brief Mutex to avoid data-races
     mutable std::mutex mtx {};
 
@@ -115,7 +114,9 @@ namespace clt::bench
 
   public:
     // Default constructor
-    Instrumentator() = default;
+    Instrumentator(u64 reserve_obj = 33'554'432ULL) noexcept
+      : profiles(reserve_obj) //reserve 1MiB of worth of size
+    {}
     // No copy constructor
     Instrumentator(const Instrumentator&) = delete;
     // No move constructor
@@ -129,7 +130,7 @@ namespace clt::bench
     void save_profile(const ProfileSource& src, time_point tm, duration dur, std::thread::id thread_id = std::this_thread::get_id()) noexcept
     {
       auto lck = std::scoped_lock(mtx);
-      profiles.emplace_back(ProfileResult{ src, tm, dur, std::hash<std::thread::id>{}(thread_id) });
+      profiles.push_back(InPlace, src, tm, dur, std::hash<std::thread::id>{}(thread_id));
     }
 
     /// @brief Writes saved profile in the "chrome://tracing" format to file at 'path'
@@ -146,7 +147,7 @@ namespace clt::bench
       std::fputs(R"({"otherData": {},"traceEvents":[)", file);
       char start[24];
       char durat[24];
-      if (!profiles.empty())
+      if (!profiles.is_empty())
         write_profile<"">(file, &start, &durat, profiles.front());
       for (size_t i = 1; i < profiles.size(); i++)
         write_profile<",">(file, &start, &durat, profiles[i]);

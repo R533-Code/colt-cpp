@@ -1,4 +1,3 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include "util/benchmark.h"
 #include "io/print.h"
 #include "meta/type_list.h"
