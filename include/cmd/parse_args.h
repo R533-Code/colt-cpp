@@ -259,7 +259,29 @@ namespace clt::cl
     static_assert(name != "",
       "Empty name is not allowed!");
     static_assert(location != nullptr || callback != nullptr,
-      "Either cl::location<...> or cl::callback<> of the Opt must be specified!");
+      "Either cl::location<...> or cl::callback<> of the Pos must be specified!");
+  };
+
+  template<meta::StringLiteral Name, typename T, typename... Ts>
+  /// @brief Represents an command line option
+  struct OptPos
+  {
+    /// @brief Concept helper
+    static constexpr bool is_optpos = true;
+
+    /// @brief The name of the Opt (required, and not "")
+    static constexpr StringView name = Name.value;
+    /// @brief The description of the Opt (can be empty)
+    static constexpr StringView desc = details::find_description_t<T, Ts...>::desc;
+    /// @brief The location were the result is written (can be null if callback is not null)
+    static constexpr auto location = details::find_location_t<T, Ts...>::ptr;
+    /// @brief The callback to call upon detection (can be null if location is not null)
+    static constexpr auto callback = details::find_callback_t<T, Ts...>::ptr;
+
+    static_assert(name != "",
+      "Empty name is not allowed!");
+    static_assert(location != nullptr || callback != nullptr,
+      "Either cl::location<...> or cl::callback<> of the OptPos must be specified!");
   };
 
   namespace details
@@ -282,6 +304,16 @@ namespace clt::cl
     struct is_pos
     {
       static constexpr bool value = IsPos<T>;
+    };
+
+    template<typename T>
+    /// @brief True if Opt
+    concept IsOptPos = T::is_optpos;
+
+    template<typename T>
+    struct is_optpos
+    {
+      static constexpr bool value = IsOptPos<T>;
     };
 
     template<typename... Args>
@@ -358,7 +390,7 @@ namespace clt::cl
       return ParseErrorCode::SUCCESS;
     }
 
-    template<IsPos opt>
+    template<typename opt>
     ParseErrorCode parse_pos(StringView strv) noexcept
     {
       using ResultType = std::remove_cvref_t<std::remove_pointer_t<decltype(opt::location)>>;
@@ -426,10 +458,10 @@ namespace clt::cl
       return array;
     }
 
-    template<typename... Args>
-    consteval auto generate_pos_table(meta::type_list<Args...>) noexcept
+    template<typename... Args, typename... Args2>
+    consteval auto generate_pos_table(meta::type_list<Args...>, meta::type_list<Args2...>) noexcept
     {
-      return std::array<parse_and_write_t, sizeof...(Args)>{ &parse_pos<Args>... };
+      return std::array<parse_and_write_t, sizeof...(Args) + sizeof...(Args2)>{ &parse_pos<Args>..., &parse_pos<Args2>... };
     }
 
     template<typename Arg>
@@ -457,19 +489,27 @@ namespace clt::cl
       io::print<" ">("<{}>", Arg::name);
     }
 
-    template<typename... Args, typename... Args2>
+    template<typename Arg>
+    void print_help_for_optpos() noexcept
+    {
+      io::print<" ">("<{}>?", Arg::name);
+    }
+
+    template<typename... Args, typename... Args2, typename... Args3>
     [[noreturn]]
-    void print_help(meta::type_list<Args...> list, meta::type_list<Args2...> pos, StringView name, StringView description) noexcept
+    void print_help(meta::type_list<Args...> list, meta::type_list<Args2...> pos, meta::type_list<Args3...> optpos, StringView name, StringView description) noexcept
     {
       constexpr u64 max_size = max_name_size(list);
       constexpr u64 max_desc = max_desc_size(list);
 
       if (name.is_empty())
-        io::print<"">("USAGE: [OPTIONS] ");
+        io::print<"">("USAGE: {}[OPTIONS] {}", io::BrightCyanF, io::BrightBlueF);
       else
-        io::print<"">("USAGE: {} [OPTIONS] ", name);
+        io::print<"">("USAGE: {} {}[OPTIONS] {}", name, io::BrightCyanF, io::BrightBlueF);
       (print_help_for_pos<Args2>(), ...);
-      io::print("\n   {}\n\nOPTIONS:", description);
+      io::print<"">("{}", io::GreenF);
+      (print_help_for_optpos<Args3>(), ...);
+      io::print("{}\n   {}\n\nOPTIONS:", io::Reset, description);
       //Print commands in format -NAME <VALUE_DESC> - DESC aligning all options.
       (print_help_for_arg<Args>(max_size, max_desc), ...);
       //Print help command description
@@ -526,15 +566,16 @@ namespace clt::cl
   template<meta::TypeList list>
   void parse_command_line_options(int argc, char** argv, StringView name = {}, StringView description = {}) noexcept
   {
-    using OptList = typename list::template remove_if_not<details::is_opt>;
-    using PosList = typename list::template remove_if_not<details::is_pos>;
+    using OptList     = typename list::template remove_if_not<details::is_opt>;
+    using PosList     = typename list::template remove_if_not<details::is_pos>;
+    using OptPosList  = typename list::template remove_if_not<details::is_optpos>;
 
     //Positional argument table, contains pointers to the function to call
     //when a non-positional argument is detected.
     static constexpr meta::ConstexprMap CONST_MAP = details::generate_opt_table(OptList{});
     //Positional argument table, contains pointers to the function to call
     //when a positional argument is detected.
-    static constexpr auto POS_TABLE = details::generate_pos_table(PosList{});
+    static constexpr auto POS_TABLE = details::generate_pos_table(PosList{}, OptPosList{});
 
     u64 pos_id = 0;
     bool is_parsing_pos = false;
@@ -552,13 +593,13 @@ namespace clt::cl
         }
 
         if (arg == "-help")
-          details::print_help(OptList{}, PosList{}, name, description);
+          details::print_help(OptList{}, PosList{}, OptPosList{}, name, description);
         else
           details::handle_non_positional(arg, i,
             static_cast<u64>(argc), argv, CONST_MAP);
       }
     }
-    if (pos_id != PosList::size)
+    if (pos_id < PosList::size)
     {
       io::print_error("Not enough arguments provided! {} missing.",
         PosList::size - pos_id);

@@ -45,7 +45,7 @@ using CMDs = meta::type_list<
   cl::value_desc<"str">, cl::desc<"Specify string to compare against">>,
 
   cl::Pos<"input_file", cl::location<input_file>>,
-  cl::Pos<"input_file2", cl::location<input_file>>
+  cl::OptPos<"input_file2", cl::location<input_file>>
   >;
 
 int main(int argc, char** argv)
