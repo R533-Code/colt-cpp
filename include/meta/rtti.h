@@ -44,7 +44,7 @@ namespace clt
   COLT_PRE(from != nullptr)
   {
     // Pointer Type to cast to (with const matching const of from)
-    using ToP = std::conditional_t<std::is_pointer_v<To>, match_cv_t<From, std::remove_pointer_t<To>>*, match_cv_t<From, To>*>;
+    using ToP = std::conditional_t<std::is_pointer_v<To>, meta::match_cv_t<From, std::remove_pointer_t<To>>*, meta::match_cv_t<From, To>*>;
     // Type to cast to (without pointer)
     using ToN = std::remove_pointer_t<ToP>;
     if (from->classof() != ToN::classof_v)
@@ -64,7 +64,7 @@ namespace clt
   COLT_PRE(from != nullptr)
   {
     // Pointer Type to cast to (with const matching const of from)
-    using ToP = std::conditional_t<std::is_pointer_v<To>, match_cv_t<From, std::remove_pointer_t<To>>*, match_cv_t<From, To>*>;
+    using ToP = std::conditional_t<std::is_pointer_v<To>, meta::match_cv_t<From, std::remove_pointer_t<To>>*, meta::match_cv_t<From, To>*>;
     // Type to cast to (without pointer)
     using ToN = std::remove_pointer_t<ToP>;
     return from->classof() == ToN::classof_v;
