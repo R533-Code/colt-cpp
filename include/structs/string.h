@@ -90,7 +90,7 @@ namespace clt
           return { Error, io::IOError::FILE_ERROR };
       }
       str.reserve(reserve);
-      if (strip_front && std::isspace(gchar))
+      if (strip_front && std::isblank(gchar))
       {
         //Consume spaces
         while ((gchar = std::fgetc(from)) != EOF)
@@ -119,6 +119,31 @@ namespace clt
     static Expect<BasicString, io::IOError> getLine(u64 reserve = 64, bool strip_front = true) noexcept
     {
       return getLine(stdin, reserve, strip_front);
+    }
+
+    /// @brief Check if every object of v1 and v2 are equal
+    /// @param v1 The first Span
+    /// @param v2 The second Span
+    /// @return True if both Span are equal
+    friend constexpr bool operator==(const BasicString& v1, const StringView& v2) noexcept
+    {
+      if (v1.size() != v2.size())
+        return false;
+      for (size_t i = 0; i < v1.size(); i++)
+        if (v1[i] != v2[i])
+          return false;
+      return true;
+    }
+
+    /// @brief Lexicographically compare two spans
+    /// @param v1 The first Span
+    /// @param v2 The second Span
+    /// @return Result of comparison
+    friend constexpr auto operator<=>(const BasicString& v1, const StringView& v2) noexcept
+    {
+      return std::lexicographical_compare_three_way(
+        v1.begin(), v1.end(), v2.begin(), v2.end()
+      );
     }
   };
 

@@ -195,6 +195,25 @@ namespace clt
       /// @return Reference to the underlying integer
       constexpr const T&  to_underlying() const noexcept { return value; }
 
+      /// @brief Sets all the bits to 0
+      /// @return Self
+      constexpr BitSet& clear() noexcept { value = 0; return *this; }
+
+      template<typename From>
+      constexpr BitSet bit_assign(From frm) noexcept
+      {
+        std::memcpy(&value, &frm, sizeof(From));
+        return *this;
+      }
+
+      template<typename To>
+      constexpr To as() const noexcept
+      {
+        To ret;
+        std::memcpy(&ret, &value, sizeof(To));
+        return ret;
+      }
+
       /// @brief Underlying integer type storing the value
       using underlying_type = T;
     };
