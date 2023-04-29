@@ -72,7 +72,7 @@ namespace clt
   }
 
   /// @brief Install default handlers used by the library
-  void install_colt_handlers() noexcept
+  inline void install_colt_handlers() noexcept
   {
 #ifndef COLT_NO_PROFILE
     std::atexit([]() { clt::bench::save_tracing_to("tracing.json"); });

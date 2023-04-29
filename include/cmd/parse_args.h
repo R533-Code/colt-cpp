@@ -153,7 +153,7 @@ namespace clt::cl
 
     template<typename T>
     /// @brief True if Callback
-    concept IsSpecifyValueT = T::is_callback;
+    concept IsSpecifyValueT = T::is_specify;
 
     template<typename T>
     /// @brief ::value is true if T IsCallback

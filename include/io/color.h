@@ -68,7 +68,7 @@ namespace clt::io
   }
 
   /// @brief If true, then colored output is used
-  bool OutputColor = true;
+  inline bool OutputColor = true;
 
   /// @brief Represents a Console Color
   struct Color

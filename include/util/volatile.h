@@ -35,7 +35,7 @@ namespace clt
 #pragma optimize("", off)
     /// @brief Sink function that cannot be optimized away
     /// @param  Unused parameter
-    void do_not_optimize_sink(void const*) noexcept
+    inline void do_not_optimize_sink(void const*) noexcept
     {
       //Used by do_not_optimize
     }
@@ -45,7 +45,7 @@ namespace clt
     /// @brief Prevents the argument from being optimized away
     /// @tparam T The type of the argument
     /// @param val The value of the argument
-    void do_not_optimize(T const& val)
+    inline void do_not_optimize(T const& val)
     {
       do_not_optimize_sink(&val);
     }
@@ -56,7 +56,7 @@ namespace clt
     /// Assembly from Google Benchmark.
     /// @tparam T The type of the argument
     /// @param val The value of the argument
-    void do_not_optimize(T const& val)
+    inline void do_not_optimize(T const& val)
     {
       asm volatile("" : : "r,m"(val) : "memory");
     }
@@ -66,7 +66,7 @@ namespace clt
     /// Assembly from Google Benchmark.
     /// @tparam T The type of the argument
     /// @param val The value of the argument
-    void do_not_optimize(T& val)
+    inline void do_not_optimize(T& val)
     {
 #ifdef __clang__
       asm volatile("" : "+r,m"(val) : : "memory");
