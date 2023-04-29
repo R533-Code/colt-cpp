@@ -71,6 +71,7 @@ namespace clt
     return static_cast<Target>(std::forward<Input>(input));
   }
 
+  /// @brief Install default handlers used by the library
   void install_colt_handlers() noexcept
   {
 #ifndef COLT_NO_PROFILE
