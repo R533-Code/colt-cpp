@@ -15,6 +15,21 @@
 
 namespace clt::cl
 {
+  /// @brief Controls how the value is specified
+  enum SpecifyValue
+    : u8
+  {
+    /// @brief Value can be specified using '=' or not specified at all.
+    /// -foo or -foo=true but not -foo true
+    ValueOptional,
+    /// @brief Value need to be specified using '=' or in the argument after.
+    /// -foo=true or -foo true
+    ValueRequired,
+    /// @brief Value should not be specified.
+    /// -foo only.
+    ValueDisallowed,
+  };
+
   namespace details
   {
     template<meta::StringLiteral DESC>
@@ -127,6 +142,26 @@ namespace clt::cl
       static constexpr bool value = IsCallback<T>;
     };
 
+    template<SpecifyValue T>
+    struct SpecifyValueT
+    {
+      /// @brief Concept helper
+      static constexpr bool is_specify = true;
+
+      static constexpr SpecifyValue value = T;
+    };
+
+    template<typename T>
+    /// @brief True if Callback
+    concept IsSpecifyValueT = T::is_callback;
+
+    template<typename T>
+    /// @brief ::value is true if T IsCallback
+    struct is_specify_value
+    {
+      static constexpr bool value = IsSpecifyValueT<T>;
+    };
+
     template<typename T, typename... Ts>
     /// @brief Finds a Description type in the parameter pack, or returns Description<"">
     using find_description_t = meta::find_first_match_t<is_description, Description<"">, T, Ts...>;
@@ -146,7 +181,11 @@ namespace clt::cl
     template<typename T, typename... Ts>
     /// @brief Finds a Description type in the parameter pack, or returns Alias<"">
     using find_callback_t = meta::find_first_match_t<is_callback, Callback<nullptr>, T, Ts...>;
-  }
+
+    template<typename T, typename... Ts>
+    /// @brief Finds a Description type in the parameter pack, or returns Alias<"">
+    using find_specify_t = meta::find_first_match_t<is_specify_value, SpecifyValueT<SpecifyValue{ 255 }>, T, Ts...>;
+  }  
 
   template<meta::StringLiteral T>
   /// @brief Adds a description for a Opt
@@ -187,9 +226,16 @@ namespace clt::cl
     static constexpr auto location = details::find_location_t<T, Ts...>::ptr;
     /// @brief The callback to call upon detection (can be null if location is not null)
     static constexpr auto callback = details::find_callback_t<T, Ts...>::ptr;
+    
+    static constexpr auto _Specify = details::find_specify_t<T, Ts...>::value;
+    
+    static constexpr SpecifyValue specify = (_Specify != SpecifyValue{ 255 }) ? _Specify
+      : (std::is_same_v<decltype(location), bool*>) ? SpecifyValue::ValueOptional : SpecifyValue::ValueRequired;
 
     static_assert(name != "",
         "Empty name is not allowed!");
+    static_assert(name.find('=') == StringView::npos,
+      "'=' not allowed in Opt name!");
     static_assert(location != nullptr || callback != nullptr,
       "Either cl::location<...> or cl::callback<> of the Opt must be specified!");
   };
@@ -341,7 +387,7 @@ namespace clt::cl
     using parse_and_write_t = ParseErrorCode(*)(StringView) noexcept;
 
     template<typename... Args>
-    constexpr auto generate_map_table(meta::type_list<Args...> list) noexcept
+    consteval auto generate_opt_table(meta::type_list<Args...> list) noexcept
     {
       using pair_t = std::pair<StringView, parse_and_write_t>;
 
@@ -381,15 +427,9 @@ namespace clt::cl
     }
 
     template<typename... Args>
-    constexpr auto generate_pos_table(meta::type_list<Args...>) noexcept
+    consteval auto generate_pos_table(meta::type_list<Args...>) noexcept
     {
       return std::array<parse_and_write_t, sizeof...(Args)>{ &parse_pos<Args>... };
-    }
-
-    template<typename... Args>
-    constexpr auto generate_pos_str_table(meta::type_list<Args...>) noexcept
-    {
-      return std::array<StringView, sizeof...(Args)>{ Args::name... };
     }
 
     template<typename Arg>
@@ -440,6 +480,8 @@ namespace clt::cl
     void handle_non_positional(StringView arg, u64& i, u64 argc, char** argv, auto& CONST_MAP) noexcept
     {
       StringView to_parse = arg; to_parse.pop_front();
+      u64 equal_index = to_parse.find('=');
+      to_parse = to_parse.substr(0, equal_index);
       if (auto opt = CONST_MAP.find(to_parse))
       {
         //not enough arguments...
@@ -489,12 +531,10 @@ namespace clt::cl
 
     //Positional argument table, contains pointers to the function to call
     //when a non-positional argument is detected.
-    static constexpr meta::ConstexprMap CONST_MAP = details::generate_map_table(OptList{});
+    static constexpr meta::ConstexprMap CONST_MAP = details::generate_opt_table(OptList{});
     //Positional argument table, contains pointers to the function to call
     //when a positional argument is detected.
     static constexpr auto POS_TABLE = details::generate_pos_table(PosList{});
-    
-    static constexpr auto POS_STR_TABLE = details::generate_pos_str_table(PosList{});
 
     u64 pos_id = 0;
     bool is_parsing_pos = false;
@@ -521,7 +561,7 @@ namespace clt::cl
     if (pos_id != PosList::size)
     {
       io::print_error("Not enough arguments provided! {} missing.",
-        POS_STR_TABLE.size() - pos_id);
+        PosList::size - pos_id);
       std::exit(1);
     }
   }
