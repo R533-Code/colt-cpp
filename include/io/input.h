@@ -106,7 +106,7 @@ namespace clt::io
   }
   COLT_POST()
 
-  template<meta::Inputable T = String, meta::StringLiteral endl = "", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::Inputable T = String, meta::StringLiteral endl = "", typename... Args>
   inline Expect<T, IOError> input(std::FILE* file, fmt_str<Args...> fmt, Args&&... args) noexcept
   {
     //Print the message...
@@ -151,7 +151,7 @@ namespace clt::io
     return { InPlace, std::move(result.data()) };
   }
 
-  template<meta::Inputable T = String, meta::StringLiteral endl = "", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::Inputable T = String, meta::StringLiteral endl = "", typename... Args>
   inline Expect<T, IOError> input(fmt_str<Args...> fmt, Args&&... args) noexcept
   {
     return input<T>(stdin, fmt, std::forward<Args>(args)...);

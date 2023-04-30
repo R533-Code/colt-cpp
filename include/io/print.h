@@ -14,16 +14,12 @@
 
 namespace clt::io
 {
-  template<typename T>
-  /// @brief True if a type can be printed, or transformed to string
-  concept Formatable = fmt::is_formattable<T>::value;
-
   template<typename... Args>
   /// @brief Shorthand for fmt::format_string
   /// @tparam ...Args The types to be formatted to the string
   using fmt_str = fmt::format_string<Args...>;
 
-  template<meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::StringLiteral endl = "\n", typename... Args>
   /// @brief Formats and prints a string to 'file'
   /// @tparam ...Args The types of the arguments to format
   /// @param file The file where to write the output
@@ -42,7 +38,7 @@ namespace clt::io
       fmt::print(file, fmt, std::forward<Args>(args)...);
   }
 
-  template<meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::StringLiteral endl = "\n", typename... Args>
   /// @brief Formats and prints a string to 'file', prepending "Error: "
   /// @tparam ...Args The types of the arguments to format
   /// @param file The file where to write the output
@@ -58,7 +54,7 @@ namespace clt::io
     fmt::print(file, "{}", fmt::string_view{ buffer.data(), buffer.size() });
   }
 
-  template<meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::StringLiteral endl = "\n", typename... Args>
   /// @brief Formats and prints a string to 'file', prepending "Warning: "
   /// @tparam ...Args The types of the arguments to format
   /// @param file The file where to write the output
@@ -74,7 +70,7 @@ namespace clt::io
     fmt::print(file, "{}", fmt::string_view{ buffer.data(), buffer.size() });
   }
 
-  template<meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::StringLiteral endl = "\n", typename... Args>
   /// @brief Formats and prints a string to 'file', prepending "Message: "
   /// @tparam ...Args The types of the arguments to format
   /// @param file The file where to write the output
@@ -90,7 +86,7 @@ namespace clt::io
     fmt::print(file, "{}", fmt::string_view{ buffer.data(), buffer.size() });
   }
 
-  template<meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::StringLiteral endl = "\n", typename... Args>
   /// @brief Formats and prints a string to 'file', prepending "FATAL: "
   /// @tparam ...Args The types of the arguments to format
   /// @param file The file where to write the output
@@ -106,7 +102,7 @@ namespace clt::io
     fmt::print(file,"{}{}", fmt::string_view{ buffer.data(), buffer.size() }, io::Reset);
   }
 
-  template<meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::StringLiteral endl = "\n", typename... Args>
   /// @brief Formats and prints a string to 'stdout'
   /// @tparam ...Args The types of the arguments to format
   /// @param fmt The format string
@@ -116,7 +112,7 @@ namespace clt::io
     print<endl>(stdout, fmt, std::forward<Args>(args)...);
   }
 
-  template<meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::StringLiteral endl = "\n", typename... Args>
   /// @brief Formats and prints a string to 'stdout', prepending "Error: "
   /// @tparam ...Args The types of the arguments to format
   /// @param fmt The format string
@@ -126,7 +122,7 @@ namespace clt::io
     print_error<endl>(stdout, fmt, std::forward<Args>(args)...);
   }
 
-  template<meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::StringLiteral endl = "\n", typename... Args>
   /// @brief Formats and prints a string to 'stdout', prepending "Warning: "
   /// @tparam ...Args The types of the arguments to format
   /// @param fmt The format string
@@ -136,7 +132,7 @@ namespace clt::io
     print_warn<endl>(stdout, fmt, std::forward<Args>(args)...);
   }
 
-  template<meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::StringLiteral endl = "\n", typename... Args>
   /// @brief Formats and prints a string to 'stdout', prepending "Message: "
   /// @tparam ...Args The types of the arguments to format
   /// @param fmt The format string
@@ -146,7 +142,7 @@ namespace clt::io
     print_message<endl>(stdout, fmt, std::forward<Args>(args)...);
   }
 
-  template<meta::StringLiteral endl = "\n", typename... Args> requires (Formatable<Args> && ...)
+  template<meta::StringLiteral endl = "\n", typename... Args>
   /// @brief Formats and prints a string to 'stdout', prepending "FATAL: "
   /// @tparam ...Args The types of the arguments to format
   /// @param fmt The format string
