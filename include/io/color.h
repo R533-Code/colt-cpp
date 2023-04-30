@@ -8,7 +8,7 @@
 #ifndef FMT_HEADER_ONLY
   #define FMT_HEADER_ONLY
 #endif //!FMT_HEADER_ONLY
-#include "../../libraries/fmt/include/fmt/format.h"
+#include <fmt/format.h>
 
 #include "../util/typedefs.h"
 
