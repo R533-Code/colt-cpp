@@ -9,7 +9,7 @@
 #include <concepts>
 #include <limits>
 
-#include "../libraries/fast_float/include/fast_float/fast_float.h"
+#include "../../libraries/fast_float/include/fast_float/fast_float.h"
 
 #include "../structs/string_view.h"
 #include "../util/params.h"
