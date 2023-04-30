@@ -2,17 +2,13 @@
 * Contains helper for printing colored output to the console.
 */
 
-/** @file console_colors.h
-* Defines constant macros representing strings which allows to modify the font and background colors of consoles.
-*/
-
 #ifndef HG_COLT_CONSOLE_COLORS
 #define HG_COLT_CONSOLE_COLORS
 
 #ifndef FMT_HEADER_ONLY
   #define FMT_HEADER_ONLY
 #endif //!FMT_HEADER_ONLY
-#include "../libraries/fmt/include/fmt/core.h"
+#include "../libraries/fmt/include/fmt/format.h"
 
 #include "../util/typedefs.h"
 
@@ -20,7 +16,7 @@ namespace clt::io
 {
   namespace details
   {
-    static const char* CONSOLE_COLORS[] =
+    static constexpr const char* CONSOLE_COLORS[] =
     {
       "", //EMPTY
       "\x1B[30m",//CONSOLE_FOREGROUND_BLACK
