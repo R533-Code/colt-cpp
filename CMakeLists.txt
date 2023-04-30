@@ -21,7 +21,7 @@ if(MSVC)
     )
 endif()
 
-target_include_directories(ColtCppTest PUBLIC "include/")
+target_include_directories(ColtCppTest PUBLIC "include/" "${CMAKE_SOURCE_DIR}/libraries/fmt/include")
 
 function(create_zip output_file input_files working_dir)
     add_custom_command(
