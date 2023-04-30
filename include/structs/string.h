@@ -66,7 +66,7 @@ namespace clt
 
     /// @brief Converts a String to a StringView
     /// @return Span over the whole Vector
-    constexpr operator StringView() noexcept
+    constexpr operator StringView() const noexcept
     {
       return StringView{ this->begin(), this->end() };
     }
