@@ -8,35 +8,38 @@
 #include <cstdio>
 #include <cstdlib>
 
+#if defined(__has_builtin)
+  #if __has_builtin(__builtin_debugtrap)
+    /// @brief Intrinsic trap
+    #define COLT_DETAILS_DBREAK() __builtin_debugtrap()
+  #elif __has_builtin(__debugbreak)
+    /// @brief Intrinsic trap
+    #define COLT_DETAILS_DBREAK() __debugbreak()
+  #endif
+#endif
+
+#ifndef COLT_DETAILS_DBREAK
+  #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
+    /// @brief Intrinsic trap
+    #define COLT_DETAILS_DBREAK() __debugbreak()
+  #else
+    /// @brief Intrinsic trap
+    #define COLT_DETAILS_DBREAK() (void)std::fgetc(stdin), std::abort()
+#endif
+#endif
+
 namespace clt::details
 {
   [[noreturn]]
   inline void dbreak() noexcept
   {
-    (void)std::fgetc(stdin);
+    COLT_DETAILS_DBREAK();
     std::abort();
   }
 }
 
-#if defined(__has_builtin)
-  #if __has_builtin(__builtin_debugtrap)
-    /// @brief Intrinsic trap
-    #define colt_intrinsic_dbreak() __builtin_debugtrap()
-  #elif __has_builtin(__debugbreak)
-    /// @brief Intrinsic trap
-    #define colt_intrinsic_dbreak() __debugbreak()
-  #endif
-#endif
-
-#ifndef colt_intrinsic_dbreak
-  #if defined(_MSC_VER) || defined(__INTEL_COMPILER)
-    /// @brief Intrinsic trap
-    #define colt_intrinsic_dbreak() __debugbreak()
-  #else
-    /// @brief Intrinsic trap
-    #define colt_intrinsic_dbreak() clt::details::dbreak()
-  #endif
-#endif
+/// @brief Colt intrinsic debug break
+#define colt_intrinsic_dbreak() clt::details::dbreak()
 
 #if defined(_MSC_VER)
   /// @brief Current function name
