@@ -22,7 +22,7 @@ jobs:
       with:
         submodules: true
 
-    - name: Install Clang-16
+    - name: Install Clang-15
       run: |
             wget https://apt.llvm.org/llvm.sh
             chmod +x llvm.sh
