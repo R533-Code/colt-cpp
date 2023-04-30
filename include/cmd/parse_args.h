@@ -351,7 +351,7 @@ namespace clt::cl
       // 4ULL for "help"
       // + 3ULL is for ", -" between name and alias
       // + 1ULL is for "-"
-      return clt::max({ (Args::name.size() + (!Args::alias.is_empty()) * (Args::alias.size() + 3)) ..., 4ULL }) + 1;
+      return clt::max({ (static_cast<size_t>(Args::name.size()) + static_cast<size_t>((!Args::alias.is_empty()) * (Args::alias.size() + 3))) ..., static_cast<size_t>(4) }) + 1;
     }
 
     template<typename... Args>
