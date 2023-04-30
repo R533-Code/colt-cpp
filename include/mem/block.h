@@ -24,7 +24,7 @@ namespace clt::mem
     /// @brief Constructs a MemBlock from a pointer and a size
     /// @param blk The block
     /// @param sz The size of the block
-    constexpr MemBlock(void* blk, u64 sz) noexcept
+    constexpr MemBlock(void* blk, u64 sz = 0ULL) noexcept
       : blk_ptr(blk), blk_sz(sz * static_cast<u64>(blk != nullptr)) {}
 
     /// @brief Constructs a MemBlock from two pointers

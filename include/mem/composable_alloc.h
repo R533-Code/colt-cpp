@@ -622,7 +622,7 @@ namespace clt::mem
       if constexpr (is_debug())
         assert_true("Size information was corrupted!", !is_corrupted());
       if (to_free != nullptr)
-        Allocator::dealloc({ to_free, Allocator::get_prefix(MemBlock{ to_free, 0ULL }) });
+        Allocator::dealloc({ to_free, Allocator::get_prefix(MemBlock{ to_free }) });
     }
 
     /// @brief Check if the current allocator owns 'blk'
