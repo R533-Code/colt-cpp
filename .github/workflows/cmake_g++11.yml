@@ -1,4 +1,4 @@
-name: CMake g++-11
+name: g++11
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: CMake g++-12
+name: g++12
 
 on:
   push:

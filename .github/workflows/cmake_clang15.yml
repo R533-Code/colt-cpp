@@ -1,4 +1,4 @@
-name: CMake clang-15
+name: clang15
 
 on:
   push:
