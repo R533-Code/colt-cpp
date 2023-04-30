@@ -33,7 +33,6 @@ using CMDs = meta::type_list<
   cl::Opt<"str", cl::location<cmp_strv>, cl::alias<"s">,
   cl::value_desc<"str">, cl::desc<"Specify string to compare against">>,
 
-  cl::Pos<"input_file", cl::location<input_file>>,
   cl::OptPos<"input_file2", cl::location<input_file>>
   >;
 
