@@ -2,6 +2,8 @@
 C++ utilities with the main purpose of being used by the `Colt` compiler.
 
 ![Clang15](https://github.com/R533-Code/colt-cpp/actions/workflows/cmake_clang15.yml/badge.svg)
+![Clang16](https://github.com/R533-Code/colt-cpp/actions/workflows/cmake_clang16.yml/badge.svg)
+![g++12](https://github.com/R533-Code/colt-cpp/actions/workflows/cmake_g++12.yml/badge.svg)
 
 ## List of Utilities:
 ### io:
