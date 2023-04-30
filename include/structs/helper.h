@@ -18,7 +18,7 @@
 #ifndef FMT_HEADER_ONLY
   #define FMT_HEADER_ONLY
 #endif //!FMT_HEADER_ONLY
-#include "../libraries/fmt/include/fmt/format-inl.h"
+#include "../libraries/fmt/include/fmt/core.h"
 
 namespace clt::details
 {
