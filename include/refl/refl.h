@@ -485,34 +485,4 @@ DECLARE_BUILTIN_TYPE(f64);
     } \
   }
 
-template<typename T> requires (!fmt::is_formattable<T>::value) && clt::meta::Reflectable<T> && (!std::is_enum_v<T>)
-/// @brief Format any type whose "Reflectable" and not already formattable.
-struct fmt::formatter<T>
-{
-  template<typename ParseContext>
-  constexpr auto parse(ParseContext& ctx)
-  {
-    auto it = ctx.begin();
-    auto end = ctx.end();
-    assert_true("Possible format for Reflect-able is: {}!", it == end);
-    return it;
-  }
-
-  template<typename FormatContext>
-  auto format(const T& obj, FormatContext& ctx)
-  {
-    auto out = ctx.out();
-    out = fmt::format_to(out, "{{\n");
-    clt::for_each(clt::Members, obj,
-      [&out]<typename Ty>(Ty&& a)
-      {
-        out = fmt::format_to(out, "  {}: {}\n",
-          clt::refl<std::decay_t<Ty>>::str(), std::forward<Ty>(a));
-      }
-    );
-    out = fmt::format_to(out, "}}");
-    return out;
-  }
-};
-
 #endif //!HG_COLT_REFL
