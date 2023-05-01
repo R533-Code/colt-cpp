@@ -29,10 +29,6 @@ namespace clt
     /// @brief Constructs an empty UniquePtr
     constexpr UniquePtr() noexcept = default;
     
-    /// @brief Constructs an empty UniquePtr
-    /// @param  nullptr
-    constexpr UniquePtr(std::nullptr_t) noexcept = default;
-    
     /// @brief Constructs a UniquePtr from a MemBlock.
     /// On debug, sets the block to nullblk.
     /// @param blk The block to use
@@ -60,7 +56,7 @@ namespace clt
       if (!blk.is_null())
       {
         ON_SCOPE_EXIT{
-          allocator.deallocate(blk);
+          allocator.dealloc(blk);
         };
         //run destructor
         static_cast<T*>(blk.ptr())->~T();
@@ -106,7 +102,7 @@ namespace clt
       if (!cpy.is_null())
       {
         ON_SCOPE_EXIT{
-          allocator.deallocate(cpy);
+          allocator.dealloc(cpy);
         };
         //run destructor
         static_cast<T*>(cpy.ptr())->~T();
@@ -131,16 +127,42 @@ namespace clt
     /// @return Dereferences pointer
     std::add_lvalue_reference_t<T> operator*() const noexcept(noexcept(*std::declval<T*>()))
       COLT_PRE(!is_null())
-      return *blk.ptr();
+      return *static_cast<T*>(blk.ptr());
     COLT_POST()
 
     /// @brief Dereference operator
     /// @return Dereferences pointer
     T* operator->() const noexcept
       COLT_PRE(!is_null())
-      return *blk.ptr();
+      return *static_cast<T*>(blk.ptr());
     COLT_POST()
   };
+
+  template<typename T, auto ALLOCATOR = mem::GlobalAllocatorDescription, typename... Args>
+  UniquePtr<T, ALLOCATOR> make_unique(Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args...>)
+  {
+    using Allocator = mem::allocator_ref<ALLOCATOR>;
+
+    Allocator allocator;
+    auto blk = allocator.alloc(sizeof(T));
+    if constexpr (std::is_nothrow_constructible_v<T, Args...>)
+    {
+      new(blk.ptr()) T(std::forward<Args>(args)...);
+    }
+    else
+    {
+      try
+      {
+        new(blk.ptr()) T(std::forward<Args>(args)...);
+      }
+      catch (...)
+      {
+        allocator.dealloc(blk);
+        throw;
+      }
+    }
+    return UniquePtr<T, ALLOCATOR>(blk);
+  }
 }
 
 #endif //!HG_COLT_UNIQUE_PTR
