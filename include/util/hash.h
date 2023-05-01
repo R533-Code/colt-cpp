@@ -231,7 +231,7 @@ namespace clt
     /// @return Hash
     size_t operator()(T* ptr) const noexcept
     {
-      auto x = reinterpret_cast<std::uintptr_t>(ptr);
+      auto x = static_cast<std::uintptr_t>(ptr);
       x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
       x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
       x = x ^ (x >> 31);
