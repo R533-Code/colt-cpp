@@ -7,6 +7,7 @@
 
 #include <type_traits>
 
+#include "../util/hash.h"
 #include "./helper.h"
 
 namespace clt
@@ -165,6 +166,22 @@ namespace clt
   /// @brief A View is a Span over const objects
   /// @tparam T The type of the View
   using View = Span<std::add_const_t<T>>;
+
+  template<typename T> requires meta::is_hashable_v<T>
+  /// @brief clt::hash overload for Span
+  struct hash<Span<const T>>
+  {
+    /// @brief Hashing operator
+    /// @param value The value to hash
+    /// @return Hash
+    constexpr size_t operator()(const View<T>& value) const noexcept
+    {
+      uint64_t seed = 0xCBF29CE484222325;
+      for (auto& i : value)
+        seed = HashCombine(seed, GetHash(i));
+      return seed;
+    }
+  };
 }
 
 template<typename T> requires fmt::is_formattable<T>::value

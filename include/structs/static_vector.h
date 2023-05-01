@@ -21,7 +21,7 @@ namespace clt
     constexpr T* ptr() noexcept { return details::ptr_to<T*>(buffer); }
     /// @brief Returns a pointer to the internal buffer
     /// @return Pointer to the buffer
-    constexpr const T* ptr() const noexcept { return details::ptr_to<T*>(buffer); }
+    constexpr const T* ptr() const noexcept { return details::ptr_to<const T*>(buffer); }
 
   public:
     /// @brief Default constructor (when allocator is global)
@@ -361,6 +361,19 @@ namespace clt
       } while (true);
 
       return ParseResult{ end, ParseErrorCode::SUCCESS };
+    }
+  };
+
+  template<typename T, size_t MAX_SIZE> requires meta::is_hashable_v<T>
+  /// @brief clt::hash overload for StaticVector
+  struct hash<StaticVector<T, MAX_SIZE>>
+  {
+    /// @brief Hashing operator
+    /// @param value The value to hash
+    /// @return Hash
+    constexpr size_t operator()(const StaticVector<T, MAX_SIZE>& value) const noexcept
+    {
+      return GetHash<View<T>>(value);
     }
   };
 }

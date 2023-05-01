@@ -163,6 +163,19 @@ namespace clt
     }
     return UniquePtr<T, ALLOCATOR>(blk);
   }
+
+  template<typename T, auto ALLOCATOR>
+  /// @brief clt::hash overload for UniquePtr
+  struct hash<UniquePtr<T, ALLOCATOR>>
+  {
+    /// @brief Hashing operator
+    /// @param value The value to hash
+    /// @return Hash
+    constexpr size_t operator()(const UniquePtr<T, ALLOCATOR>& value) const noexcept
+    {
+      return GetHash(value.get());
+    }
+  };
 }
 
 #endif //!HG_COLT_UNIQUE_PTR

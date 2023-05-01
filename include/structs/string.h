@@ -156,6 +156,19 @@ namespace clt
       return ParseResult{ to_parse.end(), ParseErrorCode::SUCCESS };
     }
   };
+
+  template<auto ALLOCATOR>
+  /// @brief clt::hash overload for String
+  struct hash<BasicString<ALLOCATOR, StringEncoding::ASCII>>
+  {
+    /// @brief Hashing operator
+    /// @param value The value to hash
+    /// @return Hash
+    constexpr size_t operator()(const BasicString<ALLOCATOR, StringEncoding::ASCII>& value) const noexcept
+    {
+      return GetHash<StringView>(value);
+    }
+  };
 }
 
 template<>

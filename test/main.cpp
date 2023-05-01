@@ -41,6 +41,9 @@ int main(int argc, char** argv)
   clt::install_colt_handlers();
   cl::parse_command_line_options<CMDs>(argc, argv,
     "test", "Helper to test Colt utilities!");
+  
+  io::print("{} {} {} {}",
+    GetHash(Vector<u64>{}), GetHash(StaticVector<u64, 4>{}), GetHash(UniquePtr<u64>{}), GetHash(StringView{ "a" }));
 
   for (;;)
   {

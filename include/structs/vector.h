@@ -485,6 +485,19 @@ namespace clt
       return ParseResult{ end, ParseErrorCode::SUCCESS };
     }
   };
+
+  template<typename T, auto ALLOCATOR> requires meta::is_hashable_v<T>
+  /// @brief clt::hash overload for Vector
+  struct hash<Vector<T, ALLOCATOR>>
+  {
+    /// @brief Hashing operator
+    /// @param value The value to hash
+    /// @return Hash
+    constexpr size_t operator()(const Vector<T, ALLOCATOR>& value) const noexcept
+    {      
+      return GetHash<View<T>>(value);
+    }
+  };
 }
 
 template<typename T, auto ALLOCATOR> requires fmt::is_formattable<T>::value

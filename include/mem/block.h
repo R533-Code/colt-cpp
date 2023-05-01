@@ -6,6 +6,7 @@
 #define HG_COLT_BLOCK
 
 #include "./sizes.h"
+#include "../util/hash.h"
 #include "../util/contracts.h"
 
 namespace clt::mem
@@ -41,8 +42,7 @@ namespace clt::mem
 
     /// @brief Constructs a MemBlock from a nullptr.
     /// The size of a MemBlock with ptr() == nullptr is always 0.
-    constexpr MemBlock(std::nullptr_t, u64 = 0) noexcept
-      : blk_ptr(nullptr), blk_sz(0) {}
+    constexpr MemBlock(std::nullptr_t, u64 = 0) noexcept {}
 
     //Copy constructor
     constexpr MemBlock(const MemBlock&)               noexcept = default;
@@ -102,7 +102,7 @@ namespace clt::mem
   };
 
   /// @brief Represents an empty block
-  inline constexpr MemBlock nullblk = MemBlock{ nullptr, 0 };
+  inline constexpr MemBlock nullblk = MemBlock{ nullptr, 0 };  
 
   template<u64 ALIGN>
   /// @brief Rounds 'sz' to an alignment if it is not already aligned
@@ -141,6 +141,25 @@ namespace clt::mem
       return true;
     }
   }
+}
+
+namespace clt
+{
+  template<>
+  /// @brief clt::hash overload for MemBlock
+  struct hash<mem::MemBlock>
+  {
+    /// @brief Hashing operator
+    /// @param pair The value to hash
+    /// @return Hash
+    constexpr size_t operator()(const clt::mem::MemBlock& pair) const noexcept
+    {
+      size_t seed = 0xCBF29CE484222325;
+      seed = HashCombine(seed, GetHash(pair.ptr()));
+      seed = HashCombine(seed, GetHash(pair.size().to_bytes()));
+      return seed;
+    }
+  };
 }
 
 #endif //!HG_COLT_BLOCK

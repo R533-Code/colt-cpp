@@ -182,6 +182,25 @@ namespace clt
 
   /// @brief BasicStringView of ASCII characters.
   using StringView = BasicStringView<StringEncoding::ASCII>;
+
+  template<>
+  /// @brief clt::hash overload for StringView
+  struct hash<StringView>
+  {
+    /// @brief Hashing operator
+    /// @param value The value to hash
+    /// @return Hash
+    constexpr size_t operator()(const StringView& value) const noexcept
+    {
+      uint64_t hash = 0xCBF29CE484222325;
+      for (auto i : value)
+      {
+        hash ^= (uint8_t)i;
+        hash *= 0x100000001B3; //FNV prime
+      }
+      return hash;
+    }
+  };
 }
 
 template<>
