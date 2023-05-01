@@ -42,6 +42,9 @@ int main(int argc, char** argv)
   cl::parse_command_line_options<CMDs>(argc, argv,
     "test", "Helper to test Colt utilities!");
 
+  auto a = make_unique<u64>(100);
+  io::print("{} {{{}}}", a.get().ptr(), *a);
+
   for (;;)
   {
     auto result1 = input("Enter your name: ");
