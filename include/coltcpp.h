@@ -19,8 +19,9 @@
 #include "meta/traits.h"
 #include "meta/type_list.h"
 
-#include "structs/string.h"
 #include "structs/vector.h"
+#include "structs/static_vector.h"
+#include "structs/string.h"
 #include "structs/string_view.h"
 #include "structs/expect.h"
 #include "structs/option.h"
