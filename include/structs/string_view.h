@@ -131,6 +131,17 @@ namespace clt
       return npos;
     }
 
+    constexpr size_t count(CharT chr, size_t offset = 0) const noexcept
+    {
+      size_t cnt = 0;
+      for (size_t i = offset; i < this->size(); i++)
+      {
+        if (this->data()[i] == chr)
+          ++cnt;
+      }
+      return cnt;
+    }
+
     constexpr BasicStringView substr(size_t pos = 0, size_t count = npos) const noexcept
       COLT_PRE(pos <= size())
     {
