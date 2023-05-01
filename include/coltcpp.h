@@ -21,6 +21,7 @@
 
 #include "structs/vector.h"
 #include "structs/static_vector.h"
+#include "structs/unique_ptr.h"
 #include "structs/string.h"
 #include "structs/string_view.h"
 #include "structs/expect.h"
