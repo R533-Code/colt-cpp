@@ -81,8 +81,8 @@ namespace clt
     UniquePtr& operator=(UniquePtr<U, ALLOCATOR>&& u) noexcept
     {
       auto cpy = blk;
-      blk = r.blk;
-      r.blk = cpy;
+      blk = u.blk;
+      u.blk = cpy;
       return *this;
     }
 
