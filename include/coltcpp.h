@@ -63,9 +63,7 @@ namespace clt
         && std::is_integral_v<Input>
         && sizeof(Target) < sizeof(Input))
       {
-        if (input > std::numeric_limits<Target>::max())
-          colt_unreachable("'as' conversion failed as resulting value would be truncated!");
-        else if (input < std::numeric_limits<Target>::min())
+        if (input > std::numeric_limits<Target>::max() || input < std::numeric_limits<Target>::min())
           colt_unreachable("'as' conversion failed as resulting value would be truncated!");
       }
     }
