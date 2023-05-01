@@ -21,6 +21,7 @@ namespace clt::mem
     u64 blk_sz = 0;
 
   public:
+    constexpr MemBlock() = default;
     /// @brief Constructs a MemBlock from a pointer and a size
     /// @param blk The block
     /// @param sz The size of the block
