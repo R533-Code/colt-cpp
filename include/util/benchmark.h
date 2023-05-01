@@ -164,8 +164,12 @@ namespace clt::bench
 
   namespace details
   {
+#ifndef COLT_NO_PROFILE
+
     /// @brief Responsible of holding all profile results
     inline Instrumentator GlobalInstrument;
+
+#endif //!COLT_NO_PROFILE
   }
 
   /// @brief Saves the profiles stored in the global Instrumentator to file at 'path' in "chrome://tracing" format
@@ -174,7 +178,9 @@ namespace clt::bench
   inline bool save_tracing_to(const char* path) noexcept
   COLT_PRE(path != nullptr)
   {
+#ifndef COLT_NO_PROFILE
     return details::GlobalInstrument.write_tracing(path);
+#endif //!COLT_NO_PROFILE
   }
   COLT_POST()
 }
