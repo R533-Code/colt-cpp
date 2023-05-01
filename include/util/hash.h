@@ -202,9 +202,9 @@ namespace clt
     /// @brief Hashing operator
     /// @param ptr The value to hash
     /// @return Hash
-    size_t operator()(T* ptr) const noexcept
+    constexpr size_t operator()(T* ptr) const noexcept
     {
-      auto x = (std::uintptr_t)ptr;
+      auto x = std::bit_cast<std::uintptr_t>(ptr);
       x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
       x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
       x = x ^ (x >> 31);
@@ -219,7 +219,7 @@ namespace clt
     /// @brief Hashing operator
     /// @param flt The value to hash
     /// @return Hash
-    size_t operator()(float flt) const noexcept
+    constexpr size_t operator()(float flt) const noexcept
     {
       auto x = static_cast<size_t>(std::bit_cast<uint32_t>(flt));
       x = ((x >> 16) ^ x) * 0x45d9f3b;
@@ -236,7 +236,7 @@ namespace clt
     /// @brief Hashing operator
     /// @param dbl The value to hash
     /// @return Hash
-    size_t operator()(double dbl) const noexcept
+    constexpr size_t operator()(double dbl) const noexcept
     {
       auto x = std::bit_cast<size_t>(dbl);
       x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
@@ -313,7 +313,7 @@ namespace clt
   /// @tparam T The type to hash
   /// @param obj The object to hash
   /// @return Hash
-  inline std::size_t GetHash(const T& obj) noexcept
+  constexpr std::size_t GetHash(const T& obj) noexcept
   {
     static_assert(meta::is_hashable_v<T>,
       "Type does not implement clt::hash or std::hash!");
