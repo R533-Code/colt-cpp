@@ -16,9 +16,9 @@ namespace clt::mem
   class MemBlock
   {
     /// @brief Address of the block
-    void* blk_ptr;
+    void* blk_ptr = nullptr;
     /// @brief Size of the block (in bytes)
-    u64 blk_sz;
+    u64 blk_sz = 0;
 
   public:
     /// @brief Constructs a MemBlock from a pointer and a size
