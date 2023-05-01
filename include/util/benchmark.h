@@ -5,7 +5,6 @@
 #ifndef HG_COLT_BENCHMARK
 #define HG_COLT_BENCHMARK
 
-#define _CRT_SECURE_NO_WARNINGS // for fopen
 #include <thread>
 #include <cstdio>
 #include <atomic>

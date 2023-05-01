@@ -1,6 +1,8 @@
 #ifndef HG_COLT_COLTCPP
 #define HG_COLT_COLTCPP
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include "io/print.h"
 #include "io/input.h"
 
@@ -19,11 +21,11 @@
 #include "meta/traits.h"
 #include "meta/type_list.h"
 
+#include "structs/string_view.h"
 #include "structs/vector.h"
 #include "structs/static_vector.h"
 #include "structs/unique_ptr.h"
 #include "structs/string.h"
-#include "structs/string_view.h"
 #include "structs/expect.h"
 #include "structs/option.h"
 
