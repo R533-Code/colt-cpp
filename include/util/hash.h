@@ -6,11 +6,6 @@
 * using operator().
 * If both a `std::hash` and `clt::hash` overload are found,
 * the `clt::hash` will take priority.
-* `clt::hash` has been overloaded for every fundamental type,
-* with `const char*` being treated as a NUL-terminated string:
-* hashing of `const char*` will read each character of the string.
-* This means that two identical strings not residing on the same address
-* will give the same hash.
 */
 
 #ifndef HG_COLT_HASH
@@ -19,7 +14,6 @@
 #include <functional>
 #include <limits>
 #include <cstdint>
-#include <type_traits>
 #include <utility>
 #include <bit>
 
@@ -201,27 +195,6 @@ namespace clt
     }
   }
 
-  template<>
-  /// @brief clt::hash overload for "const char*"
-  struct hash<const char*>
-  {
-    /// @brief Hashing operator
-    /// @param str The value to hash
-    /// @return Hash
-    size_t operator()(const char* str) const noexcept
-    {
-      auto size = std::strlen(str);
-
-      uint64_t hash = 0xCBF29CE484222325;
-      for (size_t i = 0; i < size; i++)
-      {
-        hash ^= (uint8_t)str[i];
-        hash *= 0x100000001B3; //FNV prime
-      }
-      return hash;
-    }
-  };
-
   template<typename T>
   /// @brief clt::hash overload for pointer types
   struct hash<T*>
@@ -231,7 +204,7 @@ namespace clt
     /// @return Hash
     size_t operator()(T* ptr) const noexcept
     {
-      auto x = static_cast<std::uintptr_t>(ptr);
+      auto x = (std::uintptr_t)ptr;
       x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9;
       x = (x ^ (x >> 27)) * 0x94d049bb133111eb;
       x = x ^ (x >> 31);
@@ -273,7 +246,7 @@ namespace clt
     }
   };
 
-  namespace traits
+  namespace meta
   {
     template<typename T, typename = std::void_t<>>
     /// @brief Check if a type implements a std::hash specialization
@@ -296,7 +269,7 @@ namespace clt
     template <typename T>
     /// @brief Short hand for is_std_hashable<T>::value
     /// @tparam T The type to check for
-    constexpr bool is_std_hashable_v = is_std_hashable<T>::value;
+    inline constexpr bool is_std_hashable_v = is_std_hashable<T>::value;
 
     template<typename T, typename = std::void_t<>>
     /// @brief Check if a type implements a clt::hash specialization
@@ -319,7 +292,7 @@ namespace clt
     template <typename T>
     /// @brief Short hand for is_colt_hashable<T>::value
     /// @tparam T The type to check for
-    constexpr bool is_colt_hashable_v = is_colt_hashable<T>::value;
+    inline constexpr bool is_colt_hashable_v = is_colt_hashable<T>::value;
 
     template<typename T>
     /// @brief Check if a type can be either hashed with clt::hash or std::hash
@@ -332,7 +305,7 @@ namespace clt
     template <typename T>
     /// @brief Short hand for is_hashable<T>::value
     /// @tparam T The type to check for
-    constexpr bool is_hashable_v = is_hashable<T>::value;
+    inline constexpr bool is_hashable_v = is_hashable<T>::value;
   }
 
   template<typename T>
@@ -342,9 +315,9 @@ namespace clt
   /// @return Hash
   inline std::size_t GetHash(const T& obj) noexcept
   {
-    static_assert(traits::is_hashable_v<T>,
+    static_assert(meta::is_hashable_v<T>,
       "Type does not implement clt::hash or std::hash!");
-    if constexpr (traits::is_colt_hashable_v<T>)
+    if constexpr (meta::is_colt_hashable_v<T>)
       return clt::hash<T>{}(obj);
     else
       return std::hash<T>{}(obj);
