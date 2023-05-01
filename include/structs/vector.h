@@ -397,7 +397,7 @@ namespace clt
     /// @param v1 The first Vector
     /// @param v2 The second Vector
     /// @return True if both Vector are equal
-    friend constexpr bool operator==(const Vector& v1, const Vector& v2) noexcept
+    friend constexpr bool operator==(const Vector& v1, const View<T>& v2) noexcept
     {
       if (v1.size() != v2.size())
         return false;
@@ -411,7 +411,7 @@ namespace clt
     /// @param v1 The first vector
     /// @param v2 The second vector
     /// @return Result of comparison
-    friend constexpr auto operator<=>(const Vector& v1, const Vector& v2) noexcept
+    friend constexpr auto operator<=>(const Vector& v1, const View<T>& v2) noexcept
     {
       return std::lexicographical_compare_three_way(
         v1.begin(), v1.end(), v2.begin(), v2.end()
