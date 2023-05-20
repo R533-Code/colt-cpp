@@ -140,7 +140,7 @@ namespace clt::iter
     COLT_FOR_EACH(COLT_DETAILS_EXPAND_ENUM, __VA_ARGS__) \
   }; } \
   template<> \
-  struct clt::refl<namespace_name::name> { \
+  struct clt::reflect<namespace_name::name> { \
     using enum_type = type; \
     static constexpr clt::StringView str() noexcept { return #name; } \
     static constexpr bool is_consecutive() noexcept { return true; } \
@@ -176,8 +176,13 @@ namespace clt::iter
     } \
     static constexpr clt::iter::EnumIter<namespace_name::name, 0, name##_str.size() - 1> iter() noexcept { return {}; } \
   }; \
-  constexpr clt::refl<namespace_name::name>::ArrayTable_t clt::refl<namespace_name::name>::internal_map = clt::refl<namespace_name::name>::get_array(); \
-  constexpr clt::refl<namespace_name::name>::Map_t clt::refl<namespace_name::name>::map =  {{ clt::refl<namespace_name::name>::internal_map }}
+  constexpr clt::reflect<namespace_name::name>::ArrayTable_t clt::reflect<namespace_name::name>::internal_map = clt::reflect<namespace_name::name>::get_array(); \
+  constexpr clt::reflect<namespace_name::name>::Map_t clt::reflect<namespace_name::name>::map =  {{ clt::reflect<namespace_name::name>::internal_map }}; \
+  template<> \
+  struct clt::meta::is_reflectable<namespace_name::name> \
+  { \
+    static constexpr bool value = true; \
+  }
 
 #define DECLARE_ENUM(namespace_name, name, first, ...) \
   namespace namespace_name { \
@@ -186,7 +191,7 @@ namespace clt::iter
     COLT_FOR_EACH(COLT_DETAILS_EXPAND_ENUM, __VA_ARGS__) \
   }; } \
   template<> \
-  struct clt::refl<namespace_name::name> { \
+  struct clt::reflect<namespace_name::name> { \
     using enum_type = std::underlying_type_t<namespace_name::name>; \
     static constexpr clt::StringView str() noexcept { return #name; } \
     static constexpr bool is_consecutive() noexcept { return true; } \
@@ -222,11 +227,16 @@ namespace clt::iter
     } \
     static constexpr clt::iter::EnumIter<namespace_name::name, 0, name##_str.size() - 1> iter() noexcept { return {}; } \
   }; \
-  constexpr clt::refl<namespace_name::name>::ArrayTable_t clt::refl<namespace_name::name>::internal_map = clt::refl<namespace_name::name>::get_array(); \
-  constexpr clt::refl<namespace_name::name>::Map_t clt::refl<namespace_name::name>::map =  {{ clt::refl<namespace_name::name>::internal_map }}
+  constexpr clt::reflect<namespace_name::name>::ArrayTable_t clt::reflect<namespace_name::name>::internal_map = clt::reflect<namespace_name::name>::get_array(); \
+  constexpr clt::reflect<namespace_name::name>::Map_t clt::reflect<namespace_name::name>::map =  {{ clt::reflect<namespace_name::name>::internal_map }}; \
+  template<> \
+  struct clt::meta::is_reflectable<namespace_name::name> \
+  { \
+    static constexpr bool value = true; \
+  }
 
 template<typename T>
-  requires std::is_enum_v<T> && clt::meta::Reflectable<T>
+  requires std::is_enum_v<T> && clt::meta::is_reflectable_v<T>
 struct fmt::formatter<T>
 {
   bool human_readable = false;
@@ -253,8 +263,8 @@ struct fmt::formatter<T>
     using namespace clt;
 
     if (human_readable)
-      return fmt::format_to(ctx.out(), "{}", refl<T>::str(exp));
-    return fmt::format_to(ctx.out(), "{}::{}", refl<T>::str(), refl<T>::str(exp));
+      return fmt::format_to(ctx.out(), "{}", reflect<T>::str(exp));
+    return fmt::format_to(ctx.out(), "{}::{}", reflect<T>::str(), reflect<T>::str(exp));
   }
 };
 
