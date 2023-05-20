@@ -50,6 +50,17 @@ namespace clt::meta
 
 namespace clt::refl
 {
+  enum EntityKind
+    : u8
+  {
+    /// @brief Enumerations
+    IS_ENUM,
+    /// @brief Pointers, references, and all other built-in types
+    IS_BUILTIN,
+    /// @brief User defined class
+    IS_CLASS
+  };
+
   template<typename T>
   struct unqualified_name
   {
@@ -161,13 +172,13 @@ namespace clt
     using members_type = typename refl::members_type_t<std::remove_pointer_t<T>>::template apply<std::add_pointer>;
 
     template<typename On, typename F> requires std::same_as<On, std::decay_t<T>>
-    static constexpr void apply_on_members(On&& obj, F&& fn)
+    static constexpr void apply_on_members(On&&, F&&) noexcept
     {
-      fn(obj);
+      //Pointers do not have members... Do nothing.
     }
 
     template<typename On, typename F> requires std::same_as<On, std::decay_t<T>>
-    static constexpr void apply_on_methods(On&&, F&&)
+    static constexpr void apply_on_methods(On&&, F&&) noexcept
     {
       //Pointers do not have methods... Do nothing.
     }
@@ -193,19 +204,15 @@ namespace clt
     using members_type = typename refl::members_type_t<std::remove_reference_t<T>>::template apply<std::add_lvalue_reference>;
 
     template<typename On, typename F> requires std::same_as<On, std::decay_t<T>>
-    static constexpr void apply_on_members(On&& obj, F&& fn)
+    static constexpr void apply_on_members(On&&, F&&) noexcept
     {
-      reflect<std::remove_reference_t<T>>::apply_on_members(
-        std::forward<On>(obj), std::forward<F>(fn)
-      );
+      //References do not have members... Do nothing.
     }
 
     template<typename On, typename F> requires std::same_as<On, std::decay_t<T>>
-    static constexpr void apply_on_methods(On&& obj, F&& fn)
+    static constexpr void apply_on_methods(On&&, F&&) noexcept
     {
-      reflect<std::remove_reference_t<T>>::apply_on_methods(
-        std::forward<On>(obj), std::forward<F>(fn)
-      );
+      //References do not have members... Do nothing.
     }
   };
 
@@ -229,19 +236,15 @@ namespace clt
     using members_type = typename refl::members_type_t<std::remove_reference_t<T>>::template apply<std::add_rvalue_reference>;
 
     template<typename On, typename F> requires std::same_as<On, std::decay_t<T>>
-    static constexpr void apply_on_members(On&& obj, F&& fn)
+    static constexpr void apply_on_members(On&&, F&&) noexcept
     {
-      reflect<std::remove_reference_t<T>>::apply_on_members(
-        std::forward<On>(obj), std::forward<F>(fn)
-      );
+      //References do not have members... Do nothing.
     }
 
     template<typename On, typename F> requires std::same_as<On, std::decay_t<T>>
-    static constexpr void apply_on_methods(On&& obj, F&& fn)
+    static constexpr void apply_on_methods(On&&, F&&) noexcept
     {
-      reflect<std::remove_reference_t<T>>::apply_on_methods(
-        std::forward<On>(obj), std::forward<F>(fn)
-      );
+      //References do not have members... Do nothing.
     }
   };
 
@@ -421,17 +424,6 @@ template<> \
 struct clt::refl::unqualified_name<TYPE> \
 { \
   static constexpr StringView value = #TYPE; \
-}; \
-\
-template<> \
-struct clt::refl::apply_on_members<TYPE> \
-{ \
-  template<typename F> requires std::is_invocable_v<F, TYPE> \
-  constexpr void operator()(TYPE&& obj, F&& fn) const \
-    noexcept(std::is_nothrow_invocable_v<F, TYPE>) \
-  { \
-    fn(obj); \
-  } \
 }
 
 /***************************
@@ -458,9 +450,10 @@ DECLARE_BUILTIN_TYPE(f64);
 
 #define COLT_DETAILS_MEMBER_TO_MEMBER_PTR(type, name) , decltype(&type::name)
 #define COLT_DETAILS_IF_CONSTEXPR_IS_MEMBER_CALL_LAMBDA(TYPE, member) if constexpr (std::is_member_object_pointer_v<decltype(&TYPE::member)>) fn(obj.member);
+#define COLT_DETAILS_IF_CONSTEXPR_IS_METHOD_CALL_LAMBDA(TYPE, member) if constexpr (std::is_member_function_pointer_v<decltype(&TYPE::member)>) fn(&obj.member);
 
 /// @brief Adds the necessary friends declarations for reflection
-#define COLT_ENABLE_REFLECTION() template<typename T> friend struct clt::refl
+#define COLT_ENABLE_REFLECTION() template<typename T> friend struct clt::reflect
 
 /// @brief Enables reflection on a type.
 /// ~~~~~~~~~~~~~~{.cpp}
@@ -475,19 +468,60 @@ DECLARE_BUILTIN_TYPE(f64);
 /// ~~~~~~~~~~~~~~
 #define COLT_DECLARE_TYPE(TYPE, member, ...) \
   template<> \
-  struct clt::refl<TYPE> { \
+  struct clt::meta::is_reflectable<TYPE> \
+  { \
+    static constexpr bool value = true; \
+  }; \
+  template<> \
+  struct clt::reflect<TYPE> { \
+    static constexpr bool is_custom() noexcept { return true; } \
     static constexpr clt::StringView str() noexcept { return #TYPE; } \
-    using unqualified_refl = refl<std::remove_cv_t<TYPE>>; \
     using members_type = typename clt::meta::type_list<decltype(&TYPE::member) COLT_FOR_EACH_1ARG(COLT_DETAILS_MEMBER_TO_MEMBER_PTR, TYPE, __VA_ARGS__)> \
       ::template remove_if<std::is_member_function_pointer>; \
     using methods_type = typename clt::meta::type_list<decltype(&TYPE::member) COLT_FOR_EACH_1ARG(COLT_DETAILS_MEMBER_TO_MEMBER_PTR, TYPE, __VA_ARGS__)> \
       ::template remove_if<std::is_member_object_pointer>; \
+    static constexpr size_t members_count() noexcept { return members_type::size; } \
+    static constexpr size_t methods_count() noexcept { return members_type::size; } \
     template<typename On, typename F> requires std::same_as<std::decay_t<On>, std::decay_t<TYPE>>\
     static constexpr void apply_on_members(On&& obj, F&& fn) { \
         if constexpr (std::is_member_object_pointer_v<decltype(&TYPE::member)>) \
           fn(obj.member); \
         COLT_FOR_EACH_1ARG(COLT_DETAILS_IF_CONSTEXPR_IS_MEMBER_CALL_LAMBDA, TYPE, __VA_ARGS__) \
     } \
+    template<typename On, typename F> requires std::same_as<std::decay_t<On>, std::decay_t<TYPE>>\
+    static constexpr void apply_on_methods(On&& obj, F&& fn) { \
+        if constexpr (std::is_member_function_pointer_v<decltype(&TYPE::member)>) \
+          fn(&obj.member); \
+        COLT_FOR_EACH_1ARG(COLT_DETAILS_IF_CONSTEXPR_IS_METHOD_CALL_LAMBDA, TYPE, __VA_ARGS__) \
+    } \
   }
+
+template<typename T>
+  requires (!std::is_enum_v<T>) && clt::meta::is_reflectable_v<T>
+  && (clt::reflect<T>::is_custom()) && (!fmt::is_formattable<T>::value)
+struct fmt::formatter<T>
+{
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    auto it = ctx.begin();
+    auto end = ctx.end();
+    assert_true("Possible format for custom type is: {}!", it == end);
+    return it;
+  }
+
+  template<typename FormatContext>
+  auto format(const T& obj, FormatContext& ctx)
+  {
+    using namespace clt;   
+    auto it = fmt::format_to(ctx.out(), "{}: {{ ", reflect<T>::str());
+    
+    u64 i = 0;
+    for_each(Members, obj, [&]<typename Ti>(const Ti& o) {
+      it = fmt::format_to(it, "{}{}", o, ++i == reflect<T>::members_count() ? " }" : ", ");
+    });
+    return it;
+  }
+};
 
 #endif //!HG_COLT_REFL
