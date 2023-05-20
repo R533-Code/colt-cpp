@@ -42,8 +42,13 @@ int main(int argc, char** argv)
   cl::parse_command_line_options<CMDs>(argc, argv,
     "test", "Helper to test Colt utilities!");
   
-  io::print("{} {} {} {}",
-    GetHash(Vector<u64>{}), GetHash(StaticVector<u64, 4>{}), GetHash(UniquePtr<u64>{}), GetHash(StringView{ "a" }));
+  io::print("{}, {}, {}, {}, {}",
+    reflect<u32>::str(),
+    reflect<const u32>::str(),
+    reflect<const volatile u32>::str(),
+    reflect<volatile PTR<const PTR<const volatile u32>>>::str(),
+    reflect<const u32&>::str()
+  );
 
   for (;;)
   {
