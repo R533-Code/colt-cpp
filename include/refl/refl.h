@@ -58,8 +58,19 @@ namespace clt::refl
     /// @brief Pointers, references, and all other built-in types
     IS_BUILTIN,
     /// @brief User defined class
-    IS_CLASS
+    IS_CLASS,
+    /// @brief Unknown type
+    IS_UNKNOWN
   };
+
+  template<typename T>
+  struct entity_kind
+  {
+    static constexpr EntityKind value = IS_UNKNOWN;
+  };
+
+  template<typename T>
+  inline constexpr EntityKind entity_kind_v = entity_kind<T>::value;
 
   template<typename T>
   struct unqualified_name
@@ -132,6 +143,11 @@ namespace clt
   /// @tparam T The type on which to reflect
   struct reflect<T>
   {
+    static constexpr refl::EntityKind kind() noexcept
+    {
+      return refl::entity_kind_v<T>;
+    }
+
     static constexpr StringView str() noexcept
     {
       return refl::unqualified_name_v<T>;
@@ -161,6 +177,11 @@ namespace clt
     static constexpr StringView _NAME = reflect<std::remove_pointer_t<T>>::str();
 
   public:
+    static constexpr refl::EntityKind kind() noexcept
+    {
+      return refl::IS_BUILTIN;
+    }
+
     static constexpr clt::StringView str() noexcept
     {
       return meta::join_strv_v<details::PTR_STR_START,
@@ -193,6 +214,11 @@ namespace clt
     static constexpr StringView _NAME = reflect<std::remove_reference_t<T>>::str();
 
   public:
+    static constexpr refl::EntityKind kind() noexcept
+    {
+      return refl::IS_BUILTIN;
+    }
+
     static constexpr clt::StringView str() noexcept
     {
       return meta::join_strv_v<
@@ -225,6 +251,11 @@ namespace clt
     static constexpr StringView _NAME = reflect<std::remove_reference_t<T>>::str();
 
   public:
+    static constexpr refl::EntityKind kind() noexcept
+    {
+      return refl::IS_BUILTIN;
+    }
+
     static constexpr clt::StringView str() noexcept
     {
       return meta::join_strv_v<
@@ -256,6 +287,11 @@ namespace clt
     static constexpr StringView _NAME = reflect<std::remove_cv_t<T>>::str();
   
   public:
+    static constexpr refl::EntityKind kind() noexcept
+    {
+      return refl::entity_kind_v<std::remove_cv_t<T>>;
+    }
+
     static constexpr clt::StringView str() noexcept
     {
       return meta::join_strv_v<
@@ -291,6 +327,11 @@ namespace clt
     static constexpr StringView _NAME = reflect<std::remove_cv_t<T>>::str();
 
   public:
+    static constexpr refl::EntityKind kind() noexcept
+    {
+      return refl::entity_kind_v<std::remove_cv_t<T>>;
+    }
+
     static constexpr clt::StringView str() noexcept
     {
       return meta::join_strv_v<
@@ -326,6 +367,11 @@ namespace clt
     static constexpr StringView _NAME = reflect<std::remove_cv_t<T>>::str();
 
   public:
+    static constexpr refl::EntityKind kind() noexcept
+    {
+      return refl::entity_kind_v<std::remove_cv_t<T>>;
+    }
+
     static constexpr clt::StringView str() noexcept
     {
       return meta::join_strv_v<
@@ -409,6 +455,11 @@ namespace clt
 /// @brief Declares reflection informations for built-in 'TYPE'
 #define DECLARE_BUILTIN_TYPE(TYPE) \
 template<> \
+struct clt::refl::entity_kind<TYPE> \
+{ \
+  static constexpr clt::refl::EntityKind value = clt::refl::IS_BUILTIN; \
+}; \
+template<> \
 struct clt::meta::is_reflectable<TYPE> \
 { \
   static constexpr bool value = true; \
@@ -462,11 +513,17 @@ DECLARE_BUILTIN_TYPE(f64);
 ///   u64 a;
 ///   u64 b;
 /// 
+///   //Required for private members
 ///   COLT_ENABLE_REFLECTION();
 /// };
 /// COLT_DECLARE_TYPE(Test, a, b);
 /// ~~~~~~~~~~~~~~
 #define COLT_DECLARE_TYPE(TYPE, member, ...) \
+  template<> \
+  struct clt::refl::entity_kind<TYPE> \
+  { \
+    static constexpr clt::refl::EntityKind value = clt::refl::IS_CLASS; \
+  }; \
   template<> \
   struct clt::meta::is_reflectable<TYPE> \
   { \

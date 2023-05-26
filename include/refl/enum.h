@@ -140,6 +140,11 @@ namespace clt::iter
     COLT_FOR_EACH(COLT_DETAILS_EXPAND_ENUM, __VA_ARGS__) \
   }; } \
   template<> \
+  struct clt::refl::entity_kind<namespace_name::name> \
+  { \
+    static constexpr clt::refl::EntityKind value = clt::refl::IS_ENUM; \
+  }; \
+  template<> \
   struct clt::reflect<namespace_name::name> { \
     using enum_type = type; \
     static constexpr clt::StringView str() noexcept { return #name; } \
@@ -190,6 +195,11 @@ namespace clt::iter
     first \
     COLT_FOR_EACH(COLT_DETAILS_EXPAND_ENUM, __VA_ARGS__) \
   }; } \
+  template<> \
+  struct clt::refl::entity_kind<namespace_name::name> \
+  { \
+    static constexpr clt::refl::EntityKind value = clt::refl::IS_ENUM; \
+  }; \
   template<> \
   struct clt::reflect<namespace_name::name> { \
     using enum_type = std::underlying_type_t<namespace_name::name>; \
