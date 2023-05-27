@@ -132,69 +132,7 @@ namespace clt::iter
 #define COLT_DETAILS_STRINGIZE_ENUM(en) , clt::StringView{ #en }
 #define COLT_DETAILS_MAP_PAIR_ENUM(en)  , std::pair{ clt::StringView{ #en }, en }
 
-/// @brief Declares an enumeration with reflection support
-#define DECLARE_ENUM_WITH_TYPE(type, namespace_name, name, first, ...) \
-  namespace namespace_name { \
-  enum class name : type { \
-    first \
-    COLT_FOR_EACH(COLT_DETAILS_EXPAND_ENUM, __VA_ARGS__) \
-  }; } \
-  template<> \
-  struct clt::refl::entity_kind<namespace_name::name> \
-  { \
-    static constexpr clt::refl::EntityKind value = clt::refl::IS_ENUM; \
-  }; \
-  template<> \
-  struct clt::reflect<namespace_name::name> { \
-    using enum_type = type; \
-    static constexpr clt::StringView str() noexcept { return #name; } \
-    static constexpr bool is_consecutive() noexcept { return true; } \
-    static constexpr std::array name##_str = { clt::StringView{ #first} COLT_FOR_EACH(COLT_DETAILS_STRINGIZE_ENUM, __VA_ARGS__) }; \
-    static constexpr size_t min() noexcept { return 0; }  \
-    static constexpr size_t max() noexcept { return name##_str.size() - 1; }  \
-    static constexpr size_t count() noexcept { return name##_str.size(); } \
-    static constexpr clt::StringView str(namespace_name::name value) { \
-      COLT_PRE(static_cast<type>(value) <= max()) \
-        return name##_str[static_cast<type>(value)]; \
-      COLT_POST() \
-    } \
-    static constexpr clt::Option<namespace_name::name> from(type value) {\
-      if (value > max()) \
-        return clt::None; \
-      return static_cast<namespace_name::name>(value); \
-    } \
-  private: \
-    using ArrayTable_t = std::array<std::pair<clt::StringView, namespace_name::name>, name##_str.size()>; \
-    using Map_t = clt::meta::ConstexprMap<clt::StringView, namespace_name::name, name##_str.size()>; \
-    static constexpr ArrayTable_t get_array() { \
-        using enum namespace_name::name; \
-        ArrayTable_t ret = { \
-          std::pair{ clt::StringView{ #first}, first } \
-          COLT_FOR_EACH(COLT_DETAILS_MAP_PAIR_ENUM, __VA_ARGS__) }; \
-        return ret; \
-      } \
-    static const ArrayTable_t internal_map; \
-    static const Map_t map; \
-  public: \
-    static constexpr clt::Option<namespace_name::name> from(clt::StringView str) {\
-      return map.find(str); \
-    } \
-    static constexpr clt::iter::EnumIter<namespace_name::name, 0, name##_str.size() - 1> iter() noexcept { return {}; } \
-  }; \
-  constexpr clt::reflect<namespace_name::name>::ArrayTable_t clt::reflect<namespace_name::name>::internal_map = clt::reflect<namespace_name::name>::get_array(); \
-  constexpr clt::reflect<namespace_name::name>::Map_t clt::reflect<namespace_name::name>::map =  {{ clt::reflect<namespace_name::name>::internal_map }}; \
-  template<> \
-  struct clt::meta::is_reflectable<namespace_name::name> \
-  { \
-    static constexpr bool value = true; \
-  }
-
-#define DECLARE_ENUM(namespace_name, name, first, ...) \
-  namespace namespace_name { \
-  enum class name { \
-    first \
-    COLT_FOR_EACH(COLT_DETAILS_EXPAND_ENUM, __VA_ARGS__) \
-  }; } \
+#define ADD_REFLECTION_FOR_CONSECUTIVE_ENUM(namespace_name, name, first, ...) \
   template<> \
   struct clt::refl::entity_kind<namespace_name::name> \
   { \
@@ -209,7 +147,7 @@ namespace clt::iter
     static constexpr size_t min() noexcept { return 0; }  \
     static constexpr size_t max() noexcept { return name##_str.size() - 1; }  \
     static constexpr size_t count() noexcept { return name##_str.size(); } \
-    static constexpr clt::StringView str(namespace_name::name value) { \
+    static constexpr clt::StringView to_str(namespace_name::name value) { \
       COLT_PRE(static_cast<enum_type>(value) <= max()) \
         return name##_str[static_cast<enum_type>(value)]; \
       COLT_POST() \
@@ -245,6 +183,23 @@ namespace clt::iter
     static constexpr bool value = true; \
   }
 
+/// @brief Declares an enumeration with reflection support
+#define DECLARE_ENUM_WITH_TYPE(type, namespace_name, name, first, ...) \
+  namespace namespace_name { \
+  enum class name : type { \
+    first \
+    COLT_FOR_EACH(COLT_DETAILS_EXPAND_ENUM, __VA_ARGS__) \
+  }; } \
+  ADD_REFLECTION_FOR_CONSECUTIVE_ENUM(namespace_name, name, first, __VA_ARGS__)
+
+#define DECLARE_ENUM(namespace_name, name, first, ...) \
+  namespace namespace_name { \
+  enum class name { \
+    first \
+    COLT_FOR_EACH(COLT_DETAILS_EXPAND_ENUM, __VA_ARGS__) \
+  }; } \
+  ADD_REFLECTION_FOR_CONSECUTIVE_ENUM(namespace_name, name, first, __VA_ARGS__)
+
 template<typename T>
   requires std::is_enum_v<T> && clt::meta::is_reflectable_v<T>
 struct fmt::formatter<T>
@@ -273,9 +228,14 @@ struct fmt::formatter<T>
     using namespace clt;
 
     if (human_readable)
-      return fmt::format_to(ctx.out(), "{}", reflect<T>::str(exp));
-    return fmt::format_to(ctx.out(), "{}::{}", reflect<T>::str(), reflect<T>::str(exp));
+      return fmt::format_to(ctx.out(), "{}", reflect<T>::to_str(exp));
+    return fmt::format_to(ctx.out(), "{}::{}", reflect<T>::str(), reflect<T>::to_str(exp));
   }
 };
+
+//Add reflection for already existing enum
+ADD_REFLECTION_FOR_CONSECUTIVE_ENUM(clt::refl, EntityKind,
+  IS_ENUM, IS_BUILTIN, IS_CLASS, IS_UNKNOWN
+);
 
 #endif //!HG_COLT_ENUM

@@ -23,13 +23,9 @@ int main(int argc, char** argv)
 {
   clt::install_colt_handlers();
   
-  io::print("{}, {}, {}, {}, {}\n{}",
-    reflect<u32>::str(),
-    reflect<const u32>::str(),
-    reflect<const volatile u32>::str(),
-    reflect<volatile PTR<const PTR<const volatile u32>>>::str(),
-    reflect<const u32&>::str(),
-    AB{ 10, 10, { 10.8 } }
+  io::print("{}, {}",
+    reflect<refl::EntityKind*>::str(),
+    refl::EntityKind::IS_BUILTIN
   );
   press_to_continue();
 }
