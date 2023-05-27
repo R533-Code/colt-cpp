@@ -28,6 +28,7 @@
 #include "structs/string.h"
 #include "structs/expect.h"
 #include "structs/option.h"
+#include "structs/list.h"
 
 #include "str/distance.h"
 #include "str/distance.h"

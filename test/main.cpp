@@ -22,8 +22,14 @@ COLT_DECLARE_TYPE(AB, a, b, d);
 int main(int argc, char** argv)
 {
   clt::install_colt_handlers();
-  
-  io::print("{}, {}",
+
+  FlatList<u32> a;
+  a.push_back(1);
+  a.push_back(2);
+  a.push_back(3);
+
+  io::print("{}, {}, {}",
+    a,
     AB{ 10, 10, D{ 1.2} },
     refl::EntityKind::IS_BUILTIN
   );
