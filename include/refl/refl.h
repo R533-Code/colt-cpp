@@ -153,7 +153,7 @@ namespace clt
       return refl::unqualified_name_v<T>;
     }
 
-    using members_type = typename refl::members_type_t<std::remove_pointer_t<T>>::template apply<std::add_pointer>;
+    using members_type = refl::members_type_t<T>;
 
     template<typename On, typename F> requires std::same_as<On, std::decay_t<T>>
     static constexpr void apply_on_members(On&& obj, F&& fn)
@@ -245,7 +245,7 @@ namespace clt
   template<typename T> requires std::is_rvalue_reference_v<T>
     && meta::is_reflectable_v<std::remove_reference_t<T>>
     && (!std::is_const_v<T>) && (!std::is_volatile_v<T>)
-    struct reflect<T>
+  struct reflect<T>
   {
   private:
     static constexpr StringView _NAME = reflect<std::remove_reference_t<T>>::str();
@@ -281,7 +281,8 @@ namespace clt
 
   template<typename T> requires meta::is_reflectable_v<std::remove_cv_t<T>>
     && std::is_const_v<T> && (!std::is_volatile_v<T>)
-    struct reflect<T>
+  struct reflect<T>
+    : public reflect<std::remove_cv_t<T>>
   {
   private:
     static constexpr StringView _NAME = reflect<std::remove_cv_t<T>>::str();
@@ -322,6 +323,7 @@ namespace clt
   template<typename T> requires meta::is_reflectable_v<std::remove_cv_t<T>>
     && std::is_volatile_v<T> && (!std::is_const_v<T>)
   struct reflect<T>
+    : public reflect<std::remove_cv_t<T>>
   {
   private:
     static constexpr StringView _NAME = reflect<std::remove_cv_t<T>>::str();
@@ -362,6 +364,7 @@ namespace clt
   template<typename T> requires meta::is_reflectable_v<std::remove_cv_t<T>>
     && std::is_const_v<T> && std::is_volatile_v<T>
   struct reflect<T>
+    : public reflect<std::remove_cv_t<T>>
   {
   private:
     static constexpr StringView _NAME = reflect<std::remove_cv_t<T>>::str();
@@ -531,7 +534,6 @@ DECLARE_BUILTIN_TYPE(f64);
   }; \
   template<> \
   struct clt::reflect<TYPE> { \
-    static constexpr bool is_custom() noexcept { return true; } \
     static constexpr clt::StringView str() noexcept { return #TYPE; } \
     using members_type = typename clt::meta::type_list<decltype(&TYPE::member) COLT_FOR_EACH_1ARG(COLT_DETAILS_MEMBER_TO_MEMBER_PTR, TYPE, __VA_ARGS__)> \
       ::template remove_if<std::is_member_function_pointer>; \
