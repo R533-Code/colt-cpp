@@ -33,7 +33,7 @@ jobs:
     
     - name: Run
       # Run the executable
-      run: cd build && ./ColtCppTest
+      run: cd build/${{env.BUILD_TYPE}} && ./ColtCppTest
 #    - name: Test
 #      working-directory: ${{github.workspace}}/build
 #      # Execute tests defined by the CMake configuration.  
