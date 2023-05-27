@@ -156,6 +156,10 @@ namespace clt
     /// @return True if the StaticVector is empty
     constexpr bool is_empty() const noexcept { return blk_size == 0; }
 
+    /// @brief Check if the StaticVector does not have enough capacity for more 'push_back'
+    /// @return True is the StaticVector is full
+    constexpr bool is_full() const noexcept { return blk_size == MAX_SIZE; }
+
     /// @brief Push an object at the end of the StaticVector by copying if there is enough capacity
     /// @param to_copy The object to copy at the end of the StaticVector
     constexpr void push_back(meta::copy_trivial_t<const T&> to_copy)
