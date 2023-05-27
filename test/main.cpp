@@ -24,7 +24,7 @@ int main(int argc, char** argv)
   clt::install_colt_handlers();
   
   io::print("{}, {}",
-    reflect<refl::EntityKind*>::str(),
+    AB{ 10, 10, D{ 1.2} },
     refl::EntityKind::IS_BUILTIN
   );
   press_to_continue();

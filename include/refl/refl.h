@@ -471,7 +471,7 @@ struct clt::meta::is_reflectable<TYPE> \
 template<> \
 struct clt::refl::members_type<TYPE> \
 { \
-  using type = meta::type_list<TYPE>; \
+  using type = meta::type_list<>; \
 }; \
 \
 template<> \
@@ -534,6 +534,7 @@ DECLARE_BUILTIN_TYPE(f64);
   }; \
   template<> \
   struct clt::reflect<TYPE> { \
+    static constexpr clt::refl::EntityKind kind() noexcept { return clt::refl::IS_CLASS; } \
     static constexpr clt::StringView str() noexcept { return #TYPE; } \
     using members_type = typename clt::meta::type_list<decltype(&TYPE::member) COLT_FOR_EACH_1ARG(COLT_DETAILS_MEMBER_TO_MEMBER_PTR, TYPE, __VA_ARGS__)> \
       ::template remove_if<std::is_member_function_pointer>; \
@@ -556,8 +557,8 @@ DECLARE_BUILTIN_TYPE(f64);
   }
 
 template<typename T>
-  requires (!std::is_enum_v<T>) && clt::meta::is_reflectable_v<T>
-  && (clt::reflect<T>::is_custom()) && (!fmt::is_formattable<T>::value)
+  requires clt::meta::is_reflectable_v<T>
+  && (clt::reflect<T>::kind() == clt::refl::IS_CLASS) && (!fmt::is_formattable<T>::value)
 struct fmt::formatter<T>
 {
   template<typename ParseContext>
