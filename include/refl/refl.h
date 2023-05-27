@@ -19,6 +19,8 @@
 namespace clt::meta
 {
   template<typename T>
+  /// @brief Check if T is a reflectable through reflect<>
+  /// @tparam T The type to check for
   struct is_reflectable
   {
     static constexpr bool value = false;
@@ -26,6 +28,8 @@ namespace clt::meta
 
   template<typename T> requires std::is_pointer_v<T>
     && (!std::is_const_v<T>) && (!std::is_volatile_v<T>)
+  /// @brief Check if T is a reflectable through reflect<>
+  /// @tparam T The type to check for
   struct is_reflectable<T>
   {
     static constexpr bool value = is_reflectable<std::remove_pointer_t<T>>::value;
@@ -33,23 +37,30 @@ namespace clt::meta
 
   template<typename T> requires std::is_reference_v<T>
     && (!std::is_const_v<T>) && (!std::is_volatile_v<T>)
+  /// @brief Check if T is a reflectable through reflect<>
+  /// @tparam T The type to check for
   struct is_reflectable<T>
   {
     static constexpr bool value = is_reflectable<std::remove_reference_t<T>>::value;
   };
 
   template<typename T> requires (std::is_const_v<T> || std::is_volatile_v<T>)
+  /// @brief Check if T is a reflectable through reflect<>
+  /// @tparam T The type to check for
   struct is_reflectable<T>
   {
     static constexpr bool value = is_reflectable<std::remove_cv_t<T>>::value;
   };
 
   template<typename T>
+  /// @brief Short-hand for 'is_reflectable<T>::value'
   inline constexpr bool is_reflectable_v = is_reflectable<T>::value;
 }
 
+/// @brief Contains helpers for reflection
 namespace clt::refl
 {
+  /// @brief The entity kind on which reflection is applied
   enum EntityKind
     : u8
   {
@@ -64,33 +75,43 @@ namespace clt::refl
   };
 
   template<typename T>
+  /// @brief DO NOT USE! USE reflect<>, The kind on which reflection is applied
+  /// @tparam T The type to whose EntityKind to check
   struct entity_kind
   {
     static constexpr EntityKind value = IS_UNKNOWN;
   };
 
   template<typename T>
+  /// @brief DO NOT USE! USE reflect<>, short-hand for 'entity_kind<T>::value'
   inline constexpr EntityKind entity_kind_v = entity_kind<T>::value;
 
   template<typename T>
+  /// @brief DO NOT USE! USE reflect<>, The name of the type on which reflection is applied
+  /// @tparam T The type whose name to check
   struct unqualified_name
   {
     static constexpr StringView value = "!UNKNOWN_TYPE!";
   };
 
   template<typename T>
+  /// @brief DO NOT USE! USE reflect<>, short-hand for 'unqualified_name<T>::value'
   inline constexpr StringView unqualified_name_v = unqualified_name<T>::value;
 
   template<typename T>
+  /// @brief DO NOT USE! USE reflect<>, The members type list of the type on which reflection is applied
+  /// @tparam T The type whose type list to check
   struct members_type
   {
     using type = meta::type_list<>;
   };
 
   template<typename T>
+  /// @brief DO NOT USE! USE reflect<>, short-hand for 'members_type<T>::type'
   using members_type_t = typename members_type<T>::type;
 
   template<typename On>
+  /// @brief DO NOT USE! USE reflect<>, Overload for each reflected type to apply a lambda on each of its members
   struct apply_on_members
   {
     template<typename F> requires std::is_invocable_v<F, On>
@@ -102,6 +123,7 @@ namespace clt::refl
   };
   
   template<typename On>
+  /// @brief DO NOT USE! USE reflect<>, Overload for each reflected type to apply a lambda on each of its methods
   struct apply_on_methods
   {
     template<typename F> requires std::is_invocable_v<F, On>
@@ -134,6 +156,7 @@ namespace clt
   }
 
   template<typename T>
+  /// @brief Deactivated reflection. Use COLT_DECLARE_TYPE to add reflection for a type.
   struct reflect {};
 
   template<typename T> requires meta::is_reflectable_v<T>
@@ -171,6 +194,8 @@ namespace clt
   template<typename T> requires std::is_pointer_v<T>
     && meta::is_reflectable_v<std::remove_pointer_t<T>>
     && (!std::is_const_v<T>) && (!std::is_volatile_v<T>)
+  /// @brief Specialized reflection for pointers
+  /// @tparam T The pointer on which to reflect
   struct reflect<T>
   {
   private:
@@ -208,6 +233,8 @@ namespace clt
   template<typename T> requires std::is_lvalue_reference_v<T>
     && meta::is_reflectable_v<std::remove_reference_t<T>>
     && (!std::is_const_v<T>) && (!std::is_volatile_v<T>)
+  /// @brief Specialized reflection for lvalue references
+  /// @tparam T The reference on which to reflect
   struct reflect<T>
   {
   private:
@@ -245,6 +272,8 @@ namespace clt
   template<typename T> requires std::is_rvalue_reference_v<T>
     && meta::is_reflectable_v<std::remove_reference_t<T>>
     && (!std::is_const_v<T>) && (!std::is_volatile_v<T>)
+  /// @brief Specialized reflection for rvalue references
+  /// @tparam T The reference on which to reflect
   struct reflect<T>
   {
   private:
@@ -281,6 +310,8 @@ namespace clt
 
   template<typename T> requires meta::is_reflectable_v<std::remove_cv_t<T>>
     && std::is_const_v<T> && (!std::is_volatile_v<T>)
+  /// @brief Specialized reflection for 'const' types
+  /// @tparam T The type on which to reflect
   struct reflect<T>
     : public reflect<std::remove_cv_t<T>>
   {
@@ -322,6 +353,8 @@ namespace clt
 
   template<typename T> requires meta::is_reflectable_v<std::remove_cv_t<T>>
     && std::is_volatile_v<T> && (!std::is_const_v<T>)
+  /// @brief Specialized reflection for 'volatile' types
+  /// @tparam T The type on which to reflect
   struct reflect<T>
     : public reflect<std::remove_cv_t<T>>
   {
@@ -363,6 +396,8 @@ namespace clt
 
   template<typename T> requires meta::is_reflectable_v<std::remove_cv_t<T>>
     && std::is_const_v<T> && std::is_volatile_v<T>
+  /// @brief Specialized reflection for 'const volatile' types
+  /// @tparam T The type on which to reflect
   struct reflect<T>
     : public reflect<std::remove_cv_t<T>>
   {
