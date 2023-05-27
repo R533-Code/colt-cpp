@@ -55,7 +55,7 @@ namespace clt
         blk_capacity = new_blk.size().to_bytes() / sizeof(T);
       };
       
-      details::contiguous_destructive_move(blk_ptr, static_cast<T*>(new_blk.ptr()), blk_size);      
+      details::contiguous_destructive_move(blk_ptr, static_cast<T*>(new_blk.ptr()), blk_size);
     }
 
   public:
