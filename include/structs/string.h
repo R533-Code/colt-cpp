@@ -11,7 +11,11 @@
 #include "../refl/enum.h"
 #include "../str/parse.h"
 
-DECLARE_ENUM_WITH_TYPE(u8, clt::io, IOError, FILE_EOF, FILE_ERROR, INVALID_FMT, OUT_OF_RANGE);
+DECLARE_ENUM_WITH_TYPE(u8, clt::io, IOError,
+  FILE_EOF,
+  FILE_ERROR,
+  INVALID_ENCODING
+);
 
 namespace clt
 {
@@ -77,6 +81,8 @@ namespace clt
     {
       BasicString str;
       auto gchar = std::fgetc(from);
+      if (static_cast<unsigned char>(gchar) > 127)
+        return { Error, io::IOError::INVALID_ENCODING };
       if (gchar == EOF)
       {
         if (feof(from))
@@ -89,8 +95,12 @@ namespace clt
       {
         //Consume spaces
         while ((gchar = std::fgetc(from)) != EOF)
+        {
           if (!clt::isblank(gchar))
             break;
+          else if (static_cast<unsigned char>(gchar) > 127)
+            return { Error, io::IOError::INVALID_ENCODING };
+        }
       }
       for (;;)
       {
@@ -98,6 +108,8 @@ namespace clt
         {
           str.push_back(static_cast<char>(gchar));
           gchar = std::fgetc(from);
+          if (static_cast<unsigned char>(gchar) > 127)
+            return { Error, io::IOError::INVALID_ENCODING };
         }
         else
           break;
@@ -117,9 +129,9 @@ namespace clt
     }
 
     /// @brief Check if every object of v1 and v2 are equal
-    /// @param v1 The first Span
-    /// @param v2 The second Span
-    /// @return True if both Span are equal
+    /// @param v1 The first strings
+    /// @param v2 The second strings
+    /// @return True if both strings are equal
     friend constexpr bool operator==(const BasicString& v1, const StringView& v2) noexcept
     {
       if (v1.size() != v2.size())
@@ -130,9 +142,9 @@ namespace clt
       return true;
     }
 
-    /// @brief Lexicographically compare two spans
-    /// @param v1 The first Span
-    /// @param v2 The second Span
+    /// @brief Lexicographically compare two strings
+    /// @param v1 The first strings
+    /// @param v2 The second strings
     /// @return Result of comparison
     friend constexpr auto operator<=>(const BasicString& v1, const StringView& v2) noexcept
     {
@@ -144,18 +156,6 @@ namespace clt
 
   /// @brief ASCII String
   using String = BasicString<mem::GlobalAllocatorDescription, StringEncoding::ASCII>;
-
-  template<>
-  /// @brief Overload for String
-  struct str::parser<String>
-    : str::Recommended<128>
-  {
-    constexpr ParseResult operator()(maybe_out<String> str, StringView to_parse) const noexcept
-    {
-      str.construct(to_parse);
-      return ParseResult{ to_parse.end(), ParseErrorCode::SUCCESS };
-    }
-  };
 
   template<auto ALLOCATOR>
   /// @brief clt::hash overload for String

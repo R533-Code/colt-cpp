@@ -425,67 +425,6 @@ namespace clt
   {
     return Vector<T, mem::LocalAllocator<Alloc>>{ref, std::forward<Args>(args)...};
   }
-
-  template<meta::Parsable T, auto ALLOCATOR> requires meta::AllocatorScope<ALLOCATOR>
-  /// @brief Overload for Vector
-  struct str::parser<Vector<T, ALLOCATOR>>
-    : str::Recommended<str::recommended_size<T>() * 6>
-  {
-    constexpr ParseResult operator()(maybe_out<Vector<T, ALLOCATOR>> result, StringView to_parse) const noexcept
-    {
-      if (to_parse.size() < 2 || to_parse.front() != '[' || to_parse.back() != ']')
-        return ParseResult{ to_parse.end(), ParseErrorCode::INVALID_FMT };
-      auto end = to_parse.end();
-      //Pop '[' and ']'
-      to_parse.pop_front(); to_parse.pop_back();
-      
-      //Construct the Vector
-      result.construct();
-      
-      if (to_parse.is_empty())
-        return ParseResult{ end, ParseErrorCode::SUCCESS };
-
-      u64 offset = 0;
-      u64 find_i = to_parse.find(',', offset);
-      do
-      {
-        auto obj = to_parse.substr(offset, find_i - offset);
-        obj.strip();
-        
-        uninit<T> try_obj;
-        auto [ptr, err] = clt::str::parser<T>{}(try_obj, obj);
-        if (err != ParseErrorCode::SUCCESS)
-        {
-          //Destroy the object as it was constructed...
-          result.underlying().destruct();
-          return ParseResult{ obj.end(), err };
-        }
-
-        ON_SCOPE_EXIT{
-          //Destroy the object as it was constructed...
-          try_obj.destruct();
-        };
-        
-        if (ptr != obj.end())
-        {
-          //Destroy the object as it was constructed...
-          result.underlying().destruct();
-          return ParseResult{ ptr, ParseErrorCode::INVALID_FMT };
-        }
-        
-        result.data().push_back(std::move(try_obj.data()));
-        //After ','
-        offset = find_i + 1;
-        find_i = to_parse.find(',', offset);
-        //Due to overflow, when find_i is npos, find_i + 1 == 0.
-        if (offset == 0)
-          break;
-      } while (true);
-
-      return ParseResult{ end, ParseErrorCode::SUCCESS };
-    }
-  };
-
   template<typename T, auto ALLOCATOR> requires meta::is_hashable_v<T>
   /// @brief clt::hash overload for Vector
   struct hash<Vector<T, ALLOCATOR>>

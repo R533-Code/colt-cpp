@@ -269,66 +269,6 @@ namespace clt
       slots_capacity = new_capacity;
     }
   };
-
-  template<meta::Parsable T, size_t PER_NODE, auto ALLOCATOR> requires meta::AllocatorScope<ALLOCATOR>
-  /// @brief Overload for Vector
-  struct str::parser<StableSet<T, PER_NODE, ALLOCATOR>>
-    : str::Recommended<str::recommended_size<T>()* PER_NODE>
-  {
-    constexpr ParseResult operator()(maybe_out<StableSet<T, PER_NODE, ALLOCATOR>> result, StringView to_parse) const noexcept
-    {
-      if (to_parse.size() < 2 || to_parse.front() != '[' || to_parse.back() != ']')
-        return ParseResult{ to_parse.end(), ParseErrorCode::INVALID_FMT };
-      auto end = to_parse.end();
-      //Pop '[' and ']'
-      to_parse.pop_front(); to_parse.pop_back();
-
-      //Construct the Vector
-      result.construct();
-
-      if (to_parse.is_empty())
-        return ParseResult{ end, ParseErrorCode::SUCCESS };
-
-      u64 offset = 0;
-      u64 find_i = to_parse.find(',', offset);
-      do
-      {
-        auto obj = to_parse.substr(offset, find_i - offset);
-        obj.strip();
-
-        uninit<T> try_obj;
-        auto [ptr, err] = clt::str::parser<T>{}(try_obj, obj);
-        if (err != ParseErrorCode::SUCCESS)
-        {
-          //Destroy the object as it was constructed...
-          result.underlying().destruct();
-          return ParseResult{ obj.end(), err };
-        }
-
-        ON_SCOPE_EXIT{
-          //Destroy the object as it was constructed...
-          try_obj.destruct();
-        };
-
-        if (ptr != obj.end())
-        {
-          //Destroy the object as it was constructed...
-          result.underlying().destruct();
-          return ParseResult{ ptr, ParseErrorCode::INVALID_FMT };
-        }
-
-        result.data().insert(std::move(try_obj.data()));
-        //After ','
-        offset = find_i + 1;
-        find_i = to_parse.find(',', offset);
-        //Due to overflow, when find_i is npos, find_i + 1 == 0.
-        if (offset == 0)
-          break;
-      } while (true);
-
-      return ParseResult{ end, ParseErrorCode::SUCCESS };
-    }
-  };
 }
 
 template<typename T, size_t PER_NODE, auto ALLOCATOR>
