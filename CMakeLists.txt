@@ -9,8 +9,22 @@ file(GLOB_RECURSE ColtCppHeaders CONFIGURE_DEPENDS "include/*.h")
 file(GLOB_RECURSE ColtCppUnits CONFIGURE_DEPENDS "include/*.cpp")
 file(GLOB_RECURSE ColtCppUnitsT CONFIGURE_DEPENDS "test/*.cpp")
 
+message("")
+
+message(STATUS "Importing scnlib...")
+add_subdirectory("libraries/scnlib")
+message(STATUS "Finished importing scnlib!\n")
+
+message(STATUS "Importing {fmt}...")
+add_subdirectory("libraries/fmt")
+message(STATUS "Finished importing {fmt}!\n")
+
 add_executable(ColtCppTest
 "${ColtCppHeaders}" "${ColtCppUnits}" "${ColtCppUnitsT}"
+)
+
+target_link_libraries(
+    ColtCppTest scn::scn fmt::fmt
 )
 
 if(MSVC)
@@ -21,7 +35,11 @@ if(MSVC)
     )
 endif()
 
-target_include_directories(ColtCppTest PUBLIC "include/" "${CMAKE_SOURCE_DIR}/libraries/fmt/include")
+target_include_directories(ColtCppTest PUBLIC
+  "include/"
+  "libraries/fmt/include"
+  "libraries/scnlib/include"
+)
 
 function(create_zip output_file input_files working_dir)
     add_custom_command(
