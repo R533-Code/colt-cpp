@@ -238,4 +238,9 @@ ADD_REFLECTION_FOR_CONSECUTIVE_ENUM(clt::refl, EntityKind,
   IS_ENUM, IS_BUILTIN, IS_CLASS, IS_UNKNOWN
 );
 
+//Add reflection for already existing enum
+ADD_REFLECTION_FOR_CONSECUTIVE_ENUM(clt, InsertionResult,
+  SUCCESS, EXISTS, ASSIGNED
+);
+
 #endif //!HG_COLT_ENUM
