@@ -15,10 +15,7 @@
 #include "../util/on_exit.h"
 #include "../util/params.h"
 
-#ifndef FMT_HEADER_ONLY
-#define FMT_HEADER_ONLY
-#endif //!FMT_HEADER_ONLY
-#include "../../libraries/fmt/include/fmt/format.h"
+#include "fmt/format.h"
 
 namespace clt::details
 {
