@@ -28,10 +28,8 @@ int main(int argc, char** argv)
     auto Err = io::input<u32>("Enter an age: ");
     if (Err.is_error())
     {
-      if (Err.error() == ParsingResult::FILE_EOF)
-        break;      
       io::print_error("{}.", Err.error());
-      continue;
+      break;
     }
 
     io::print("The set is: {}\n{}, {}",
