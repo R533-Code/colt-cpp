@@ -23,15 +23,19 @@ int main(int argc, char** argv)
 {
   clt::install_colt_handlers();
 
-  FlatList<u32> a;
-  a.push_back(1);
-  a.push_back(2);
-  a.push_back(3);
+  auto Err = io::input<StableSet<u32>>("Enter a set of numbers: ");
+  if (Err.is_error())
+    std::exit(0);
+  StableSet<u32> a = std::move(*Err);
+  a.insert(1);
+  a.insert(2);
+  a.insert(3);
 
-  io::print("{}, {}, {}",
+  io::print("The set is: {}\n{}, {}",
     a,
     AB{ 10, 10, D{ 1.2} },
     refl::EntityKind::IS_BUILTIN
   );
+
   press_to_continue();
 }
