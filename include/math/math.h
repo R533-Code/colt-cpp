@@ -54,7 +54,7 @@ namespace clt
   /// @return The absolute value
   constexpr std::make_unsigned_t<Int> abs(Int value) noexcept
     COLT_PRE(value != std::numeric_limits<Int>::min())
-  {    
+  {
     if (std::is_constant_evaluated())
     {
       if (value < 0)
@@ -66,7 +66,7 @@ namespace clt
   }
   COLT_POST()
 
-  template<meta::FloatingPoint Flt>
+    template<meta::FloatingPoint Flt>
   /// @brief Returns the absolute value (distance from zero) of a floating point
   /// @param value The value whose absolute value to compute
   /// @return The absolute value
@@ -104,112 +104,6 @@ namespace clt
   constexpr T max(std::initializer_list<T> ilist) noexcept
   {
     return *clt::max_element(ilist.begin(), ilist.end());
-  }
-
-  template<meta::FloatingPoint Fp>
-  constexpr Fp pow(Fp base, Fp power) noexcept
-  {
-    if (std::is_constant_evaluated())
-    {
-      if (power == static_cast<Fp>(0.0))
-        return static_cast<Fp>(1.0);
-      if (base == static_cast<Fp>(1.0))
-        return static_cast<Fp>(1.0);
-      if (power < static_cast<Fp>(0.0))
-      {
-        Fp result = static_cast<Fp>(1.0);
-        while (power < static_cast<Fp>(0.0))
-        {
-          result /= base;
-          power += static_cast<Fp>(1.0);
-        }
-        return result;
-      }
-      else
-      {
-        Fp result = static_cast<Fp>(1.0);
-        while (power > static_cast<Fp>(0.0))
-        {
-          result *= base;
-          power -= static_cast<Fp>(1.0);
-        }
-        return result;
-      }
-    }
-    else
-      return std::pow(base, power);
-  }
-
-  template<meta::FloatingPoint Fp = double, meta::Integral Int>
-  constexpr Fp pow(Int what, Int power) noexcept
-  {
-    return clt::pow(static_cast<Fp>(what), static_cast<Fp>(power));
-  }
-
-  template<meta::FloatingPoint Fp>
-  constexpr Fp exp(Fp x) noexcept
-  {
-    if (std::is_constant_evaluated())
-      return clt::pow(std::numbers::e_v<Fp>, x);
-    else
-      return std::exp(x);
-  }
-
-  template<meta::FloatingPoint Fp = double, meta::Integral Int>
-  constexpr Fp exp(Int x) noexcept
-  {
-    return clt::exp(static_cast<Fp>(x));
-  }
-
-  template<meta::FloatingPoint Fp>
-  constexpr Fp log(Fp x) noexcept
-  {
-    if (std::is_constant_evaluated())
-    {
-      Fp x1 = (x - 1) / (x + 1);
-      Fp accumulator = static_cast<Fp>(0.0);
-      for (size_t k = 1; k < 100; k += 2)
-        accumulator += clt::pow(x1, static_cast<Fp>(k)) / k;
-      return accumulator * static_cast<Fp>(2.0);
-    }
-    else
-      return std::log(x);
-  }
-
-  template<meta::FloatingPoint Fp = double, meta::Integral Int>
-  constexpr Fp log(Int x) noexcept
-  {
-    return clt::log(static_cast<Fp>(x));
-  }
-
-  template<meta::FloatingPoint Fp>
-  constexpr Fp log10(Fp x) noexcept
-  {
-    if (std::is_constant_evaluated())
-      return clt::log(x) / clt::log(static_cast<Fp>(10.0));
-    else
-      return std::log10(x);
-  }
-
-  template<meta::FloatingPoint Fp = double, meta::Integral Int>
-  constexpr Fp log10(Int x) noexcept
-  {
-    return clt::log10(static_cast<Fp>(x));
-  }
-
-  template<meta::FloatingPoint Fp>
-  constexpr Fp log2(Fp x) noexcept
-  {
-    if (std::is_constant_evaluated())
-      return clt::log(x) / clt::log(static_cast<Fp>(2.0));
-    else
-      return std::log2(x);
-  }
-
-  template<meta::FloatingPoint Fp = double, meta::Integral Int>
-  constexpr Fp log2(Int x) noexcept
-  {
-    return clt::log2(static_cast<Fp>(x));
   }
 
   template<meta::FloatingPoint Fp>
@@ -264,7 +158,7 @@ namespace clt
       if (x < 0)
         return -clt::floor(-x);
       return x; // x is 0.0, -0.0 or NaN
-    }    
+    }
     else
       return std::ceil(x);
   }
@@ -301,6 +195,157 @@ namespace clt
   {
     return clt::floor(static_cast<Fp>(x));
   }
+
+  namespace details
+  {
+    template<meta::FloatingPoint Fp>
+    constexpr Fp root(Fp A, Fp n) noexcept
+    {
+      Fp result;
+
+      Fp delta, newVal, oldVal = A / n;
+      do {
+        newVal = oldVal;
+        for (int i = 1; i < n - 1; ++i)
+          newVal *= oldVal;
+
+        newVal = (A / newVal + (n - 1) * oldVal) / n;
+        delta = oldVal - newVal;
+        if (delta < 0)
+          delta = -delta;
+        result = oldVal = newVal;
+      } while (delta > 0.00001);
+      return result;
+    }
+  }
+
+  template<meta::FloatingPoint Fp>
+  constexpr Fp pow(Fp base, Fp power) noexcept
+  {
+    if (std::is_constant_evaluated())
+    {
+      if (power == static_cast<Fp>(0.0))
+        return static_cast<Fp>(1.0);
+      if (base == static_cast<Fp>(1.0))
+        return static_cast<Fp>(1.0);
+      bool is_neg = power < static_cast<Fp>(0.0);
+      power = clt::abs(power);
+
+      auto result = static_cast<Fp>(1.0);
+      while (power >= static_cast<Fp>(1.0))
+      {
+        result *= base;
+        power -= static_cast<Fp>(1.0);
+      }
+      if (power != static_cast<Fp>(0.0))
+        result *= details::root(base, 1 / power);
+
+      return is_neg ? 1 / result : result;
+    }
+    else
+      return std::pow(base, power);
+  }
+
+  template<meta::FloatingPoint Fp = double, meta::Integral Int>
+  constexpr Fp pow(Int what, Int power) noexcept
+  {
+    return clt::pow(static_cast<Fp>(what), static_cast<Fp>(power));
+  }
+
+  template<meta::FloatingPoint Fp>
+  constexpr Fp sqrt(Fp x) noexcept
+  {
+    if (std::is_constant_evaluated())
+      return clt::details::root(x, static_cast<Fp>(2.0));
+    else
+      return std::sqrt(x);
+  }
+
+  template<meta::FloatingPoint Fp = double, meta::Integral Int>
+  constexpr Fp sqrt(Int x) noexcept
+  {
+    return clt::sqrt(static_cast<Fp>(x));
+  }
+
+  template<meta::FloatingPoint Fp>
+  constexpr Fp exp(Fp x) noexcept
+  {
+    if (std::is_constant_evaluated())
+      return clt::pow(std::numbers::e_v<Fp>, x);
+    else
+      return std::exp(x);
+  }
+
+  template<meta::FloatingPoint Fp = double, meta::Integral Int>
+  constexpr Fp exp(Int x) noexcept
+  {
+    return clt::exp(static_cast<Fp>(x));
+  }
+
+  template<meta::FloatingPoint Fp>
+  constexpr Fp log(Fp x) noexcept
+  {
+    if (std::is_constant_evaluated())
+    {
+      Fp result = 0.0;
+      while (x > static_cast<Fp>(4.0 / 3))
+      {
+        result += 1;
+        x /= static_cast<Fp>(2.0);
+      }
+      result *= std::numbers::ln2_v<Fp>;
+
+      Fp sum = 0;
+      Fp term = 2 * (x - 1) / (x + 1);
+      Fp multiplier = term * term;
+      size_t k = 1;
+      while (term > static_cast<Fp>(1e-10))
+      {
+        sum += term / k;
+        term *= multiplier;
+        k += 2;
+      }
+      return result + sum;
+    }
+    else
+      return std::log(x);
+  }
+
+  template<meta::FloatingPoint Fp = double, meta::Integral Int>
+  constexpr Fp log(Int x) noexcept
+  {
+    return clt::log(static_cast<Fp>(x));
+  }
+
+  template<meta::FloatingPoint Fp>
+  constexpr Fp log10(Fp x) noexcept
+  {
+    if (std::is_constant_evaluated())
+      return clt::log(x) / clt::log(static_cast<Fp>(10.0));
+    else
+      return std::log10(x);
+  }
+
+  template<meta::FloatingPoint Fp = double, meta::Integral Int>
+  constexpr Fp log10(Int x) noexcept
+  {
+    return clt::log10(static_cast<Fp>(x));
+  }
+
+  template<meta::FloatingPoint Fp>
+  constexpr Fp log2(Fp x) noexcept
+  {
+    if (std::is_constant_evaluated())
+      return clt::log(x) / clt::log(static_cast<Fp>(2.0));
+    else
+      return std::log2(x);
+  }
+
+  template<meta::FloatingPoint Fp = double, meta::Integral Int>
+  constexpr Fp log2(Int x) noexcept
+  {
+    return clt::log2(static_cast<Fp>(x));
+  }  
 }
 
 #endif //!HG_COLT_MATH
