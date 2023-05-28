@@ -17,14 +17,15 @@ namespace clt
       /// @brief Pointer to the node before
       Node* before = nullptr;
       /// @brief The data
-      StaticVector<T, PER_NODE> data;
+      StaticVector<T, PER_NODE> data = {};
     };
 
     /// @brief Creates an empty node
     /// @return Node allocated through the allocator
     constexpr Node* create_node() noexcept
     {
-      return static_cast<Node*>(allocator.alloc(sizeof(Node)).ptr());
+      auto ptr = static_cast<Node*>(allocator.alloc(sizeof(Node)).ptr());
+      return new(ptr) Node();
     }    
 
     /// @brief True if the allocator is global
@@ -128,11 +129,12 @@ namespace clt
       while (tail != head)
       {
         auto before = tail->before; //store the tail's preceding
+        tail->~Node();
         allocator.dealloc(mem::MemBlock{ tail, sizeof(Node) });
         tail = before;
       }
-      head->data.clear();
       //Free the head node, which is always allocated
+      head->~Node();
       allocator.dealloc(mem::MemBlock{ head, sizeof(Node) });
     }
 
