@@ -1,6 +1,6 @@
 [submodule "libraries/fmt"]
 	path = libraries/fmt
 	url = https://github.com/fmtlib/fmt.git
-[submodule "libraries/cpr"]
-	path = libraries/cpr
-	url = https://github.com/libcpr/cpr.git
+[submodule "libraries/scnlib"]
+	path = libraries/scnlib
+	url = https://github.com/eliaskosunen/scnlib.git
