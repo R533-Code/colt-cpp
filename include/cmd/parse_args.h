@@ -199,7 +199,7 @@ namespace clt::cl
   /// @brief Adds an alias for an Opt
   using alias = details::Alias<T>;
 
-  template<auto& REF> requires std::is_reference_v<decltype(REF)> && (!std::is_const_v<decltype(REF)>) && meta::Parsable<std::remove_reference_t<decltype(REF)>>
+  template<auto& REF> requires std::is_reference_v<decltype(REF)> && (!std::is_const_v<decltype(REF)>) //&& meta::Parsable<std::remove_reference_t<decltype(REF)>>
   /// @brief Adds the location in which to store the result for an Opt
   using location = details::Location<&REF>;
 
@@ -365,58 +365,36 @@ namespace clt::cl
 
 
     template<IsOpt opt>
-    ParseErrorCode parse_opt(StringView strv) noexcept
+    ParsingResult parse_opt(StringView strv) noexcept
     {
       using ResultType = std::remove_cvref_t<std::remove_pointer_t<decltype(opt::location)>>;
       
       if constexpr (opt::location != nullptr)
       {
-        //The variable in which to store the result
-        uninit<ResultType> result;
-
-        //Parse the line
-        auto [ptr, err] = clt::str::parser<ResultType>{}(result, strv);
-        if (err != ParseErrorCode::SUCCESS)
-          return err;
-        //Write to the memory location
-        *opt::location = std::move(result.data());
-        //Destroy temporary storage used
-        result.destruct();
+        //TODO: fix parsing
       }
       //Run callback if it exists.
       //The callback is only run if parsing was successful.
       if constexpr (opt::callback != nullptr)
         (*opt::callback)();
-      return ParseErrorCode::SUCCESS;
     }
 
     template<typename opt>
-    ParseErrorCode parse_pos(StringView strv) noexcept
+    ParsingResult parse_pos(StringView strv) noexcept
     {
       using ResultType = std::remove_cvref_t<std::remove_pointer_t<decltype(opt::location)>>;
 
       if constexpr (opt::location != nullptr)
       {
-        //The variable in which to store the result
-        uninit<ResultType> result;
-
-        //Parse the line
-        auto [ptr, err] = clt::str::parser<ResultType>{}(result, strv);
-        if (err != ParseErrorCode::SUCCESS)
-          return err;
-        //Write to the memory location
-        *opt::location = std::move(result.data());
-        //Destroy temporary storage used
-        result.destruct();
+        //TODO: fix parsing
       }
       //Run callback if it exists.
       //The callback is only run if parsing was successful.
       if constexpr (opt::callback != nullptr)
         (*opt::callback)();
-      return ParseErrorCode::SUCCESS;
     }
 
-    using parse_and_write_t = ParseErrorCode(*)(StringView) noexcept;
+    using parse_and_write_t = ParsingResult(*)(StringView) noexcept;
 
     template<typename... Args>
     consteval auto generate_opt_table(meta::type_list<Args...> list) noexcept
@@ -531,8 +509,8 @@ namespace clt::cl
           std::exit(1);
         }
         //invoke callback...
-        ParseErrorCode err = (**opt)(argv[++i]);
-        if (err != ParseErrorCode::SUCCESS)
+        ParsingResult err = (**opt)(argv[++i]);
+        if (err != ParsingResult::GOOD)
         {
           io::print_error("Invalid argument for '{}' option ({:h})!", arg, err);
           std::exit(1);
@@ -554,8 +532,8 @@ namespace clt::cl
       }
       auto opt = POS_TABLE[pos_id++];
       //invoke callback...
-      ParseErrorCode err = (*opt)(arg);
-      if (err != ParseErrorCode::SUCCESS)
+      ParsingResult err = (*opt)(arg);
+      if (err != ParsingResult::GOOD)
       {
         io::print_error("Invalid argument for '{}' option ({:h})!", arg, err);
         std::exit(1);
