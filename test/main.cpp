@@ -23,19 +23,23 @@ int main(int argc, char** argv)
 {
   clt::install_colt_handlers();
 
-  auto Err = io::input<StableSet<u32>>("Enter a set of numbers: ");
-  if (Err.is_error())
-    std::exit(0);
-  StableSet<u32> a = std::move(*Err);
-  a.insert(1);
-  a.insert(2);
-  a.insert(3);
+  while (true)
+  {
+    auto Err = io::input<u32>("Enter an age: ");
+    if (Err.is_error())
+    {
+      if (Err.error() == ParsingResult::FILE_EOF)
+        break;      
+      io::print_error("{}.", Err.error());
+      continue;
+    }
 
-  io::print("The set is: {}\n{}, {}",
-    a,
-    AB{ 10, 10, D{ 1.2} },
-    refl::EntityKind::IS_BUILTIN
-  );
+    io::print("The set is: {}\n{}, {}",
+      *Err,
+      AB{ 10, 10, D{ 1.2} },
+      refl::EntityKind::IS_BUILTIN
+    );
+  }
 
   press_to_continue();
 }
