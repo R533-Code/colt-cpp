@@ -162,4 +162,21 @@ namespace clt
   };
 }
 
+template<>
+struct fmt::formatter<clt::mem::MemBlock>
+{
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    assert_true("Possible format for byte_size is: {}!", ctx.begin() == ctx.end());
+    return ctx.begin();
+  }
+
+  template<typename FormatContext>
+  auto format(const clt::mem::MemBlock& vec, FormatContext& ctx)
+  {
+    return fmt::format_to(ctx.out(), "{{ {}, {} }}", vec.ptr(), vec.size());
+  }
+};
+
 #endif //!HG_COLT_BLOCK
