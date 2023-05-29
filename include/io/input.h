@@ -46,20 +46,20 @@ namespace clt::io
 
   namespace details
   {
-    constexpr ParsingResult scn_error_to_parse(scn::error code) noexcept
+    constexpr ParsingResult scn_error_to_ParsingResult(scn::error code) noexcept
     {
       switch (code.code())
       {
       case scn::error::good:
-        return ParsingResult::GOOD;
+        return { ParsingCode::GOOD, code.msg() };
       case scn::error::end_of_range:
-        return ParsingResult::EXPECTED_MORE;
+        return { ParsingCode::EXPECTED_MORE, code.msg() };
       case scn::error::invalid_scanned_value:
-        return ParsingResult::INVALID_VALUE;
+        return { ParsingCode::INVALID_VALUE, code.msg() };
       case scn::error::value_out_of_range:
-        return ParsingResult::OUT_OF_RANGE;
+        return { ParsingCode::OUT_OF_RANGE, code.msg() };
       case scn::error::invalid_encoding:
-        return ParsingResult::INVALID_ENCODING;
+        return { ParsingCode::INVALID_ENCODING, code.msg() };
       default:
         colt_unreachable("Unknown error!");
       }
@@ -84,7 +84,7 @@ namespace clt::io
     //Ask for input...
     auto str = String::getLine(file);
     if (str.is_error()) //FILE_EOF or FILE_ERROR or INVALID_ENCODING
-      return { Error, static_cast<ParsingResult>(static_cast<u8>(str.error()) + 1) };
+      return { Error, clt::details::IOError_to_ParsingResult(str.error()) };
 
     T ret;
     StringView strv = *str;
@@ -92,10 +92,10 @@ namespace clt::io
     if (result)
     {
       if (!result.empty())
-        return { Error, ParsingResult::NON_EMPTY_REM };
+        return { Error, ParsingResult{ ParsingCode::NON_EMPTY_REM, "Not all characters were consumed!" } };
       return std::move(ret);
     }
-    return { Error, details::scn_error_to_parse(result.error()) };
+    return { Error, details::scn_error_to_ParsingResult(result.error()) };
   }
 
   template<typename T = String, meta::StringLiteral endl = "", typename... Args>

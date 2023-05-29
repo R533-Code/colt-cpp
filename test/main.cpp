@@ -28,7 +28,7 @@ int main(int argc, char** argv)
     auto Err = io::input<byte_size<Byte>>("Enter a byte size: ");
     if (Err.is_error())
     {
-      if (Err.error() == ParsingResult::FILE_EOF)
+      if (Err.error() == ParsingCode::FILE_EOF)
         break;
       io::print_error("{}.", Err.error());
       continue;
