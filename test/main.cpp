@@ -25,14 +25,16 @@ int main(int argc, char** argv)
 
   while (true)
   {
-    auto Err = io::input<u32>("Enter an age: ");
+    auto Err = io::input<byte_size<Byte>>("Enter a byte size: ");
     if (Err.is_error())
     {
+      if (Err.error() == ParsingResult::FILE_EOF)
+        break;
       io::print_error("{}.", Err.error());
-      break;
+      continue;
     }
 
-    io::print("The set is: {}\n{}, {}",
+    io::print("The byte size is: {}\n{}, {}",
       *Err,
       AB{ 10, 10, D{ 1.2} },
       refl::EntityKind::IS_BUILTIN
