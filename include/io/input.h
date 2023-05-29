@@ -26,6 +26,7 @@ DECLARE_ENUM_WITH_TYPE(u8, clt, ParsingResult,
   FILE_EOF,         //EOF detected
   FILE_ERROR,       //error reading from file
   INVALID_ENCODING, //invalid characters encountered (non-ASCII)
+  EXPECTED_MORE,    //expected more characters
   INVALID_VALUE,    //invalid value to parse
   OUT_OF_RANGE,     //value cannot be stored in type
   NON_EMPTY_REM     //not all characters were consumed
@@ -63,7 +64,7 @@ namespace clt::io
       case scn::error::good:
         return ParsingResult::GOOD;
       case scn::error::end_of_range:
-        return ParsingResult::FILE_EOF;
+        return ParsingResult::EXPECTED_MORE;
       case scn::error::invalid_scanned_value:
         return ParsingResult::INVALID_VALUE;
       case scn::error::value_out_of_range:
