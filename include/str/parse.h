@@ -16,6 +16,17 @@
 #include "../util/typedefs.h"
 #include "../refl/enum.h"
 
+DECLARE_ENUM_WITH_TYPE(u8, clt, ParsingResult,
+  GOOD,             //no errors
+  FILE_EOF,         //EOF detected
+  FILE_ERROR,       //error reading from file
+  INVALID_ENCODING, //invalid characters encountered (non-ASCII)
+  EXPECTED_MORE,    //expected more characters
+  INVALID_VALUE,    //invalid value to parse
+  OUT_OF_RANGE,     //value cannot be stored in type
+  NON_EMPTY_REM     //not all characters were consumed
+);
+
 namespace clt::meta
 {
   template<Integral T>
