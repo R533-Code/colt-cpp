@@ -95,6 +95,26 @@ namespace clt
 
   namespace details
   {
+    constexpr ParsingResult scn_error_to_ParsingResult(scn::error code) noexcept
+    {
+      switch (code.code())
+      {
+        using enum clt::ParsingCode;
+      case scn::error::good:
+        return { GOOD, code.msg() };
+      case scn::error::end_of_range:
+        return { EXPECTED_MORE, code.msg() };
+      case scn::error::invalid_scanned_value:
+        return { INVALID_VALUE, code.msg() };
+      case scn::error::value_out_of_range:
+        return { OUT_OF_RANGE, code.msg() };
+      case scn::error::invalid_encoding:
+        return { INVALID_ENCODING, code.msg() };
+      default:
+        colt_unreachable("Unknown error!");
+      }
+    }
+
     constexpr ParsingResult IOError_to_ParsingResult(io::IOError err) noexcept
     {
       switch (err)
