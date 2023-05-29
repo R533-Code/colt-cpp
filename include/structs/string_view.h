@@ -7,6 +7,7 @@
 
 #include <type_traits>
 #include <string_view>
+#include <scn/fwd.h>
 
 #include "./span.h"
 #include "../str/ascii.h"
@@ -221,6 +222,21 @@ namespace clt
     }
   };
 }
+
+template<>
+struct scn::scanner<clt::StringView>
+  : scn::scanner<std::string_view>
+{
+  template <typename Context>
+  error scan(clt::StringView& val, Context& ctx)
+  {
+    std::string_view strv;
+    auto r = scn::scanner<std::string_view>::scan(strv, ctx);
+    if (r)
+      val = clt::StringView{ strv };
+    return r;
+  }
+};
 
 template<>
 struct fmt::formatter<clt::StringView>

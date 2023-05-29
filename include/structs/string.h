@@ -167,6 +167,21 @@ namespace clt
 }
 
 template<>
+struct scn::scanner<clt::String>
+  : scn::scanner<StringView>
+{
+  template <typename Context>
+  error scan(clt::String& val, Context& ctx)
+  {
+    clt::StringView strv;
+    auto r = scn::scanner<StringView>::scan(strv, ctx);
+    if (r)
+      val = strv;
+    return r.error();
+  }
+};
+
+template<>
 struct fmt::formatter<clt::String>
 {
   template<typename ParseContext>

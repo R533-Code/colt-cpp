@@ -24,6 +24,13 @@ namespace clt
     constexpr const T* ptr() const noexcept { return details::ptr_to<const T*>(buffer); }
 
   public:
+    /// @brief The value type stored in the list
+    using value_type = T;
+
+    /// @brief The maximum count of items that can be stored
+    /// @return The capacity
+    static size_t max_size() noexcept { return MAX_SIZE; }
+
     /// @brief Default constructor (when allocator is global)
     constexpr StaticVector() noexcept = default;
 
@@ -321,6 +328,19 @@ namespace clt
     }
   };
 }
+
+template<typename T, size_t MAX_SIZE> requires clt::meta::Parsable<T>
+struct scn::scanner<clt::StaticVector<T, MAX_SIZE>>
+  : scn::empty_parser
+{
+  template <typename Context>
+  error scan(clt::StaticVector<T, MAX_SIZE>& val, Context& ctx)
+  {
+    auto r = scn::scan_list_ex(ctx.range(), val, scn::list_separator(','));
+    ctx.range() = std::move(r.range());
+    return r.error();
+  }
+};
 
 template<typename T, size_t MAX_CAPACITY> requires fmt::is_formattable<T>::value
 struct fmt::formatter<clt::StaticVector<T, MAX_CAPACITY>>

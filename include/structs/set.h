@@ -42,6 +42,13 @@ namespace clt
     float load_factor = 0.70f;
 
   public:
+    /// @brief The value type stored in the list
+    using value_type = T;
+
+    /// @brief The maximum count of items that can be stored
+    /// @return The maximum theoretical size of the container
+    static size_t max_size() noexcept { return std::numeric_limits<size_t>::max(); }
+
     /// @brief Constructor
     /// @param load_factor The load factor (> 0.0f && < 1.0f)
     constexpr StableSet(float load_factor = 0.70f) noexcept
@@ -90,7 +97,7 @@ namespace clt
         if (details::is_sentinel_active(sentinel_metadata[i]))
           slots_ptr[i].~Slot(); //destroy active slots
       }
-      allocator.dealloc(mem::MemBlock{ slots_ptr, slots_capacity * sizeof(Slot)});
+      allocator.dealloc(mem::MemBlock{ slots_ptr, slots_capacity * sizeof(Slot) });
     }
 
     /// @brief Returns the number of active unique elements in the StableSet
@@ -120,9 +127,9 @@ namespace clt
       return list[index];
     COLT_POST()
 
-    /// @brief Check if the internal hash map used by the StableSet will rehash on the next insertion
-    /// @return True if the next insert will rehash the internal map of the StableSet
-    constexpr bool will_reallocate() const noexcept
+      /// @brief Check if the internal hash map used by the StableSet will rehash on the next insertion
+      /// @return True if the next insert will rehash the internal map of the StableSet
+      constexpr bool will_reallocate() const noexcept
     {
       return float(size() + 1) > load_factor * capacity();
     }
@@ -201,6 +208,14 @@ namespace clt
         return { slots_ptr[prob_index].second, InsertionResult::EXISTS };
     }
 
+    template<typename U>
+    /// @brief Inserts a value and discards the result of 'insert'
+    /// @param val The value to insert
+    constexpr void push_back(U&& val)
+    {
+      insert(std::forward<U>(val));
+    }
+
   private:
     /// @brief Finds a EMPTY/ACTIVE/DELETED slot matching 'key_hash'
     /// @param key_hash The hash of 'key', obtained through 'GetHash'.
@@ -270,6 +285,20 @@ namespace clt
     }
   };
 }
+
+template<typename T, size_t PER_NODE, auto ALLOCATOR>
+  requires clt::meta::Parsable<T>
+struct scn::scanner<clt::StableSet<T, PER_NODE, ALLOCATOR>>
+  : scn::empty_parser
+{
+  template <typename Context>
+  error scan(clt::StableSet<T, PER_NODE, ALLOCATOR>& val, Context& ctx)
+  {
+    auto r = scn::scan_list_ex(ctx.range(), val, scn::list_separator(','));
+    ctx.range() = std::move(r.range());
+    return r.error();
+  }
+};
 
 template<typename T, size_t PER_NODE, auto ALLOCATOR>
   requires fmt::is_formattable<T>::value

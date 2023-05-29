@@ -59,6 +59,13 @@ namespace clt
     }
 
   public:
+    /// @brief The value type stored in the list
+    using value_type = T;
+
+    /// @brief The maximum count of items that can be stored
+    /// @return The maximum theoretical size of the container
+    static size_t max_size() noexcept { return std::numeric_limits<size_t>::max(); }
+    
     /// @brief Default constructor (when allocator is global)
     constexpr Vector() noexcept requires is_global = default;
     
@@ -438,6 +445,19 @@ namespace clt
     }
   };
 }
+
+template<typename T, auto ALLOCATOR> requires clt::meta::Parsable<T>
+struct scn::scanner<clt::Vector<T, ALLOCATOR>>
+  : scn::empty_parser
+{
+  template <typename Context>
+  error scan(clt::Vector<T, ALLOCATOR>& val, Context& ctx)
+  {
+    auto r = scn::scan_list_ex(ctx.range(), val, scn::list_separator(','));
+    ctx.range() = std::move(r.range());
+    return r.error();
+  }
+};
 
 template<typename T, auto ALLOCATOR> requires fmt::is_formattable<T>::value
 struct fmt::formatter<clt::Vector<T, ALLOCATOR>>

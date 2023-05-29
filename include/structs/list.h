@@ -71,6 +71,13 @@ namespace clt
     }
 
   public:
+    /// @brief The value type stored in the list
+    using value_type = T;
+
+    /// @brief The maximum count of items that can be stored
+    /// @return The maximum theoretical size of the container
+    static size_t max_size() noexcept { return std::numeric_limits<size_t>::max(); }
+
     /// @brief Constructs an empty FlatList.
     /// This will always preallocate one Node.
     constexpr FlatList() noexcept requires is_global = default;
@@ -323,6 +330,19 @@ namespace clt
     }
   };
 }
+
+template<typename T, size_t PER_NODE, auto ALLOCATOR> requires clt::meta::Parsable<T>
+struct scn::scanner<clt::FlatList<T, PER_NODE, ALLOCATOR>>
+  : scn::empty_parser
+{
+  template <typename Context>
+  error scan(clt::FlatList<T, PER_NODE, ALLOCATOR>& val, Context& ctx)
+  {
+    auto r = scn::scan_list_ex(ctx.range(), val, scn::list_separator(','));
+    ctx.range() = std::move(r.range());
+    return r.error();
+  }
+};
 
 template<typename T, size_t PER_NODE, auto ALLOCATOR>
   requires fmt::is_formattable<T>::value
