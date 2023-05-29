@@ -209,7 +209,7 @@ struct scn::scanner<clt::byte_size<clt::B>>
     if (strv.iequal("KiB"))
     {
       if (count > 18'014'398'509'481'984)
-        return error::error(error::value_out_of_range, "Value too great to be representable as bytes!");
+        return { error::value_out_of_range, "Value too great to be representable as bytes!" };
       val = byte_size<KiB>{ count };
       return { error::good, nullptr };
     }
