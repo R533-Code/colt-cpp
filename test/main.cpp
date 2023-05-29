@@ -22,10 +22,10 @@ COLT_DECLARE_TYPE(AB, a, b, d);
 int main(int argc, char** argv)
 {
   clt::install_colt_handlers();
-
+  
   while (true)
   {
-    auto Err = io::input<byte_size<Byte>>("Enter a byte size: ");
+    auto Err = io::input<FlatList<u32>>("Enter a list: ");
     if (Err.is_error())
     {
       if (Err.error() == ParsingCode::FILE_EOF)
@@ -34,7 +34,7 @@ int main(int argc, char** argv)
       continue;
     }
 
-    io::print("The byte size is: {}\n{}, {}",
+    io::print("The list is: {}\n{}, {}",
       *Err,
       AB{ 10, 10, D{ 1.2} },
       refl::EntityKind::IS_BUILTIN
