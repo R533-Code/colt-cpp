@@ -6,6 +6,7 @@
 #define HG_COLT_STRING_VIEW
 
 #include <type_traits>
+#include <string_view>
 
 #include "./span.h"
 #include "../str/ascii.h"
@@ -54,6 +55,9 @@ namespace clt
     constexpr BasicStringView() noexcept
       : ViewT(nullptr, nullptr) {}
     
+    constexpr BasicStringView(std::string_view strv) noexcept
+      : ViewT(strv.data(), strv.size()) {}
+
     template<size_t N>
     constexpr BasicStringView(const CharT(&x)[N]) noexcept
       : ViewT(x, x + N) {}
@@ -170,6 +174,21 @@ namespace clt
       for (size_t i = 0; i < str.size(); i++)
       {
         if (str[i] != (*this)[i])
+          return false;
+      }
+      return true;
+    }
+
+    /// @brief Check if a StringView is equal to another using (case insensitive)
+    /// @param str The StringView to compare again
+    /// @return True if equal
+    constexpr bool iequal(BasicStringView str) const noexcept
+    {
+      if (str.size() != size())
+        return false;
+      for (size_t i = 0; i < size(); i++)
+      {
+        if (clt::tolower(str[i]) != clt::tolower((*this)[i]))
           return false;
       }
       return true;
