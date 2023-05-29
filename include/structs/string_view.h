@@ -7,7 +7,7 @@
 
 #include <type_traits>
 #include <string_view>
-#include <scn/fwd.h>
+#include <scn/scn.h>
 
 #include "./span.h"
 #include "../str/ascii.h"
