@@ -510,7 +510,7 @@ namespace clt::cl
         }
         //invoke callback...
         ParsingResult err = (**opt)(argv[++i]);
-        if (err != ParsingResult::GOOD)
+        if (err != ParsingCode::GOOD)
         {
           io::print_error("Invalid argument for '{}' option ({:h})!", arg, err);
           std::exit(1);
@@ -533,7 +533,7 @@ namespace clt::cl
       auto opt = POS_TABLE[pos_id++];
       //invoke callback...
       ParsingResult err = (*opt)(arg);
-      if (err != ParsingResult::GOOD)
+      if (err != ParsingCode::GOOD)
       {
         io::print_error("Invalid argument for '{}' option ({:h})!", arg, err);
         std::exit(1);
