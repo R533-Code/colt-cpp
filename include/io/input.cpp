@@ -6,6 +6,8 @@
   #include <Windows.h>
 #endif //COLT_WINDOWS
 
+#include <cstdio>
+
 namespace clt::io
 {
   void toggle_echo() noexcept
