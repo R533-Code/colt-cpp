@@ -1,5 +1,3 @@
-#include "input.h"
-
 #ifndef _WIN32
   #include <termios.h>
   #include <unistd.h>
@@ -27,7 +25,6 @@ namespace clt::io
     tcgetattr(fileno(stdin), &ts);
     ts.c_lflag &= ~ECHO;
     tcsetattr(fileno(stdin), TCSANOW, &ts);
-
 #endif
   }
 }
