@@ -81,8 +81,6 @@ namespace clt
     {
       BasicString str;
       auto gchar = std::fgetc(from);
-      if (static_cast<unsigned char>(gchar) > 127)
-        return { Error, io::IOError::INVALID_ENCODING };
       if (gchar == EOF)
       {
         if (feof(from))
@@ -90,6 +88,9 @@ namespace clt
         else
           return { Error, io::IOError::FILE_ERROR };
       }
+      if (static_cast<unsigned char>(gchar) > 127)
+        return { Error, io::IOError::INVALID_ENCODING };
+      
       str.reserve(reserve);
       if (strip_front && std::isblank(gchar))
       {
@@ -106,10 +107,10 @@ namespace clt
       {
         if (gchar != '\n' && gchar != EOF)
         {
-          str.push_back(static_cast<char>(gchar));
-          gchar = std::fgetc(from);
           if (static_cast<unsigned char>(gchar) > 127)
             return { Error, io::IOError::INVALID_ENCODING };
+          str.push_back(static_cast<char>(gchar));
+          gchar = std::fgetc(from);
         }
         else
           break;
