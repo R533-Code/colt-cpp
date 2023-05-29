@@ -28,7 +28,7 @@ namespace clt::io
     std::fputc('\n', stdout);
   }  
 
-  template<typename T = String, typename... Args>
+  template<typename T = String, typename... Args> requires meta::Parsable<T>
   inline Expect<T, ParsingResult> input(std::FILE* file, fmt_str<Args...> fmt, Args&&... args) noexcept
   {
     //Print the message...
