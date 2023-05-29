@@ -6,8 +6,10 @@
 #define HG_COLT_SIZES
 
 #include <ratio>
+#include "scn/scn.h"
 #include "../meta/traits.h"
 #include "../util/typedefs.h"
+#include "../util/on_exit.h"
 
 namespace clt
 {
@@ -28,16 +30,19 @@ namespace clt
   /// @brief Gibibyte ratio
   using GibiByte  = std::ratio<1024 * 1024 * 1024, 1>;  
 
-  template<meta::StdRatio RatioT>
+  template<meta::StdRatio RatioT = B>
   /// @brief Class responsible of holding byte sizes
   /// @tparam RatioT The ratio to bytes
   struct byte_size
   {
     /// @brief The count of bytes / RatioT::num
-    u64 count;
+    u64 count = 0;
 
     /// @brief The ratio to byte of the size
     using ratio = RatioT;
+
+    /// @brief Constructs a size of 0
+    constexpr byte_size() noexcept = default;
 
     /// @brief Constructs a size from a count of RatioT
     /// @param count The size
@@ -172,5 +177,82 @@ namespace clt
   /// @return Gibibyte size
   constexpr byte_size<GiB> operator""_GiB(unsigned long long int i) noexcept { return byte_size<GiB>(i); }
 }
+
+template<>
+struct scn::scanner<clt::byte_size<clt::B>>
+  : scn::empty_parser
+{
+  template <typename Context>
+  error scan(clt::byte_size<clt::B>& val, Context& ctx)
+  {
+    using namespace clt;
+    
+    u64 count;
+    std::string_view str;
+    auto r = scn::scan(ctx.range(), "{}{}", count, str);
+    ON_SCOPE_EXIT{
+      ctx.range() = std::move(r.range());
+    };
+
+    if (!r)
+    {
+      if (r.error().code() == error::value_out_of_range)
+        return r.error();
+      return { r.error().code(), "Expected an integer followed by 'B', 'KiB', 'MiB', or 'GiB'." };
+    }
+    StringView strv = str;
+    if (strv.iequal("B"))
+    {
+      val = byte_size<B>{ count };
+      return { error::good, nullptr };
+    }
+    if (strv.iequal("KiB"))
+    {
+      if (count > 18'014'398'509'481'984)
+        return error::error(error::value_out_of_range, "Value too great to be representable as bytes!");
+      val = byte_size<KiB>{ count };
+      return { error::good, nullptr };
+    }
+    if (strv.iequal("MiB"))
+    {
+      if (count > 17'592'186'044'416)
+        return { error::value_out_of_range, "Value too great to be representable as bytes!" };
+      val = byte_size<MiB>{ count };
+      return { error::good, nullptr };
+    }
+    if (strv.iequal("GiB"))
+    {
+      if (count > 17'179'869'184)
+        return { error::value_out_of_range, "Value too great to be representable as bytes!" };
+      val = byte_size<GiB>{ count };
+      return { error::good, nullptr };
+    }
+    return { error::invalid_scanned_value, "Expected 'B', 'KiB', 'MiB', or 'GiB'." };
+  }
+};
+
+template<>
+struct fmt::formatter<clt::byte_size<clt::Byte>>
+{
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    assert_true("Possible format for byte_size is: {}!", ctx.begin() == ctx.end());
+    return ctx.begin();
+  }
+
+  template<typename FormatContext>
+  auto format(const clt::byte_size<clt::Byte>& vec, FormatContext& ctx)
+  {
+    using namespace clt;
+    if (vec.count % GiB::num == 0)
+      return fmt::format_to(ctx.out(), "{}GiB", vec.count / GiB::num);
+    if (vec.count % MiB::num == 0)
+      return fmt::format_to(ctx.out(), "{}MiB", vec.count / MiB::num);
+    if (vec.count % KiB::num == 0)
+      return fmt::format_to(ctx.out(), "{}KiB", vec.count / KiB::num);
+    return fmt::format_to(ctx.out(), "{}B", vec.count);
+  }
+};
 
 #endif //!HG_COLT_SIZES
