@@ -11,12 +11,6 @@
 #include "../refl/enum.h"
 #include "../str/parse.h"
 
-DECLARE_ENUM_WITH_TYPE(u8, clt::io, IOError,
-  FILE_EOF,
-  FILE_ERROR,
-  INVALID_ENCODING
-);
-
 namespace clt
 {
   template<auto ALLOCATOR, StringEncoding ENCODING>
