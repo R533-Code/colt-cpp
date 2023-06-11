@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #Get the headers files and translation units
 file(GLOB_RECURSE ColtCppHeaders CONFIGURE_DEPENDS "include/*.h")
 file(GLOB_RECURSE ColtCppUnits CONFIGURE_DEPENDS "include/*.cpp")
-file(GLOB_RECURSE ColtCppUnitsT CONFIGURE_DEPENDS "test/*.cpp")
+# file(GLOB_RECURSE ColtCppUnitsT CONFIGURE_DEPENDS "test/*.cpp")
 
 message("")
 
@@ -19,35 +19,21 @@ message(STATUS "Importing {fmt}...")
 add_subdirectory("libraries/fmt")
 message(STATUS "Finished importing {fmt}!\n")
 
-add_executable(ColtCppTest
-    "${ColtCppHeaders}" "${ColtCppUnits}" "${ColtCppUnitsT}"
-)
-
 add_library(ColtCpp
-    "${ColtCppHeaders}" "${ColtCppUnits}" "${ColtCppUnitsT}"
-)
-
-target_link_libraries(
-    ColtCppTest scn::scn fmt::fmt
+    "${ColtCppHeaders}" "${ColtCppUnits}"
 )
 
 target_link_libraries(
     ColtCpp scn::scn fmt::fmt
 )
 
-if(MSVC)
-    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ColtCppTest)
-    target_compile_options(ColtCppTest PUBLIC
-      "/external:anglebrackets" "/external:W0" #To remove warnings from <files>
-      "/Zc:preprocessor" #Use conforming C++ preprocessor
-    )
-endif()
-
-target_include_directories(ColtCppTest PUBLIC
-  "include/"
-  "libraries/fmt/include"
-  "libraries/scnlib/include"
-)
+# if(MSVC)
+#     set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ColtCppTest)
+#     target_compile_options(ColtCppTest PUBLIC
+#       "/external:anglebrackets" "/external:W0" #To remove warnings from <files>
+#       "/Zc:preprocessor" #Use conforming C++ preprocessor
+#     )
+# endif()
 
 target_include_directories(ColtCpp PUBLIC
   "include/"
