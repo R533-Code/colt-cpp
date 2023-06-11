@@ -34,7 +34,7 @@ int main(int argc, char** argv)
       continue;
     }
 
-    io::print("The list is: {}\n{}, {}",
+    io::print_message("The list is: {}\n{}, {}",
       *Err,
       AB{ 10, 10, D{ 1.2} },
       refl::EntityKind::IS_BUILTIN
