@@ -20,11 +20,19 @@ add_subdirectory("libraries/fmt")
 message(STATUS "Finished importing {fmt}!\n")
 
 add_executable(ColtCppTest
-"${ColtCppHeaders}" "${ColtCppUnits}" "${ColtCppUnitsT}"
+    "${ColtCppHeaders}" "${ColtCppUnits}" "${ColtCppUnitsT}"
+)
+
+add_library(ColtCpp
+    "${ColtCppHeaders}" "${ColtCppUnits}" "${ColtCppUnitsT}"
 )
 
 target_link_libraries(
     ColtCppTest scn::scn fmt::fmt
+)
+
+target_link_libraries(
+    ColtCpp scn::scn fmt::fmt
 )
 
 if(MSVC)
@@ -36,6 +44,12 @@ if(MSVC)
 endif()
 
 target_include_directories(ColtCppTest PUBLIC
+  "include/"
+  "libraries/fmt/include"
+  "libraries/scnlib/include"
+)
+
+target_include_directories(ColtCpp PUBLIC
   "include/"
   "libraries/fmt/include"
   "libraries/scnlib/include"
