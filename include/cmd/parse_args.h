@@ -370,13 +370,14 @@ namespace clt::cl
       using ResultType = std::remove_cvref_t<std::remove_pointer_t<decltype(opt::location)>>;
       
       if constexpr (opt::location != nullptr)
-      {
-        //TODO: fix parsing
-      }
+        return clt::parse(strv, *opt::location);
+
       //Run callback if it exists.
       //The callback is only run if parsing was successful.
       if constexpr (opt::callback != nullptr)
         (*opt::callback)();
+
+      return clt::ParsingResult{};
     }
 
     template<typename opt>
@@ -385,13 +386,14 @@ namespace clt::cl
       using ResultType = std::remove_cvref_t<std::remove_pointer_t<decltype(opt::location)>>;
 
       if constexpr (opt::location != nullptr)
-      {
-        //TODO: fix parsing
-      }
+        return clt::parse(strv, *opt::location);
+
       //Run callback if it exists.
       //The callback is only run if parsing was successful.
       if constexpr (opt::callback != nullptr)
         (*opt::callback)();
+
+      return clt::ParsingResult{};
     }
 
     using parse_and_write_t = ParsingResult(*)(StringView) noexcept;

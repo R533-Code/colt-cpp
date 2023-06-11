@@ -26,7 +26,25 @@ namespace clt::io
     (void)getchar();
     toggle_echo();
     std::fputc('\n', stdout);
-  }  
+  }
+
+  template<typename... Args>
+  inline Expect<String, ParsingResult> getline(std::FILE* file, fmt_str<Args...> fmt, Args&&... args) noexcept
+  {
+    //Print the message...
+    print<"">(fmt, std::forward<Args>(args)...);
+    //Ask for input...
+    auto str = String::getLine(file);
+    if (str.is_error()) //FILE_EOF or FILE_ERROR or INVALID_ENCODING
+      return { Error, clt::details::IOError_to_ParsingResult(str.error()) };
+    return std::move(*str);
+  }
+
+  template<typename... Args>
+  inline Expect<String, ParsingResult> getline(fmt_str<Args...> fmt, Args&&... args) noexcept
+  {
+    return getline(stdin, fmt, std::forward<Args>(args)...);
+  }
 
   template<typename T = String, typename... Args> requires meta::Parsable<T>
   inline Expect<T, ParsingResult> input(std::FILE* file, fmt_str<Args...> fmt, Args&&... args) noexcept

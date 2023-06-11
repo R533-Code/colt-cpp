@@ -137,7 +137,7 @@ namespace clt
   template<meta::Parsable T>
   ParsingResult parse(StringView strv, T& value) noexcept
   {
-    return details::scn_error_to_ParsingResult(scn::scan_default(strv, value));
+    return details::scn_error_to_ParsingResult(scn::scan_default(strv, value).error());
   }
 
   template<meta::Parsable T>

@@ -175,8 +175,8 @@ namespace clt::iter
     } \
     static constexpr clt::iter::EnumIter<namespace_name::name, 0, name##_str.size() - 1> iter() noexcept { return {}; } \
   }; \
-  constexpr clt::reflect<namespace_name::name>::ArrayTable_t clt::reflect<namespace_name::name>::internal_map = clt::reflect<namespace_name::name>::get_array(); \
-  constexpr clt::reflect<namespace_name::name>::Map_t clt::reflect<namespace_name::name>::map =  {{ clt::reflect<namespace_name::name>::internal_map }}; \
+  inline constexpr clt::reflect<namespace_name::name>::ArrayTable_t clt::reflect<namespace_name::name>::internal_map = clt::reflect<namespace_name::name>::get_array(); \
+  inline constexpr clt::reflect<namespace_name::name>::Map_t clt::reflect<namespace_name::name>::map =  {{ clt::reflect<namespace_name::name>::internal_map }}; \
   template<> \
   struct clt::meta::is_reflectable<namespace_name::name> \
   { \
