@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #Get the headers files and translation units
 file(GLOB_RECURSE ColtCppHeaders CONFIGURE_DEPENDS "../include/*.h")
-file(GLOB_RECURSE ColtCppUnits CONFIGURE_DEPENDS "../include/*.cpp")
-file(GLOB_RECURSE ColtCppUnitsT CONFIGURE_DEPENDS "../test/*.cpp")
+file(GLOB_RECURSE ColtCppUnits   CONFIGURE_DEPENDS "../include/*.cpp")
+file(GLOB         ColtCppUnitsT  CONFIGURE_DEPENDS "../test/*.cpp")
 
 message("")
 
