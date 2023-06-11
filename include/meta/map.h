@@ -39,21 +39,29 @@ namespace clt::meta
     /// @return None if not found, else the value
     constexpr Option<Value> find(const Key& key) const
     {
-      u64 L = 0;
-      u64 R = Size - 1;
-      while (L <= R)
+      if constexpr (Size == 0)
+        return None;
+
+      u64 low = 0;
+      u64 high = Size - 1;
+      
+      while (low <= high)
       {
-        u64 m = std::midpoint(L, R);
-        if (data[m].first < key)
-          L = m + 1;
-        else if (data[m].first > key)
-          R = m - 1;
-        else
-          return data[m].second;
+        u64 middle = std::midpoint(low, high);
+        if (data[middle].first == key)
+          return data[middle].second;
+        if (data[middle].first > key)
+        {
+          if (middle == 0)
+            return None;
+          high = middle - 1;
+        }
+        else if (data[middle].first < key)
+          low = middle + 1;
       }
+
       return None;
     }
-
   };
 }
 
