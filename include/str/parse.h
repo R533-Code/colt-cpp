@@ -133,6 +133,18 @@ namespace clt
       }
     }
   }
+
+  template<meta::Parsable T>
+  ParsingResult parse(StringView strv, T& value) noexcept
+  {
+    return details::scn_error_to_ParsingResult(scn::scan_default(strv, value));
+  }
+
+  template<meta::Parsable T>
+  ParsingResult parse(StringView strv, StringView fmt, T& value) noexcept
+  {
+    return details::scn_error_to_ParsingResult(scn::scan(strv, fmt, value));
+  }
 }
 
 template<>
