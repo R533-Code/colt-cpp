@@ -46,7 +46,7 @@ namespace clt
     };
 
     /// @brief Table of all the characters information
-    constexpr u8 CHAR_INFO_TABLE[] =
+    constexpr u8 CHAR_INFO_TABLE[256] =
     { 
       0b00000001, //[NULL]
       0b00000001, //[START OF HEADING]
