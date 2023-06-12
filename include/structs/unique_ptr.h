@@ -21,7 +21,7 @@ namespace clt
     mem::MemBlock blk = {};
 
   public:
-    template<typename, auto ALL> requires meta::AllocatorScope<ALL>
+    template<typename U, auto ALL> requires meta::AllocatorScope<ALL>
     friend class UniquePtr;
 
     //Non-copyable
