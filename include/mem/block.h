@@ -101,6 +101,70 @@ namespace clt::mem
     }
   };
 
+  template<typename T> requires (!std::is_array_v<T>)
+  class TypedBlock
+  {
+    /// @brief Pointer to the block
+    T* blk_ptr = nullptr;
+    /// @brief Number of objects in the block
+    size_t blk_count = 0;
+
+  public:
+    constexpr TypedBlock() noexcept = default;
+
+    /// @brief Constructs a TypedBlock over a pointer and a size
+    /// @param ptr The pointer to the memory block
+    /// @param size The size of the memory block pointed by 'ptr'
+    constexpr TypedBlock(void* ptr, size_t size) noexcept
+      : blk_ptr(static_cast<T*>(ptr)), blk_count((size* static_cast<u64>(ptr != nullptr)) / sizeof(T)) {}
+
+    /// @brief Constructs a TypedBlock over a MemBlock
+    /// @param blk The MemBlock
+    constexpr TypedBlock(MemBlock blk) noexcept
+      : blk_ptr(static_cast<T*>(blk.ptr())), blk_count(blk.size().to_bytes() / sizeof(T)) {}
+
+    /// @brief Check if the block is empty (get_ptr() == nullptr)
+    /// @return True if the block is empty
+    constexpr bool is_empty() const noexcept { return blk_ptr == nullptr; }
+
+    /// @brief Implicitly converts a block to a boolean, like a pointer
+    /// @return True if the block is not empty
+    constexpr explicit operator bool() const noexcept { return blk_ptr != nullptr; }
+    /// @brief Implicitly converts a block to a boolean, like a pointer
+    /// @return True if the block is empty
+    constexpr bool operator!() const noexcept { return blk_ptr == nullptr; }
+
+    /// @brief Dereferences the pointer to the memory block
+    /// @return Const reference to the type of the block
+    constexpr const T& operator*() const noexcept { return *blk_ptr; }
+    /// @brief Dereferences the pointer to the memory block
+    /// @return Reference to the type of the block
+    constexpr T& operator*() noexcept { return *blk_ptr; }
+
+    /// @brief Dereferences the pointer to the memory block
+    /// @return Const reference to the type of the block
+    constexpr const T& operator->() const noexcept { return *blk_ptr; }
+    /// @brief Dereferences the pointer to the memory block
+    /// @return Reference to the type of the block
+    constexpr T& operator->() noexcept { return *blk_ptr; }
+
+    /// @brief Get the pointer to the block
+    /// @return Const pointer to the type of the block
+    constexpr const T* ptr() const noexcept { return blk_ptr; }
+    /// @brief Get the pointer to the block
+    /// @return Pointer to the type of the block
+    constexpr T* ptr() noexcept { return blk_ptr; }
+
+    /// @brief Returns the count of objects in the block
+    /// @return The count of objects
+    constexpr size_t size() const noexcept { return blk_count; }
+
+    /// @brief Convert a TypedBlock to a MemBlock
+    /// @return MemBlock
+    constexpr operator MemBlock() const noexcept { return MemBlock{ static_cast<void*>(blk_ptr), blk_count * sizeof(T) }; }
+
+  };
+
   /// @brief Represents an empty block
   inline constexpr MemBlock nullblk = MemBlock{ nullptr, 0 };  
 
@@ -160,6 +224,22 @@ namespace clt
       return seed;
     }
   };
+
+  template<typename T>
+  /// @brief clt::hash overload for MemBlock
+  struct hash<mem::TypedBlock<T>>
+  {
+    /// @brief Hashing operator
+    /// @param pair The value to hash
+    /// @return Hash
+    constexpr size_t operator()(const clt::mem::TypedBlock<T>& pair) const noexcept
+    {
+      size_t seed = 0xCBF29CE484222325;
+      seed = HashCombine(seed, GetHash(pair.ptr()));
+      seed = HashCombine(seed, GetHash(pair.size().to_bytes()));
+      return seed;
+    }
+  };
 }
 
 template<>
@@ -168,12 +248,29 @@ struct fmt::formatter<clt::mem::MemBlock>
   template<typename ParseContext>
   constexpr auto parse(ParseContext& ctx)
   {
-    assert_true("Possible format for byte_size is: {}!", ctx.begin() == ctx.end());
+    assert_true("Possible format for MemBlock is: {}!", ctx.begin() == ctx.end());
     return ctx.begin();
   }
 
   template<typename FormatContext>
   auto format(const clt::mem::MemBlock& vec, FormatContext& ctx)
+  {
+    return fmt::format_to(ctx.out(), "{{ {}, {} }}", vec.ptr(), vec.size());
+  }
+};
+
+template<typename T>
+struct fmt::formatter<clt::mem::TypedBlock<T>>
+{
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    assert_true("Possible format for MemBlock is: {}!", ctx.begin() == ctx.end());
+    return ctx.begin();
+  }
+
+  template<typename FormatContext>
+  auto format(const clt::mem::TypedBlock<T>& vec, FormatContext& ctx)
   {
     return fmt::format_to(ctx.out(), "{{ {}, {} }}", vec.ptr(), vec.size());
   }
