@@ -23,6 +23,15 @@ int main(int argc, char** argv)
 {
   clt::install_colt_handlers();
   
+  clt::Map<u64, StringView> map;
+  map.insert(0, "Zero");
+  map.insert(1, "One");
+  map.insert(2, "Two");
+  map.insert(3, "Three");
+  map.erase(2);
+
+  io::print_message("Map: {}", map);
+
   while (true)
   {
     auto Err = io::input<FlatList<u32>>("Enter a list: ");
