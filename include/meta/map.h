@@ -2,8 +2,8 @@
 * Contains ConstexprMap.
 */
 
-#ifndef HG_COLT_MAP
-#define HG_COLT_MAP
+#ifndef HG_COLT_CONSTEXPR_MAP
+#define HG_COLT_CONSTEXPR_MAP
 
 #include <algorithm>
 #include <utility>
@@ -65,4 +65,4 @@ namespace clt::meta
   };
 }
 
-#endif //!HG_COLT_MAP
+#endif //!HG_COLT_CONSTEXPR_MAP
