@@ -189,7 +189,7 @@ struct fmt::formatter<clt::String>
   {
     auto it = ctx.begin();
     auto end = ctx.end();
-    assert_true("Possible format for StringView is: {}!", it == end);
+    assert_true("Possible format for String is: {}!", it == end);
     return it;
   }
 
