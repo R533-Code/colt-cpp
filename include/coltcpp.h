@@ -19,7 +19,6 @@
 #include "meta/rtti.h"
 #include "meta/string_literal.h"
 #include "meta/traits.h"
-#include "meta/type_list.h"
 
 #include "structs/string_view.h"
 #include "structs/vector.h"
@@ -30,6 +29,7 @@
 #include "structs/option.h"
 #include "structs/list.h"
 #include "structs/set.h"
+#include "structs/map.h"
 
 #include "str/distance.h"
 #include "str/distance.h"
