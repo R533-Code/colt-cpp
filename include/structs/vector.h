@@ -148,9 +148,10 @@ namespace clt
     /// @param list The initializer list
     constexpr Vector(AllocT& alloc, std::initializer_list<T> list)
       noexcept(std::is_nothrow_copy_constructible_v<T>)
-      : allocator(alloc), blk_size(std::size(list))
+      : allocator(alloc)
     {
       reserve_obj(std::size(list));
+      blk_size = std::size(list);
       details::contiguous_copy(std::data(list), blk_ptr, blk_size);
     }
 
@@ -158,9 +159,9 @@ namespace clt
     /// @param list The initializer list
     constexpr Vector(std::initializer_list<T> list)
       noexcept(std::is_nothrow_copy_constructible_v<T>) requires is_global
-      : blk_size(std::size(list))
     {
       reserve_obj(std::size(list));
+      blk_size = std::size(list);
       details::contiguous_copy(std::data(list), blk_ptr, blk_size);
     }
 
