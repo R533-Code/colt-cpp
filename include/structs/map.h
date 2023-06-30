@@ -32,7 +32,7 @@ namespace clt
 
   private:
     /// @brief Contains meta-data information about the slots of the map
-    Vector<details::KeySentinel> sentinel_metadata = {};
+    Vector<details::KeySentinel, ALLOCATOR> sentinel_metadata;
     /// @brief Memory block of the key/value pair
     mem::TypedBlock<Slot> slots = {};
     /// @brief The count of active objects in the container
@@ -133,7 +133,9 @@ namespace clt
     /// @brief Constructs an empty Map, of load factor 0.7
     /// @param alloc The local allocator to make use of
     constexpr Map(Allocator& alloc, float load_factor = 0.70f) noexcept requires is_local
-      : allocator(alloc), Map{ load_factor } {}
+      : allocator(alloc), sentinel_metadata(alloc, 16, InPlace, details::EMPTY)
+      , slots(allocator.alloc(16 * sizeof(Slot)))
+      , load_factor(load_factor) {}
 
     /// @brief Constructs a Map of load factor 0.7, reserving memory for 'reserve_size' objects
     /// @param reserve_size The count of object to reserve for
@@ -148,7 +150,9 @@ namespace clt
     /// @brief Constructs a Map of load factor 0.7, reserving memory for 'reserve_size' objects
     /// @param reserve_size The count of object to reserve for
     constexpr Map(Allocator& alloc, size_t reserve_size, float load_factor = 0.70f) noexcept requires is_local
-      : allocator(alloc), Map{ reserve_size, load_factor } {}
+      : allocator(alloc), sentinel_metadata(alloc, reserve_size, InPlace, details::EMPTY)
+      , slots(allocator.alloc(reserve_size * sizeof(Slot)))
+      , load_factor(load_factor) {}
 
     constexpr Map(const Map&) = delete;
 
