@@ -70,6 +70,16 @@ namespace clt
     /// @return True if the size of the view is 0
     constexpr bool is_empty() const noexcept { return _count == 0; }
 
+    constexpr bool contains(ref_or_copy obj) const noexcept
+    {
+      for (size_t i = 0; i < _count; i++)
+      {
+        if (_begin_ptr[i] == obj)
+          return true;
+      }
+      return false;
+    }
+
     /// @brief Get the front of the view.
     /// @return The first item of the view
     constexpr ref_or_copy front() const noexcept

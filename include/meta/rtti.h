@@ -40,15 +40,15 @@ namespace clt
   /// @param from The pointer to try cast
   /// @return A valid pointer or nullptr if 'from' is not a 'To'
   [[nodiscard]]
-  constexpr meta::match_cv_t<From, std::remove_pointer_t<From>>* dyn_cast(From* from) noexcept
+  constexpr std::add_pointer_t<meta::match_cv_t<From, std::remove_pointer_t<To>>> dyn_cast(From* from) noexcept
   COLT_PRE(from != nullptr)
   {
     // Pointer Type to cast to (with const matching const of from)
-    using ToP = std::conditional_t<std::is_pointer_v<To>, meta::match_cv_t<From, std::remove_pointer_t<To>>*, meta::match_cv_t<From, To>*>;
+    using ToP = std::add_pointer_t<meta::match_cv_t<From, std::remove_pointer_t<To>>>;
     // Type to cast to (without pointer)
     using ToN = std::remove_pointer_t<ToP>;
     if (from->classof() != ToN::classof_v)
-      return nullptr;
+      return static_cast<ToP>(nullptr);
     return static_cast<ToP>(from);
   }
   COLT_POST();
@@ -63,10 +63,8 @@ namespace clt
   constexpr bool is_a(From* from) noexcept
   COLT_PRE(from != nullptr)
   {
-    // Pointer Type to cast to (with const matching const of from)
-    using ToP = std::conditional_t<std::is_pointer_v<To>, meta::match_cv_t<From, std::remove_pointer_t<To>>*, meta::match_cv_t<From, To>*>;
     // Type to cast to (without pointer)
-    using ToN = std::remove_pointer_t<ToP>;
+    using ToN = meta::match_cv_t<From, std::remove_pointer_t<To>>;
     return from->classof() == ToN::classof_v;
   }
   COLT_POST();

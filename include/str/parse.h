@@ -100,11 +100,11 @@ namespace clt
   {
     constexpr ParsingResult scn_error_to_ParsingResult(scn::error code) noexcept
     {
+      using enum clt::ParsingCode;
       switch (code.code())
       {
-        using enum clt::ParsingCode;
       case scn::error::good:
-        return { GOOD, code.msg() };
+        return { GOOD, "No errors." };
       case scn::error::end_of_range:
         return { EXPECTED_MORE, code.msg() };
       case scn::error::invalid_scanned_value:
