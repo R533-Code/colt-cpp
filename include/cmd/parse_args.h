@@ -360,7 +360,7 @@ namespace clt::cl
     /// @return Maximum count of chars
     consteval u64 max_desc_size(meta::type_list<Args...> list) noexcept
     {
-      return clt::max({ Args::value_desc.size()..., 2ULL }) + 2ULL;
+      return clt::max({ Args::value_desc.size()..., static_cast<size_t>(2) }) + 2ULL;
     }
 
 
