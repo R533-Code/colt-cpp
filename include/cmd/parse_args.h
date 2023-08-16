@@ -360,7 +360,7 @@ namespace clt::cl
     /// @return Maximum count of chars
     consteval u64 max_desc_size(meta::type_list<Args...> list) noexcept
     {
-      return clt::max({ Args::value_desc.size()... });
+      return clt::max({ Args::value_desc.size()..., 2ULL }) + 2ULL;
     }
 
 
@@ -401,7 +401,7 @@ namespace clt::cl
     template<typename... Args>
     consteval auto generate_opt_table(meta::type_list<Args...> list) noexcept
     {
-      using pair_t = std::pair<StringView, parse_and_write_t>;
+      using pair_t = std::pair<StringView, std::pair<bool, parse_and_write_t>>;
 
       constexpr u64 opt_size = opt_count(list);
       //unfiltered_array contains a pair of StringView mapping to
@@ -412,8 +412,8 @@ namespace clt::cl
       //by the used), we also expand them, but need another array that will
       //only hold pairs of alias that are not empty.
       std::array<pair_t, opt_size * 2> unfiltered_array = {
-        pair_t{ Args::name, &parse_opt<Args>}...,
-        pair_t{ Args::alias, &parse_opt<Args>}...
+        pair_t{ Args::name, { Args::location == nullptr, &parse_opt<Args>} }...,
+        pair_t{ Args::alias, { Args::location == nullptr, &parse_opt<Args>} }...
       };
       //Final array that will hold non-empty Keys
       std::array<pair_t, opt_and_alias_count(list)> array;
@@ -455,7 +455,7 @@ namespace clt::cl
       if constexpr (Arg::value_desc.is_empty())
         io::print<"">("{: <{}}", "", max_desc);
       else
-        io::print<"">("{}<{}>{}{: <{}}", io::BrightMagentaF, Arg::value_desc.data(), io::Reset, "", max_desc - Arg::value_desc.size());
+        io::print<"">("{}<{}>{}{: <{}}", io::BrightMagentaF, Arg::value_desc.data(), io::Reset, "", max_desc - Arg::value_desc.size() - 2);
 
       if constexpr (Arg::desc.is_empty())
         io::print("");
@@ -493,7 +493,7 @@ namespace clt::cl
       //Print commands in format -NAME <VALUE_DESC> - DESC aligning all options.
       (print_help_for_arg<Args>(max_size, max_desc), ...);
       //Print help command description
-      io::print("   -{}{: <{}}{}{: <{}}  - {}", io::BrightCyanF, "help", max_size, io::Reset, "", max_desc + 2, "Display available options");
+      io::print("   -{}{: <{}}{}{: <{}}  - {}", io::BrightCyanF, "help", max_size, io::Reset, "", max_desc, "Display available options");
       std::exit(0);
     }
 
@@ -504,6 +504,12 @@ namespace clt::cl
       to_parse = to_parse.substr(0, equal_index);
       if (auto opt = CONST_MAP.find(to_parse))
       {
+        if ((*opt).first == true)
+        {
+          (*(*opt).second)({});
+          return;
+        }
+        
         //not enough arguments...
         if (i == argc - 1)
         {
@@ -511,7 +517,7 @@ namespace clt::cl
           std::exit(1);
         }
         //invoke callback...
-        ParsingResult err = (**opt)(argv[++i]);
+        ParsingResult err = (*(*opt).second)(argv[++i]);
         if (err != ParsingCode::GOOD)
         {
           io::print_error("Invalid argument for '{}' option ({:h})!", arg, err);
