@@ -19,9 +19,23 @@ struct AB
 };
 COLT_DECLARE_TYPE(AB, a, b, d);
 
+bool WaitForUserInput = true;
+
+using CMDs = meta::type_list<
+    cl::Opt<"nocolor", cl::desc<"Turns off colored output">,// cl::value_desc<"Waw!">,
+      cl::callback<[]() { clt::io::OutputColor = false; }>>,
+    
+    cl::Opt<"nowait", cl::desc<"Do not wait for user input">,
+      cl::callback<[]() { WaitForUserInput = false; }>>,
+
+    cl::Opt<"v", cl::desc<"Prints the version of the compiler">, cl::alias<"ve">,
+      cl::callback<[]() { io::print("COLT"); std::exit(0); }>>
+  >;
+
 int main(int argc, char** argv)
 {
   clt::install_colt_handlers();
+  cl::parse_command_line_options<CMDs>(argc, argv);
   
   clt::Map<u64, StringView> map;
   map.insert(0, "Zero");
