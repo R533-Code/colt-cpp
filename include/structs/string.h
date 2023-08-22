@@ -64,6 +64,23 @@ namespace clt
       return StringView{ this->begin(), this->end() };
     }
 
+    /// @brief Pushes a StringView at the end of the String
+    /// @param strv The StringView to push back
+    constexpr BasicString& push_back(StringView strv) noexcept
+    {
+      for (auto i : strv)
+        BasicString::UnderlyingVector::push_back(i);
+      return *this;
+    }
+
+    /// @brief Pushes a character at the end of the String
+    /// @param i The character to push back
+    constexpr BasicString& push_back(char i) noexcept
+    {
+      BasicString::UnderlyingVector::push_back(i);
+      return *this;
+    }
+
     /// @brief Gets a line from a file.
     /// The resulting BasicString is not NUL terminated, and does not contain the new line.
     /// FILE_EOF and FILE_ERROR is only returned if no characters were read.
