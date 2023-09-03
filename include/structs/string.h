@@ -75,9 +75,10 @@ namespace clt
 
     /// @brief Pushes a character at the end of the String
     /// @param i The character to push back
-    constexpr BasicString& push_back(char i) noexcept
+    constexpr BasicString& push_back(char i, u64 repeat = 1) noexcept
     {
-      BasicString::UnderlyingVector::push_back(i);
+      for (size_t z = 0; z < repeat; z++)
+        BasicString::UnderlyingVector::push_back(i);
       return *this;
     }
 
@@ -138,6 +139,40 @@ namespace clt
     static Expect<BasicString, io::IOError> getLine(u64 reserve = 64, bool strip_front = true) noexcept
     {
       return getLine(stdin, reserve, strip_front);
+    }
+
+    static Expect<BasicString, io::IOError> getFile(const char* name) noexcept
+    {
+      BasicString str;
+
+      FILE* file = fopen(name, "rb");
+      
+      ON_SCOPE_EXIT
+      {
+        if (file != nullptr)
+          fclose(file);
+      };
+
+      if (file == nullptr)
+        return { Error, io::IOError::FILE_ERROR };
+      if (fseek(file, 0L, SEEK_END) != 0)
+        return { Error, io::IOError::FILE_ERROR };
+      auto sz = ftell(file);
+      if (sz == -1)
+        return { Error, io::IOError::FILE_ERROR };
+      rewind(file);
+
+      str.reserve(sz);
+      if (fread(str.data(), sizeof(char), sz, file) != sz)
+        return { Error, io::IOError::FILE_ERROR };
+
+      for (auto i : str)
+      {
+        if (static_cast<unsigned char>(i) > 127)
+          return { Error, io::IOError::INVALID_ENCODING };
+      }
+      str._Unsafe_size(sz);
+      return str;
     }
 
     /// @brief Check if every object of v1 and v2 are equal

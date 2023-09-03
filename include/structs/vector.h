@@ -387,6 +387,13 @@ namespace clt
     /// @return Iterator to the end of the Vector
     constexpr const T* end() const noexcept { return blk_ptr + blk_size; }
 
+    /// @brief Unsafe, changes the size to 'size'
+    /// @param size The new size
+    constexpr void _Unsafe_size(size_t size) noexcept
+    {
+      blk_size = size;
+    }
+
     /// @brief Converts a Vector to a View
     /// @return View over the whole Vector
     constexpr operator View<T>() const noexcept
