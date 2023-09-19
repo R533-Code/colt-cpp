@@ -171,10 +171,11 @@ namespace clt
     /// @return 
     constexpr Vector(const Vector& to_copy)
       noexcept(std::is_nothrow_copy_constructible_v<T>)
-      : allocator(to_copy.allocator), blk_size(to_copy.blk_size)
+      : allocator(to_copy.allocator)
     {
       reserve_obj(to_copy.blk_capacity);
       details::contiguous_copy(to_copy.blk_ptr, blk_ptr, to_copy.blk_size);
+      blk_size = to_copy.blk_size;
     }
     
     /// @brief Destroy the active objects and copy the content from 'to_copy'.
