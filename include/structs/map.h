@@ -379,7 +379,7 @@ namespace clt
     {
       if (Slot* ptr = find(key))
       {
-        size_t index = (slots.ptr() + slots.size()) - ptr;
+        size_t index = ptr - slots.ptr();
         sentinel_metadata[index] = details::DELETED; //set the sentinel to deleted
         ptr->~Slot(); //destroy the key/value pair
         //Update size
