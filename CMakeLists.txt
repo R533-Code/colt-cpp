@@ -22,14 +22,14 @@ add_library(colt_helper STATIC ${ColtHeaders} ${ColtUnits})
 target_compile_definitions(
   colt_helper PRIVATE $<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
 )
-
-# Define COLT_DEBUG_BUILD for debug config
 target_compile_definitions(
   colt_helper_test PRIVATE $<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
 )
 
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT colt_helper_test)
+target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/include/")
+target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/include")
 
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT colt_helper_test)
 message(STATUS "Setting up libraries...")
 
 ###########################
@@ -48,6 +48,12 @@ target_link_libraries(colt_helper PUBLIC scn::scn)
 target_link_libraries(colt_helper_test PUBLIC scn::scn)
 ###########################
 
+###########################
+# Add gcem
+message(STATUS "Adding 'gcem'...")
+target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/gcem/include")
+target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/gcem/include")
+###########################
 
 ###########################
 # Catch2
