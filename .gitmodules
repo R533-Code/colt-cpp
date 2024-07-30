@@ -1,0 +1,33 @@
+[submodule "libraries/fmt"]
+	path = libraries/fmt
+	url = https://github.com/fmtlib/fmt
+[submodule "libraries/date"]
+	path = libraries/date
+	url = https://github.com/HowardHinnant/date
+[submodule "libraries/gmp"]
+	path = libraries/gmp
+	url = https://github.com/gmp-mirror/gmp.git
+[submodule "libraries/scnlib"]
+	path = libraries/scnlib
+	url = https://github.com/eliaskosunen/scnlib
+[submodule "libraries/fast_float"]
+	path = libraries/fast_float
+	url = https://github.com/fastfloat/fast_float
+[submodule "libraries/utfcpp"]
+	path = libraries/utfcpp
+	url = https://github.com/nemtrif/utfcpp.git
+[submodule "libraries/gcem"]
+	path = libraries/gcem
+	url = https://github.com/kthohr/gcem.git
+[submodule "libraries/zpp_bits"]
+	path = libraries/zpp_bits
+	url = https://github.com/eyalz800/zpp_bits
+[submodule "libraries/compile-time-regular-expressions"]
+	path = libraries/compile-time-regular-expressions
+	url = https://github.com/hanickadot/compile-time-regular-expressions
+[submodule "libraries/cpr"]
+	path = libraries/cpr
+	url = https://github.com/libcpr/cpr
+[submodule "libraries/fast_io"]
+	path = libraries/fast_io
+	url = https://github.com/cppfastio/fast_io
