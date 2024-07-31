@@ -89,6 +89,11 @@ include(Catch)
 catch_discover_tests(colt_helper_test)
 ###########################
 
+#########################################
+# COLT CONFIG
+#########################################
+
+message(STATUS "Configuring 'config.h'...")
 
 include(TestBigEndian)
 test_big_endian(IMPL_COLT_IS_BIG_ENDIAN)
@@ -125,3 +130,8 @@ elseif(UNIX AND NOT APPLE) #LINUX
 else()
   set(IMPL_COLT_OS_STRING "UNKNOWN")
 endif()
+
+configure_file("${CMAKE_SOURCE_DIR}/resources/cmake_colt_config.in"
+  "${CMAKE_SOURCE_DIR}/include/colt/macro/config.h")
+
+message(STATUS "Finished configuring 'config.h'!")
