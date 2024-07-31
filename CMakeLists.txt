@@ -63,6 +63,20 @@ target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/
 ###########################
 
 ###########################
+# Add ctre
+message(STATUS "Adding 'ctre'...")
+target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/compile-time-regular-expressions/include")
+target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/compile-time-regular-expressions/include")
+###########################
+
+###########################
+# Add date
+message(STATUS "Adding 'date'...")
+target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/date/include")
+target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/date/include")
+###########################
+
+###########################
 # Catch2
 message(STATUS "Adding 'Catch2'...")
 target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/Catch2")
