@@ -25,9 +25,6 @@
 [submodule "libraries/compile-time-regular-expressions"]
 	path = libraries/compile-time-regular-expressions
 	url = https://github.com/hanickadot/compile-time-regular-expressions
-[submodule "libraries/cpr"]
-	path = libraries/cpr
-	url = https://github.com/libcpr/cpr
 [submodule "libraries/fast_io"]
 	path = libraries/fast_io
 	url = https://github.com/cppfastio/fast_io
