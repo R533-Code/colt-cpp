@@ -161,6 +161,26 @@ namespace clt::num
       return a != 0 && cast / a != b;
     }
   }
+
+  /// @brief Computes the product of two numbers, and returns true on overflow.
+  /// If 'b' is zero, this function will still perform the division.
+  /// The only case where an overflow can happen is for signed division
+  /// of std::numeric_limits<T>::min() and -1.
+  /// @tparam T The integer type
+  /// @param a The first integer
+  /// @param b The second integer
+  /// @param result The result to which to write
+  /// @return True on overflow
+  template<std::integral T>
+  constexpr bool checked_div(T a, T b, T* result) noexcept
+  {
+    static_assert(sizeof(T) <= 8);
+    *result = a / b;
+    if constexpr (std::is_signed_v<T>)
+      return (a == std::numeric_limits<T>::min() && b == -1)
+             || (b == std::numeric_limits<T>::min() && a == -1);
+    return false;
+  }
 } // namespace clt::num
 
 #endif // !HG_NUM_CHECK_OVERFLOW
