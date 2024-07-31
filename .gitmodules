@@ -34,3 +34,6 @@
 [submodule "libraries/Catch2"]
 	path = libraries/Catch2
 	url = https://github.com/catchorg/Catch2
+[submodule "libraries/hedley"]
+	path = libraries/hedley
+	url = https://github.com/nemequ/hedley.git
