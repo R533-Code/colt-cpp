@@ -67,7 +67,7 @@ namespace clt::meta
   };
 
   template<typename Key, typename Value, std::size_t Size>
-  /// @brief constexpr Map for compile-time lookups
+  /// @brief constexpr BiMap for compile-time lookups
   /// @tparam Key The Key type
   /// @tparam Value The Value type
   struct BiMap
