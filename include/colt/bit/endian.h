@@ -19,14 +19,14 @@
 namespace clt::bit
 {
   /// @brief The target endianness
-  enum class TargetEndian
+  enum class TargetEndian : std::underlying_type_t<std::endian>
   {
     /// @brief Represents a little endian architecture
-    little = std::endian::little,
+    little = (std::underlying_type_t<std::endian>)std::endian::little,
     /// @brief Represents a big endian architecture
-    big = std::endian::big,
+    big = (std::underlying_type_t<std::endian>)std::endian::big,
     /// @brief Represents the native target architecture
-    native = std::endian::native
+    native = (std::underlying_type_t<std::endian>)std::endian::native
   };  
 
   /// @brief Swaps the bytes of an integer (opposite endianness).
