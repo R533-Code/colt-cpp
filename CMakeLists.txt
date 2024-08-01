@@ -26,6 +26,13 @@ target_compile_definitions(
   colt_helper_test PRIVATE $<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
 )
 
+target_compile_options(
+  colt_helper PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>)
+
+target_compile_options(
+  colt_helper_test PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>
+)
+
 target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/include/")
 target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/include")
 
