@@ -11,6 +11,7 @@
 #include "colt/macro/macro.h"
 #include "colt/io/print.h"
 #include <hedley.h>
+#include <source_location>
 
 namespace clt
 {
