@@ -321,7 +321,8 @@ namespace clt
     // AND THEN
     /********************************/
 
-    template<typename F> requires std::invocable<F>
+    template<typename F>
+      requires std::invocable<F, T&>
     constexpr auto and_then(F&& f) &
     {
       if (*this)
@@ -330,7 +331,8 @@ namespace clt
         return std::remove_cvref_t<std::invoke_result_t<F, T&>>{};
     }
 
-    template<typename F> requires std::invocable<F>
+    template<typename F>
+      requires std::invocable<F, T&>
     constexpr auto and_then(F&& f) const&
     {
       if (*this)
@@ -340,7 +342,7 @@ namespace clt
     }
 
     template<typename F>
-      requires std::invocable<F>
+      requires std::invocable<F, T>
     constexpr auto and_then(F&& f) &&
     {
       if (*this)
@@ -350,14 +352,13 @@ namespace clt
     }
 
     template<typename F>
-      requires std::invocable<F>
+      requires std::invocable<F, const T>
     constexpr auto and_then(F&& f) const&&
     {
-      using U = std::remove_cvref_t<std::invoke_result_t<F, const T>>;
       if (*this)
-        return Option<U>(InPlace, std::invoke(std::forward<F>(f), std::move(**this)));
+        return std::invoke(std::forward<F>(f), std::move(**this));
       else
-        return Option<U>{};
+        return std::remove_cvref_t<std::invoke_result_t<F, const T>>{};
     }
 
     /********************************/
@@ -365,7 +366,7 @@ namespace clt
     /********************************/
 
     template<typename F>
-      requires std::invocable<F>
+      requires std::invocable<F, T&>
     constexpr auto map(F&& f) &
     {
       using U = std::remove_cv_t<std::invoke_result_t<F, T&>>;
@@ -376,7 +377,7 @@ namespace clt
     }
 
     template<typename F>
-      requires std::invocable<F>
+      requires std::invocable<F, const T&>
     constexpr auto map(F&& f) const&
     {
       using U = std::remove_cv_t<std::invoke_result_t<F, const T&>>;
@@ -387,7 +388,7 @@ namespace clt
     }
 
     template<typename F>
-      requires std::invocable<F>
+      requires std::invocable<F, T>
     constexpr auto map(F&& f) &&
     {
       using U = std::remove_cv_t<std::invoke_result_t<F, T>>;
@@ -398,7 +399,7 @@ namespace clt
     }
 
     template<typename F>
-      requires std::invocable<F>
+      requires std::invocable<F, const T>
     constexpr auto map(F&& f) const&&
     {
       using U = std::remove_cv_t<std::invoke_result_t<F, const T>>;
