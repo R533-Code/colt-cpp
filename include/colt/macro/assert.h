@@ -1,8 +1,38 @@
+/*****************************************************************/ /**
+ * @file   assert.h
+ * @brief  Contains 'assert_true', 'unreachable' and 'switch_no_default'.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_MACRO_ASSERT
 #define HG_MACRO_ASSERT
 
 #include "colt/macro/macro.h"
 #include "colt/io/print.h"
+#include <hedley.h>
+
+namespace clt
+{
+  [[noreturn]]
+  /// @brief Marks a branch as unreachable, printing an error on Debug build
+  /// @param error The error message
+  /// @param src The source code information
+  inline void
+      unreachable(
+          const char* error,
+          std::source_location src = std::source_location::current())
+  {
+    HEDLEY_UNREACHABLE();
+    if constexpr (is_debug_build())
+    {
+      io::print_fatal(
+          "Unreachable branch hit in function '{}' (line {}) in file:\n'{}'\n{}",
+          src.function_name(), src.line(), src.file_name(), error);
+    }
+    debug_break();
+  }
+} // namespace clt
 
 namespace clt::details
 {
@@ -70,27 +100,27 @@ namespace clt::details
   }
 } // namespace clt::details
 
-  /// @brief Helper for transforming assertions into strings and their evaluated value
-  #define __DETAILS__COLT_TO_ASSERTION(expr) \
-    , clt::details::Assertion                \
-    {                                        \
-      #expr, (expr)                          \
-    }
+/// @brief Helper for transforming assertions into strings and their evaluated value
+#define __DETAILS__COLT_TO_ASSERTION(expr) \
+  , clt::details::Assertion                \
+  {                                        \
+    #expr, (expr)                          \
+  }
 
-  /// @brief Asserts that all condition are true
-  #define assert_true(MESSAGE, COND, ...)                                           \
-    clt::details::assert_true_multiple(                                             \
-        MESSAGE, std::source_location::current() __DETAILS__COLT_TO_ASSERTION(COND) \
-                     COLT_FOR_EACH(__DETAILS__COLT_TO_ASSERTION, __VA_ARGS__))
+/// @brief Asserts that all condition are true
+#define assert_true(MESSAGE, COND, ...)                                           \
+  clt::details::assert_true_multiple(                                             \
+      MESSAGE, std::source_location::current() __DETAILS__COLT_TO_ASSERTION(COND) \
+                   COLT_FOR_EACH(__DETAILS__COLT_TO_ASSERTION, __VA_ARGS__))
 
-  /// @brief switch case with no default
-  #define switch_no_default(...)                                    \
-    switch (__VA_ARGS__)                                            \
-    default:                                                        \
-      if (true)                                                     \
-      {                                                             \
-        clt::unreachable("Invalid value for 'switch_no_default'."); \
-      }                                                             \
-      else
+/// @brief switch case with no default
+#define switch_no_default(...)                                    \
+  switch (__VA_ARGS__)                                            \
+  default:                                                        \
+    if (true)                                                     \
+    {                                                             \
+      clt::unreachable("Invalid value for 'switch_no_default'."); \
+    }                                                             \
+    else
 
 #endif // !HG_MACRO_ASSERT

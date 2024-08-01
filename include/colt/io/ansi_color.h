@@ -1,3 +1,10 @@
+/*****************************************************************/ /**
+ * @file   ansi_color.h
+ * @brief  Contains ANSIEffect.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_IO_ANSI_COLOR
 #define HG_IO_ANSI_COLOR
 
@@ -9,8 +16,8 @@ namespace clt::io
 {
   namespace details
   {
-    /// @brief Array of colors
-    static constexpr std::array CONSOLE_COLORS = {
+    /// @brief Array of effects
+    static constexpr std::array CONSOLE_EFFECTS = {
         "",         //EMPTY
         "\x1B[30m", //CONSOLE_FOREGROUND_BLACK
         "\x1B[31m", //CONSOLE_FOREGROUND_RED
@@ -56,91 +63,91 @@ namespace clt::io
     };
   } // namespace details
 
-  /// @brief Represents a Console ANSIColor
-  struct ANSIColor
+  /// @brief Represents a Console ANSIEffect
+  struct ANSIEffect
   {
     /// @brief Index into CONSOLE_COLOR array
     uint32_t index;
   };
 
   /// @brief Black foreground
-  static constexpr ANSIColor BlackF = ANSIColor{1};
+  static constexpr ANSIEffect BlackF = ANSIEffect{1};
   /// @brief Red foreground
-  static constexpr ANSIColor RedF = ANSIColor{2};
+  static constexpr ANSIEffect RedF = ANSIEffect{2};
   /// @brief Green foreground
-  static constexpr ANSIColor GreenF = ANSIColor{3};
+  static constexpr ANSIEffect GreenF = ANSIEffect{3};
   /// @brief Yellow foreground
-  static constexpr ANSIColor YellowF = ANSIColor{4};
+  static constexpr ANSIEffect YellowF = ANSIEffect{4};
   /// @brief Blue foreground
-  static constexpr ANSIColor BlueF = ANSIColor{5};
+  static constexpr ANSIEffect BlueF = ANSIEffect{5};
   /// @brief Magenta foreground
-  static constexpr ANSIColor MagentaF = ANSIColor{6};
+  static constexpr ANSIEffect MagentaF = ANSIEffect{6};
   /// @brief Cyan foreground
-  static constexpr ANSIColor CyanF = ANSIColor{7};
+  static constexpr ANSIEffect CyanF = ANSIEffect{7};
   /// @brief White foreground (usually the default)
-  static constexpr ANSIColor WhiteF = ANSIColor{8};
+  static constexpr ANSIEffect WhiteF = ANSIEffect{8};
 
   /// @brief Bright Black foreground
-  static constexpr ANSIColor BrightBlackF = ANSIColor{9};
+  static constexpr ANSIEffect BrightBlackF = ANSIEffect{9};
   /// @brief Bright Red foreground
-  static constexpr ANSIColor BrightRedF = ANSIColor{10};
+  static constexpr ANSIEffect BrightRedF = ANSIEffect{10};
   /// @brief Bright Green foreground
-  static constexpr ANSIColor BrightGreenF = ANSIColor{11};
+  static constexpr ANSIEffect BrightGreenF = ANSIEffect{11};
   /// @brief Bright Yellow foreground
-  static constexpr ANSIColor BrightYellowF = ANSIColor{12};
+  static constexpr ANSIEffect BrightYellowF = ANSIEffect{12};
   /// @brief Bright Blue foreground
-  static constexpr ANSIColor BrightBlueF = ANSIColor{13};
+  static constexpr ANSIEffect BrightBlueF = ANSIEffect{13};
   /// @brief Bright Magenta foreground
-  static constexpr ANSIColor BrightMagentaF = ANSIColor{14};
+  static constexpr ANSIEffect BrightMagentaF = ANSIEffect{14};
   /// @brief Bright Cyan foreground
-  static constexpr ANSIColor BrightCyanF = ANSIColor{15};
+  static constexpr ANSIEffect BrightCyanF = ANSIEffect{15};
   /// @brief Bright White foreground
-  static constexpr ANSIColor BrightWhiteF = ANSIColor{16};
+  static constexpr ANSIEffect BrightWhiteF = ANSIEffect{16};
 
   /// @brief Black background
-  static constexpr ANSIColor BlackB = ANSIColor{17};
+  static constexpr ANSIEffect BlackB = ANSIEffect{17};
   /// @brief Red background
-  static constexpr ANSIColor RedB = ANSIColor{18};
+  static constexpr ANSIEffect RedB = ANSIEffect{18};
   /// @brief Green background
-  static constexpr ANSIColor GreenB = ANSIColor{19};
+  static constexpr ANSIEffect GreenB = ANSIEffect{19};
   /// @brief Yellow background
-  static constexpr ANSIColor YellowB = ANSIColor{20};
+  static constexpr ANSIEffect YellowB = ANSIEffect{20};
   /// @brief Blue background
-  static constexpr ANSIColor BlueB = ANSIColor{21};
+  static constexpr ANSIEffect BlueB = ANSIEffect{21};
   /// @brief Magenta background
-  static constexpr ANSIColor MagentaB = ANSIColor{22};
+  static constexpr ANSIEffect MagentaB = ANSIEffect{22};
   /// @brief Cyan background
-  static constexpr ANSIColor CyanB = ANSIColor{23};
+  static constexpr ANSIEffect CyanB = ANSIEffect{23};
   /// @brief White background
-  static constexpr ANSIColor WhiteB = ANSIColor{24};
+  static constexpr ANSIEffect WhiteB = ANSIEffect{24};
 
   /// @brief Bright Black background
-  static constexpr ANSIColor BrightBlackB = ANSIColor{25};
+  static constexpr ANSIEffect BrightBlackB = ANSIEffect{25};
   /// @brief Bright Red background
-  static constexpr ANSIColor BrightRedB = ANSIColor{26};
+  static constexpr ANSIEffect BrightRedB = ANSIEffect{26};
   /// @brief Bright Green background
-  static constexpr ANSIColor BrightGreenB = ANSIColor{27};
+  static constexpr ANSIEffect BrightGreenB = ANSIEffect{27};
   /// @brief Bright Yellow background
-  static constexpr ANSIColor BrightYellowB = ANSIColor{28};
+  static constexpr ANSIEffect BrightYellowB = ANSIEffect{28};
   /// @brief Bright Blue background
-  static constexpr ANSIColor BrightBlueB = ANSIColor{29};
+  static constexpr ANSIEffect BrightBlueB = ANSIEffect{29};
   /// @brief Bright Magenta background
-  static constexpr ANSIColor BrightMagentaB = ANSIColor{30};
+  static constexpr ANSIEffect BrightMagentaB = ANSIEffect{30};
   /// @brief Bright Cyan background
-  static constexpr ANSIColor BrightCyanB = ANSIColor{31};
+  static constexpr ANSIEffect BrightCyanB = ANSIEffect{31};
   /// @brief Bright White background
-  static constexpr ANSIColor BrightWhiteB = ANSIColor{32};
+  static constexpr ANSIEffect BrightWhiteB = ANSIEffect{32};
 
   /// @brief Reset foreground and background color to default
-  static constexpr ANSIColor Reset = ANSIColor{33};
+  static constexpr ANSIEffect Reset = ANSIEffect{33};
   /// @brief Bold font
-  static constexpr ANSIColor Bold = ANSIColor{34};
+  static constexpr ANSIEffect Bold = ANSIEffect{34};
   /// @brief Underline
-  static constexpr ANSIColor Underline = ANSIColor{35};
+  static constexpr ANSIEffect Underline = ANSIEffect{35};
   /// @brief Flicker
-  static constexpr ANSIColor Flicker = ANSIColor{36};
+  static constexpr ANSIEffect Flicker = ANSIEffect{36};
   /// @brief Switch foreground and background color
-  static constexpr ANSIColor SwitchFB = ANSIColor{37};
-}
+  static constexpr ANSIEffect SwitchFB = ANSIEffect{37};
+} // namespace clt::io
 
 #endif // !HG_IO_ANSI_COLOR
