@@ -1,3 +1,11 @@
+/*****************************************************************/ /**
+ * @file   map.h
+ * @brief  Contains Map and BiMap, used for constructing maps at
+ *         compile-time.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_META_MAP
 #define HG_META_MAP
 
@@ -92,12 +100,14 @@ namespace clt::meta
 
       assert_true(
           "Items not unique!",
-          std::adjacent_find(data_f.begin(), data_f.end(), 
-            [](const pair_t& a, const pair_t& b) { return a.first == b.first; })
+          std::adjacent_find(
+              data_f.begin(), data_f.end(),
+              [](const pair_t& a, const pair_t& b) { return a.first == b.first; })
               == data_f.end());
       assert_true(
           "Items not unique!",
-          std::adjacent_find(data_b.begin(), data_b.end(),
+          std::adjacent_find(
+              data_b.begin(), data_b.end(),
               [](const pair_t& a, const pair_t& b) { return a.second == b.second; })
               == data_b.end());
     }
@@ -120,7 +130,7 @@ namespace clt::meta
       {
         u64 middle = std::midpoint(low, high);
         if (data_f[middle].first == key)
-          return data[middle].second;
+          return data_f[middle].second;
         if (data_f[middle].first > key)
         {
           if (middle == 0)
@@ -152,7 +162,7 @@ namespace clt::meta
       {
         u64 middle = std::midpoint(low, high);
         if (data_b[middle].second == value)
-          return data[middle].first;
+          return data_b[middle].first;
         if (data_b[middle].second > value)
         {
           if (middle == 0)
