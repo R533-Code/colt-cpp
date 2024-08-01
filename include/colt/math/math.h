@@ -22,8 +22,9 @@
   template<concept_name T>                             \
   constexpr auto name(T first, T second) noexcept      \
   {                                                    \
+    using type = decltype(std::name(first, second));   \
     if (std::is_constant_evaluated())                  \
-      return gcem::name(first, second);                \
+      return (type)gcem::name(first, second);          \
     return std::name(first, second);                   \
   }
 
