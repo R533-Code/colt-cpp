@@ -4,9 +4,6 @@
 [submodule "libraries/date"]
 	path = libraries/date
 	url = https://github.com/HowardHinnant/date
-[submodule "libraries/gmp"]
-	path = libraries/gmp
-	url = https://github.com/gmp-mirror/gmp.git
 [submodule "libraries/scnlib"]
 	path = libraries/scnlib
 	url = https://github.com/eliaskosunen/scnlib
