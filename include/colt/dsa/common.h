@@ -10,6 +10,7 @@
 
 #include <concepts>
 #include <type_traits>
+#include <compare>
 
 #include "colt/num/typedefs.h"
 #include "colt/meta/traits.h"
@@ -45,6 +46,14 @@ namespace clt
 
   /// @brief Tag object for constructing an object in place
   inline constexpr in_place_t InPlace;
+
+  /// @brief Tag struct for constructing errors in Expect
+  struct error_t
+  {
+  };
+
+  /// @brief Tag object for constructing errors in Expect
+  inline constexpr error_t Error;
 } // namespace clt
 
 #endif // !HG_DSA_COMMON
