@@ -33,6 +33,6 @@ TEST_CASE("Power", "[power]")
   REQUIRE(clt::math::pow(2, 4) == 16);
   REQUIRE(clt::math::pow(3, 3) == 27);
 
-  REQUIRE(clt::math::pow(4.0, 0.5) == 0.0);
+  REQUIRE(clt::math::pow(4.0, 0.5) == 2.0);
   REQUIRE(clt::math::pow(2.0, 8.0) == 256.0);
 }
