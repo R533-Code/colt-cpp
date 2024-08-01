@@ -27,19 +27,7 @@ namespace clt::bit
     big = std::endian::big,
     /// @brief Represents the native target architecture
     native = std::endian::native
-  };
-
-  /// @brief Generate a bit mask.
-  /// As an example, bitmask<u8>(3) -> 0b0000'0111.
-  /// @tparam Ty The resulting type
-  /// @param one_count The number of ones in the bit mask
-  /// @return Bit mask
-  template<std::unsigned_integral Ty>
-  constexpr Ty bitmask(u8 one_count) noexcept
-  {
-    return static_cast<Ty>(-(one_count != 0))
-           & (static_cast<Ty>(-1) >> ((sizeof(Ty) * 8) - one_count));
-  }
+  };  
 
   /// @brief Swaps the bytes of an integer (opposite endianness).
   /// @tparam T The unsigned integer type
@@ -151,25 +139,7 @@ namespace clt::bit
       return a;
     else
       return byteswap(a);
-  }
-
-  /// @brief Sign extends a number represented by 'n' bits
-  /// @tparam T The underlying type to sign extend
-  /// @param value The value (represented by 'n' bits)
-  /// @param n The number of bit from which to sign extend
-  /// @return The sign extended integer
-  template<std::unsigned_integral T>
-  constexpr std::make_signed_t<T> sign_extend(T value, u8 n)
-  {
-    assert_true("Invalid bit count!", n > 0 && n < sizeof(T) * 8);
-    T sign = (1 << (n - 1)) & value;
-    T mask = ((~0U) >> (n - 1)) << (n - 1);
-    if (sign != 0)
-      value |= mask;
-    else
-      value &= ~mask;
-    return static_cast<std::make_signed_t<T>>(value);
-  }  
+  } 
 } // namespace clt::bit
 
 #endif // !HG_BIT_ENDIAN
