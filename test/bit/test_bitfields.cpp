@@ -13,5 +13,8 @@ TEST_CASE("Bitfields", "[bitfields]")
   
   a.set<0>(0);
   REQUIRE(a.value() == 0b00000'11'1);
-  REQUIRE(a.get<0>() == 00000);
+  REQUIRE(a.get<0>() == 0);
+  a.set<1>(0);
+  REQUIRE(a.value() == 0b00000'00'1);
+  REQUIRE(a.get<1>() == 0);
 }
