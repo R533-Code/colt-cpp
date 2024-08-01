@@ -71,7 +71,7 @@ namespace clt::bit
         "All the underlying type used to identify the field must be the same");
 
     /// @brief The type of the field ID
-    using index_t = Field0::type;
+    using index_t = typename Field0::type;
     /// @brief The number of fields
     static constexpr size_t field_count = 1 + sizeof...(Fields);
 
