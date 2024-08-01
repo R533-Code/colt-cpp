@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.4)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-project(Colt-Cpp VERSION 0.0.0.0 LANGUAGES CXX)
+project(Colt-Cpp VERSION 0.0.0.0 LANGUAGES CXX C)
 
 # Save all the files to compile
 file(GLOB_RECURSE ColtHeaders "include/*.h")
@@ -38,6 +38,42 @@ target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/include")
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT colt_helper_test)
 message(STATUS "Setting up libraries...")
+
+###########################
+# Add MPIR
+message(STATUS "Adding 'MPIR'...")
+# Include MPIR library
+include(ExternalProject)
+
+set(prefix "${CMAKE_BINARY_DIR}/deps")
+set(MPIR_LIBRARY "${prefix}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}mpir${CMAKE_STATIC_LIBRARY_SUFFIX}")
+set(MPIR_INCLUDE_DIR "${prefix}/include")
+
+ExternalProject_Add(mpir
+    PREFIX "${prefix}"
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    DOWNLOAD_NO_PROGRESS TRUE
+    DOWNLOAD_NAME mpir-cmake.tar.gz
+    URL https://github.com/chfast/mpir/archive/cmake.tar.gz
+    URL_HASH SHA256=d32ea73cb2d8115a8e59b244f96f29bad7ff03367162b660bae6495826811e06
+    CMAKE_ARGS
+        -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+        -DCMAKE_INSTALL_LIBDIR=lib
+        -DCMAKE_BUILD_TYPE=Release
+        -DMPIR_GMP=On
+    BUILD_BYPRODUCTS "${MPIR_LIBRARY}"
+)
+
+# Specify the directories where header files are located
+target_include_directories(colt_helper PRIVATE ${MPIR_INCLUDE_DIR})
+target_include_directories(colt_helper_test PRIVATE ${MPIR_INCLUDE_DIR})
+
+# Link MPIR library
+add_dependencies(colt_helper mpir)
+add_dependencies(colt_helper_test mpir)
+target_link_libraries(colt_helper PRIVATE ${MPIR_LIBRARY})
+target_link_libraries(colt_helper_test PRIVATE ${MPIR_LIBRARY})
+###########################
 
 ###########################
 # Add {fmt}
