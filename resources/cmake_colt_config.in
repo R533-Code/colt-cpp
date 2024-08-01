@@ -57,6 +57,70 @@
   #include <crtdbg.h>
 #endif
 
+#if defined(__x86_64__) || defined(_M_X64)
+  #define COLT_x86_64
+  #define COLT_ARCH_STRING "x86_64"
+#elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
+  #define COLT_x86_32
+  #define COLT_ARCH_STRING "x86_32"
+#elif defined(__ARM_ARCH_2__)
+  #define COLT_ARM2
+  #define COLT_ARCH_STRING "ARM2"
+#elif defined(__ARM_ARCH_3__) || defined(__ARM_ARCH_3M__)
+  #define COLT_ARM3;
+  #define COLT_ARCH_STRING "ARM3"
+#elif defined(__ARM_ARCH_4T__) || defined(__TARGET_ARM_4T)
+  #define COLT_ARM4T
+  #define COLT_ARCH_STRING "ARM4T"
+#elif defined(__ARM_ARCH_5_) || defined(__ARM_ARCH_5E_)
+  #define COLT_ARM5
+  #define COLT_ARCH_STRING "ARM5"
+#elif defined(__ARM_ARCH_6T2_) || defined(__ARM_ARCH_6T2_)
+  #define COLT_ARM6T2;
+  #define COLT_ARCH_STRING "ARM6T2"
+#elif defined(__ARM_ARCH_6__) || defined(__ARM_ARCH_6J__) || defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6Z__) || defined(__ARM_ARCH_6ZK__)
+  #define COLT_ARM6
+  #define COLT_ARCH_STRING "ARM6"
+#elif defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
+  #define COLT_ARM7
+  #define COLT_ARCH_STRING "ARM7"
+#elif defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
+  #define COLT_ARM7A
+  #define COLT_ARCH_STRING "ARM7A"
+#elif defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
+  #define COLT_ARM7R
+  #define COLT_ARCH_STRING "ARM7R"
+#elif defined(__ARM_ARCH_7M__)
+  #define COLT_ARM7M
+  #define COLT_ARCH_STRING "ARM7M"
+#elif defined(__ARM_ARCH_7S__)
+  #define COLT_ARM7S
+  #define COLT_ARCH_STRING "ARM7S"
+#elif defined(__aarch64__) || defined(_M_ARM64)
+  #define COLT_ARM64;
+  #define COLT_ARCH_STRING "ARM64"
+#elif defined(mips) || defined(__mips__) || defined(__mips)
+  #define COLT_MIPS
+  #define COLT_ARCH_STRING "MIPS"
+#elif defined(__sh__)
+  #define COLT_SUPERH
+  #define COLT_ARCH_STRING "SUPERH"
+#elif defined(__powerpc) || defined(__powerpc__) || defined(__powerpc64__) || defined(__POWERPC__) || defined(__ppc__) || defined(__PPC__) || defined(_ARCH_PPC)
+  #define COLT_POWERPC
+  #define COLT_ARCH_STRING "PowerPC"
+#elif defined(__PPC64__) || defined(__ppc64__) || defined(_ARCH_PPC64)
+  #define COLT_POWERPC64
+  #define COLT_ARCH_STRING "PowerPC64"
+#elif defined(__sparc__) || defined(__sparc)
+  #define COLT_SPARC
+  #define COLT_ARCH_STRING "Sparc"
+#elif defined(__m68k__)
+  #define COLT_M68K
+  #define COLT_ARCH_STRING "M68K"
+#else
+  #define COLT_ARCH_STRING "Unknown"
+#endif
+
 namespace clt
 {
 #ifdef COLT_DEBUG
