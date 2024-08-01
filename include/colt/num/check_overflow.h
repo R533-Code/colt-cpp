@@ -27,8 +27,7 @@ namespace clt::num
 #if defined(COLT_GNU) || defined(COLT_CLANG)
     if (!std::is_constant_evaluated())
       return __builtin_add_overflow(a, b, result);
-#elif defined(COLT_MSVC)
-    // TODO: intrinisic only work on x86
+#elif defined(COLT_MSVC) && (defined(COLT_x86_64) || defined(COLT_x86_32))
     if (!std::is_constant_evaluated())
     {
       if constexpr (std::same_as<u8, T>)
@@ -75,8 +74,7 @@ namespace clt::num
 #if defined(COLT_GNU) || defined(COLT_CLANG)
     if (!std::is_constant_evaluated())
       return __builtin_sub_overflow(a, b, result);
-#elif defined(COLT_MSVC)
-    // TODO: intrinisic only work on x86
+#elif defined(COLT_MSVC) && (defined(COLT_x86_64) || defined(COLT_x86_32))
     if (!std::is_constant_evaluated())
     {
       if constexpr (std::same_as<u8, T>)
@@ -123,8 +121,7 @@ namespace clt::num
 #if defined(COLT_GNU) || defined(COLT_CLANG)
     if (!std::is_constant_evaluated())
       return __builtin_mul_overflow(a, b, result);
-#elif defined(COLT_MSVC)
-    // TODO: intrinisic only work on x86
+#elif defined(COLT_MSVC) && (defined(COLT_x86_64) || defined(COLT_x86_32))
     if (!std::is_constant_evaluated())
     {
       if constexpr (std::same_as<u64, T>)
