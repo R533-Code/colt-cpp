@@ -1,6 +1,7 @@
 #ifndef HG_IO_PRINT
 #define HG_IO_PRINT
 
+#include <iterator>
 #include <utility>
 #include <cstdio>
 

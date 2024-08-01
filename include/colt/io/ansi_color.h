@@ -63,6 +63,9 @@ namespace clt::io
     };
   } // namespace details
 
+  /// @brief If true, then colored output is used
+  inline thread_local bool OutputColor = true;
+
   /// @brief Represents a Console ANSIEffect
   struct ANSIEffect
   {
@@ -149,5 +152,31 @@ namespace clt::io
   /// @brief Switch foreground and background color
   static constexpr ANSIEffect SwitchFB = ANSIEffect{37};
 } // namespace clt::io
+
+template<>
+/// @brief {fmt} specialization of Color
+struct fmt::formatter<clt::io::ANSIEffect>
+{
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template<typename FormatContext>
+  /// @brief fmt overload
+  /// @tparam FormatContext The context to write
+  /// @param op The BinaryOperator to write
+  /// @param ctx The context
+  /// @return context
+  auto format(const clt::io::ANSIEffect& op, FormatContext& ctx) const
+  {
+    // If OutputColor is false, we write an empty string "".
+    return fmt::format_to(
+        ctx.out(), "{}",
+        clt::io::details::CONSOLE_EFFECTS
+            [op.index * static_cast<uint64_t>(clt::io::OutputColor)]);
+  }
+};
 
 #endif // !HG_IO_ANSI_COLOR
