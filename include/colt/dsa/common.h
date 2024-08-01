@@ -12,6 +12,7 @@
 #include <type_traits>
 
 #include "colt/num/typedefs.h"
+#include "colt/meta/traits.h"
 #include "colt/macro/assert.h"
 
 namespace clt
