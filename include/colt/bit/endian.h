@@ -1,3 +1,10 @@
+/*****************************************************************//**
+ * @file   endian.h
+ * @brief  Contains utilities related to endianness.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_BIT_ENDIAN
 #define HG_BIT_ENDIAN
 

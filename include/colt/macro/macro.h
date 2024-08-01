@@ -1,3 +1,10 @@
+/*****************************************************************/ /**
+ * @file   macro.h
+ * @brief  Contains COLT_FOR_EACH, debug_break, and other macro utilities.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_MACRO_MACRO
 #define HG_MACRO_MACRO
 
