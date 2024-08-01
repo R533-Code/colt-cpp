@@ -1,3 +1,10 @@
+/*****************************************************************//**
+ * @file   expect.h
+ * @brief  Contains Expect, which represents a value or an error.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_DSA_EXPECT
 #define HG_DSA_EXPECT
 
