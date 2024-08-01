@@ -1,3 +1,10 @@
+/*****************************************************************//**
+ * @file   math.h
+ * @brief  Contains mathematical functions that are constexpr.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_MATH_MATH
 #define HG_MATH_MATH
 

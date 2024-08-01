@@ -1,3 +1,10 @@
+/*****************************************************************//**
+ * @file   typedefs.h
+ * @brief  Contains typedefs used throughout the library.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_NUM_TYPEDEFS
 #define HG_NUM_TYPEDEFS
 

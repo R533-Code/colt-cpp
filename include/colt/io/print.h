@@ -1,3 +1,10 @@
+/*****************************************************************//**
+ * @file   print.h
+ * @brief  Contains utilities to write to stdout (or any file).
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_IO_PRINT
 #define HG_IO_PRINT
 

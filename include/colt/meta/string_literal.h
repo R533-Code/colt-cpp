@@ -1,3 +1,11 @@
+/*****************************************************************//**
+ * @file   string_literal.h
+ * @brief  Contains StringLiteral, used to pass string literals
+ *         as template parameters.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_META_STRING_LITERAL
 #define HG_META_STRING_LITERAL
 

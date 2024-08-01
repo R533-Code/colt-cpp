@@ -1,3 +1,10 @@
+/*****************************************************************//**
+ * @file   bitfields.h
+ * @brief  Contains portable bitfield helpers.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_BIT_BITFIELDS
 #define HG_BIT_BITFIELDS
 
@@ -106,6 +113,9 @@ namespace clt::bit
       assert_true("Invalid field index!", false);
     }
 
+    /// @brief Set the field of index 'index'
+    /// @tparam index The field index (starting at 0)
+    /// @param value The value to assign for that field
     template<u64 index>
     void set_field(Ty value) noexcept
     {
@@ -116,6 +126,10 @@ namespace clt::bit
       storage |= ((value & bitmask<Ty>((Ty)info.second)) << info.first);
     }
 
+    /// @brief Initializes the rest of the fields
+    /// @tparam ...Is The integer sequence
+    /// @tparam ...Ints The value's types
+    /// @param ...value The value to use to initialize the fields
     template<size_t... Is, std::convertible_to<Ty>... Ints>
       requires(sizeof...(Is) == sizeof...(Ints))
     void set_fields(std::index_sequence<Is...>, Ints... value) noexcept
@@ -136,6 +150,10 @@ namespace clt::bit
     {      
     }
 
+    /// @brief Constuctor
+    /// @tparam ...Ints The integral types
+    /// @param field0 The first field's value
+    /// @param ...fields The pack of values for the rest of the fields
     template<std::convertible_to<Ty>... Ints>
       requires(sizeof...(Ints) == sizeof...(Fields))
     constexpr Bitfields(in_place_t, Ty field0, Ints... fields) noexcept

@@ -1,3 +1,10 @@
+/*****************************************************************//**
+ * @file   operations.h
+ * @brief  Contains bit operations.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_BIT_OPERATIONS
 #define HG_BIT_OPERATIONS
 
