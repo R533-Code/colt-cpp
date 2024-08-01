@@ -55,6 +55,7 @@ namespace clt
       debug_break() noexcept
   {
     __DETAILS__COLT_DBREAK();
+    std::abort();
   }
 } // namespace clt
 
