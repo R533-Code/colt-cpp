@@ -1,3 +1,10 @@
+/*****************************************************************/ /**
+ * @file   check_overflow.h
+ * @brief  Contains checked_* to detect overflow.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_NUM_CHECK_OVERFLOW
 #define HG_NUM_CHECK_OVERFLOW
 

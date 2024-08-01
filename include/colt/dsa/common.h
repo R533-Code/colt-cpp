@@ -1,3 +1,10 @@
+/*****************************************************************/ /**
+ * @file   common.h
+ * @brief  Contains common utilities and types used by data structures.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_DSA_COMMON
 #define HG_DSA_COMMON
 
@@ -35,7 +42,7 @@ namespace clt
   {
   };
 
-  /// @brief Tag object for construting an object in place
+  /// @brief Tag object for constructing an object in place
   inline constexpr in_place_t InPlace;
 } // namespace clt
 
