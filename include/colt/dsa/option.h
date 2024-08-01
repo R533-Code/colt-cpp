@@ -409,6 +409,51 @@ namespace clt
       else
         return Option<U>{};
     }
+
+    /********************************/
+    // COMPARISONS
+    /********************************/
+
+    template<std::three_way_comparable_with<T> U>
+    friend constexpr std::compare_three_way_result_t<T, U> operator<=>(
+      const Option& opt, const U& value)
+    {
+      return bool(opt) ? *opt <=> value : std::strong_ordering::less;
+    }
+
+    template<typename U>
+    friend constexpr bool operator==(const Option& opt, const U& value)
+    {
+      return bool(opt) ? *opt == value : false;
+    }
+
+    friend constexpr std::strong_ordering operator<=>(
+      const Option& opt, none_t) noexcept
+    {
+      return bool(opt) <=> false;
+    }
+
+    friend constexpr bool operator==(const Option& opt, none_t) noexcept
+    {
+      return !opt;
+    }
+
+    template<std::three_way_comparable_with<T> U>
+    friend constexpr std::compare_three_way_result_t<T, U> operator<=>(
+      const Option& lhs, const Option<U>& rhs)
+    {
+      return bool(lhs) && bool(rhs) ? *lhs <=> *rhs : bool(lhs) <=> bool(rhs);
+    }
+
+    template<class U>
+    friend constexpr bool operator==(const Option& lhs, const Option<U>& rhs)
+    {
+      if (bool(lhs) != bool(rhs))
+        return false;
+      if (bool(lhs) == false)
+        return true;
+      return *lhs == *rhs;
+    }
   };
 } // namespace clt
 
