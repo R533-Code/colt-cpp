@@ -1,12 +1,5 @@
-/*****************************************************************/ /**
- * @file   option.h
- * @brief  Contains `Option`, which is either a value or None.
- *
- * @author RPC
- * @date   January 2024
- *********************************************************************/
-#ifndef HG_COLT_OPTIONAL
-#define HG_COLT_OPTIONAL
+#ifndef HG_DSA_OPTION
+#define HG_DSA_OPTION
 
 #include <fmt/format.h>
 
@@ -321,4 +314,4 @@ struct fmt::formatter<clt::Option<T>>
   }
 };
 
-#endif //!HG_COLT_OPTIONAL
+#endif //!HG_DSA_OPTION
