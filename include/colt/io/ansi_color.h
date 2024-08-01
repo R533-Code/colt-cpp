@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cstdint>
+#include <fmt/format.h>
 
 namespace clt::io
 {
