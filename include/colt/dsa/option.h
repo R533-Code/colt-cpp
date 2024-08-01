@@ -1,3 +1,11 @@
+/*****************************************************************//**
+ * @file   option.h
+ * @brief  Contains Option, used to represent a value or the absence
+ *         of value.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_DSA_OPTION
 #define HG_DSA_OPTION
 
@@ -258,21 +266,147 @@ namespace clt
       return std::move(*ptr_to<T*>(opt_buffer));
     }
 
-    /// @brief Returns the value if contained, else 'default_value'
-    /// @param default_value The value to return if the Option is None
-    /// @return The value or 'default_value'
-    constexpr T value_or(T&& default_value) const&
+    template<std::convertible_to<T> U>
+    constexpr T value_or(U&& default_value) const&
     {
-      return is_none_v ? static_cast<T>(std::forward<T>(default_value)) : **this;
+      return is_none_v ? static_cast<T>(std::forward<U>(default_value)) : **this;
     }
 
-    /// @brief Returns the value if contained, else 'default_value'
-    /// @param default_value The value to return if the Option is None
-    /// @return The value or 'default_value'
-    constexpr T value_or(T&& default_value) &&
+    template<std::convertible_to<T> U>
+    constexpr T value_or(U&& default_value) &&
     {
-      return is_none_v ? static_cast<T>(std::forward<T>(default_value))
+      return is_none_v ? static_cast<T>(std::forward<U>(default_value))
                        : std::move(**this);
+    }
+
+    /********************************/
+    // VALUE OR
+    /********************************/
+
+    template<typename Fn>
+      requires std::invocable<Fn> && std::convertible_to<std::invoke_result_t<Fn>, T>
+    constexpr T value_or(Fn&& default_value) const&
+    {
+      return is_none_v ? static_cast<T>(std::forward<Fn>(default_value)()) : **this;
+    }
+
+    template<typename Fn>
+      requires std::invocable<Fn> && std::convertible_to<std::invoke_result_t<Fn>, T>
+    constexpr T value_or(Fn&& default_value) &&
+    {
+      return is_none_v ? static_cast<T>(std::forward<Fn>(default_value)())
+                       : std::move(**this);
+    }
+
+    /********************************/
+    // OR ELSE
+    /********************************/
+
+    template<typename Fn>
+      requires std::convertible_to<std::invoke_result_t<Fn>, T> && std::copy_constructible<T>
+    constexpr Option<T> or_else(Fn&& default_value) const&
+    {
+      return is_none_v ? static_cast<T>(std::forward<Fn>(default_value)()) : *this;
+    }
+
+    template<typename Fn>
+      requires std::convertible_to<std::invoke_result_t<Fn>, T> && std::move_constructible<T>
+    constexpr Option<T> or_else(Fn&& default_value) &&
+    {
+      return is_none_v ? static_cast<T>(std::forward<Fn>(default_value)())
+                       : std::move(*this);
+    }
+
+    /********************************/
+    // AND THEN
+    /********************************/
+
+    template<typename F> requires std::invocable<F>
+    constexpr auto and_then(F&& f) &
+    {
+      if (*this)
+        return std::invoke(std::forward<F>(f), **this);
+      else
+        return std::remove_cvref_t<std::invoke_result_t<F, T&>>{};
+    }
+
+    template<typename F> requires std::invocable<F>
+    constexpr auto and_then(F&& f) const&
+    {
+      if (*this)
+        return std::invoke(std::forward<F>(f), **this);
+      else
+        return std::remove_cvref_t<std::invoke_result_t<F, const T&>>{};
+    }
+
+    template<typename F>
+      requires std::invocable<F>
+    constexpr auto and_then(F&& f) &&
+    {
+      if (*this)
+        return std::invoke(std::forward<F>(f), std::move(**this));
+      else
+        return std::remove_cvref_t<std::invoke_result_t<F, T>>{};
+    }
+
+    template<typename F>
+      requires std::invocable<F>
+    constexpr auto and_then(F&& f) const&&
+    {
+      using U = std::remove_cvref_t<std::invoke_result_t<F, const T>>;
+      if (*this)
+        return Option<U>(InPlace, std::invoke(std::forward<F>(f), std::move(**this)));
+      else
+        return Option<U>{};
+    }
+
+    /********************************/
+    // MAP
+    /********************************/
+
+    template<typename F>
+      requires std::invocable<F>
+    constexpr auto map(F&& f) &
+    {
+      using U = std::remove_cv_t<std::invoke_result_t<F, T&>>;
+      if (*this)
+        return Option<U>(InPlace, std::invoke(std::forward<F>(f), **this));
+      else
+        return Option<U>{};
+    }
+
+    template<typename F>
+      requires std::invocable<F>
+    constexpr auto map(F&& f) const&
+    {
+      using U = std::remove_cv_t<std::invoke_result_t<F, const T&>>;
+      if (*this)
+        return Option<U>(InPlace, std::invoke(std::forward<F>(f), **this));
+      else
+        return Option<U>{};
+    }
+
+    template<typename F>
+      requires std::invocable<F>
+    constexpr auto map(F&& f) &&
+    {
+      using U = std::remove_cv_t<std::invoke_result_t<F, T>>;
+      if (*this)
+        return Option<U>(InPlace, std::invoke(std::forward<F>(f), std::move(**this)));
+      else
+        return Option<U>{};
+    }
+
+    template<typename F>
+      requires std::invocable<F>
+    constexpr auto map(F&& f) const&&
+    {
+      using U = std::remove_cv_t<std::invoke_result_t<F, const T>>;
+      if (*this)
+        return Option<U>(
+            InPlace, std::invoke(std::forward<F>(f), std::move(**this)));
+      else
+        return Option<U>{};
     }
   };
 } // namespace clt
