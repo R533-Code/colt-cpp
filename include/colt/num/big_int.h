@@ -255,7 +255,7 @@ namespace clt::num
 } // namespace clt::num
 
 template<>
-/// @brief {fmt} specialization of Color
+/// @brief {fmt} specialization of BigInt
 struct fmt::formatter<clt::num::BigInt>
 {
   template<typename ParseContext>
@@ -266,11 +266,6 @@ struct fmt::formatter<clt::num::BigInt>
   }
 
   template<typename FormatContext>
-  /// @brief fmt overload
-  /// @tparam FormatContext The context to write
-  /// @param op The BinaryOperator to write
-  /// @param ctx The context
-  /// @return context
   auto format(const clt::num::BigInt& op, FormatContext& ctx) const
   {
     using namespace clt::mem;
