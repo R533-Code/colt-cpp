@@ -2,6 +2,7 @@
 #define HG_DSA_STRING_VIEW
 
 #include "unicode.h"
+#include "colt/dsa/iterator.h"
 
 namespace clt
 {
@@ -38,6 +39,7 @@ namespace clt
         : _ptr("")
         , _size(0)
     {
+      utf8::distance()
     }
     
     /// @brief Constructs a view starting at 'ptr', of size 'size'.
@@ -99,7 +101,7 @@ namespace clt
     MAKE_DEFAULT_COPY_AND_MOVE_FOR(BasicStringView);
 
     /// @brief Iterator type
-    using iterator = const char*;
+    using iterator = transform_iter<const char*, [](char value){ return char32{(char32_t)value}; }>;
 
     /// @brief Returns an iterator to the start of the view
     /// @return Iterator to the start of the view
