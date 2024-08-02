@@ -66,12 +66,6 @@ namespace clt
     char32_t _value;
 
   public:
-    // ifdef to avoid clash with default constructor
-#ifdef COLT_LITTLE_ENDIAN
-    /// @brief Constructs a big endian value from host endianness
-    /// @param value The value (in host endianness)
-    constexpr char32be(char32 value) noexcept;
-#endif
     /// @brief Constructs a big endian value from a little endian value
     /// @param value The value (in little endian)
     constexpr char32be(char32le value) noexcept;
@@ -104,12 +98,6 @@ namespace clt
     char32_t _value;
 
   public:
-    // ifdef to avoid clash with default constructor
-#ifdef COLT_BIG_ENDIAN
-    /// @brief Constructs a little endian value from host endianness
-    /// @param value The value (in host endianness)
-    constexpr char32le(char32 value) noexcept;
-#endif
     /// @brief Constructs a little endian value from a big endian value
     /// @param value The value (in little endian)
     constexpr char32le(char32be value) noexcept;
@@ -141,13 +129,6 @@ namespace clt
   {
   }
 
-#ifdef COLT_LITTLE_ENDIAN
-  constexpr char32be::char32be(char32 value) noexcept
-      : _value((char32_t)bit::htob((u32)value.value()))
-  {
-  }
-#endif
-
   constexpr char32be::char32be(char32le value) noexcept
       : _value((char32_t)bit::byteswap((u32)value.value()))
   {
@@ -175,13 +156,6 @@ namespace clt
       : _value((char32_t)bit::htol((u32)value))
   {
   }
-
-#ifdef COLT_BIG_ENDIAN
-  constexpr char32le::char32le(char32 value) noexcept
-      : _value((char32_t)bit::htol((u32)value.value()))
-  {
-  }
-#endif
 
   constexpr char32le::char32le(char32be value) noexcept
       : _value((char32_t)bit::byteswap((u32)value.value()))
