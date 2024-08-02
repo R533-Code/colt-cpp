@@ -15,8 +15,8 @@
 
 namespace clt::meta
 {
-  /// @brief Empty struct helper
-  struct Empty
+  /// @brief empty_t struct helper
+  struct empty_t
   {
   };
 
