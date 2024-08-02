@@ -13,6 +13,7 @@
 #include <concepts>
 #include <source_location>
 
+#include "hedley.h"
 #include "config.h"
 
 #if defined(__has_builtin)
@@ -47,8 +48,17 @@
   #pragma warning "Unknown dynamic link import/export semantics."
 #endif
 
+/// @brief p => q
+#define COLT_IMPLIES(p, q) !(bool)(p) || (q)
+
 namespace clt
 {
+  HEDLEY_ALWAYS_INLINE
+    constexpr bool implies(bool p, bool q) noexcept
+  {
+      return !p || q;
+  }
+
   [[noreturn]]
   /// @brief Aborts the program (or call the debugger if possible)
   inline void
