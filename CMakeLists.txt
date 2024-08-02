@@ -27,10 +27,13 @@ target_compile_definitions(
 )
 
 target_compile_options(
-  colt_helper PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>)
+  colt_helper PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>
+  PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
+)
 
 target_compile_options(
   colt_helper_test PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>
+  PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
 )
 
 target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/include/")
@@ -96,6 +99,13 @@ target_link_libraries(colt_helper_test PUBLIC scn::scn)
 message(STATUS "Adding 'gcem'...")
 target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/gcem/include")
 target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/gcem/include")
+###########################
+
+###########################
+# Add utfcpp
+message(STATUS "Adding 'utfcpp'...")
+target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/utfcpp/source")
+target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/utfcpp/source")
 ###########################
 
 ###########################
