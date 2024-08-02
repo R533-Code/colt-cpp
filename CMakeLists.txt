@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.4)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-project(Colt-Cpp VERSION 0.0.0.0 LANGUAGES CXX C)
+project(Colt-Cpp VERSION 0.0.1.0 LANGUAGES CXX C)
 
 # Save all the files to compile
 file(GLOB_RECURSE ColtHeaders "include/*.h")
@@ -106,8 +106,8 @@ target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/
 message(STATUS "Adding 'uni-algo'...")
 set(UNI_ALGO_HEADER_ONLY ON CACHE INTERNAL "")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/uni-algo")
-target_link_libraries(colt_helper_test PRIVATE uni-algo::uni-algo)
 target_link_libraries(colt_helper PRIVATE uni-algo::uni-algo)
+target_link_libraries(colt_helper_test PRIVATE uni-algo::uni-algo)
 ###########################
 
 ###########################
