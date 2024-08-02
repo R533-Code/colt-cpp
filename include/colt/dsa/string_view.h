@@ -27,32 +27,69 @@ namespace clt
     /// @brief True if null terminated view
     static constexpr bool is_zstring_view = ZSTRING;
 
+    /// @brief Constructs an empty StringView
     constexpr BasicStringView()
       requires(!ZSTRING)
     = default;
+    
+    /// @brief Constructs an empty ZStringView
     constexpr BasicStringView()
       requires ZSTRING
-    = delete;
-
+        : _ptr("")
+        , _size(0)
+    {
+    }
+    
+    /// @brief Constructs a view starting at 'ptr', of size 'size'.
+    /// For ZStringView, the character AFTER the last character MUST
+    /// be a NUL-terminator: `ptr[size] == '\0'`.
+    /// For StringView, ptr can be null only if 'size' is zero.
+    /// @param ptr The start of the view
+    /// @param size The size of the view (in bytes)
     constexpr BasicStringView(const char* ptr, size_t size) noexcept
-      requires(!ZSTRING)
         : _ptr(ptr)
         , _size(size)
     {
-      assert_true(
-          "ptr cannot be null if size != 0!", implies(_ptr == nullptr, _size == 0));
+      if constexpr (!ZSTRING)
+      {
+        assert_true(
+            "ptr cannot be null if size != 0!", implies(_ptr == nullptr, _size == 0));
+      }
+      else
+      {
+        assert_true("ptr cannot be null for ZStringView!", _ptr != nullptr);
+        assert_true("ZStringView must be NUL-terminated!", _ptr[_size] == '\0');
+      }
     }
 
+    /// @brief Constructs a view starting at 'ptr', of size 'begin - end'.
+    /// @pre begin <= end
+    /// For ZStringView, the character AFTER the last character MUST
+    /// be a NUL-terminator: `begin[size()] == '\0'`.
+    /// For StringView, ptr can be null only if 'size' is zero.
+    /// @param begin The start of the view
+    /// @param end The size of the view (in bytes)
     constexpr BasicStringView(const char* begin, const char* end) noexcept
-      requires(!ZSTRING)
         : _ptr(begin)
         , _size(end - begin)
     {
       assert_true("begin must be <= end!", begin <= end);
+      if constexpr (!ZSTRING)
+      {
+        assert_true("ptr cannot be null if size != 0!",
+            implies(_ptr == nullptr, _size == 0));
+      }
+      else
+      {
+        assert_true("ptr cannot be null for ZStringView!", begin != nullptr, end != nullptr);
+        assert_true("ZStringView must be NUL-terminated!", *end == '\0');
+      }
     }
 
+    /// @brief Constructs a view from a NUL-terminated string.
+    /// @pre ptr != nullptr
+    /// @param ptr The NUL-terminated string
     constexpr BasicStringView(const char* ptr) noexcept
-      requires ZSTRING
         : _ptr(ptr)
         , _size(clt::strlen(ptr))
     {
@@ -61,9 +98,15 @@ namespace clt
 
     MAKE_DEFAULT_COPY_AND_MOVE_FOR(BasicStringView);
 
-    using iterator = const char8_t*;
+    /// @brief Iterator type
+    using iterator = const char*;
 
+    /// @brief Returns an iterator to the start of the view
+    /// @return Iterator to the start of the view
     constexpr iterator begin() const noexcept { return _ptr; }
+    /// @brief Returns an iterator to the end of the view.
+    /// This iterator should not be dereferenced.
+    /// @return Iterator to the end of the view
     constexpr iterator end() const noexcept { return _ptr + _size; }
 
     /// @brief Returns a pointer to the beginning of the data.
@@ -71,7 +114,8 @@ namespace clt
     /// @return Pointer to the beginning of the data
     constexpr auto data() const noexcept { return _ptr; }
 
-    /// @brief The number of characters over which the view is spanning
+    /// @brief The number of characters over which the view is spanning.
+    /// For ZStringView, this does not include the NUL-terminator
     /// @return The byte size
     constexpr size_t size() const noexcept { return _size; }
     /// @brief Returns the byte size over which the view is spanning.
@@ -82,6 +126,10 @@ namespace clt
     /// @return True if size() == 0
     constexpr bool is_empty() const noexcept { return size() == 0; }
 
+    /// @brief Returns the char at index 'index'
+    /// @pre index < size()
+    /// @param index The index of the char to return
+    /// @return The char at index 'index'
     constexpr char32 operator[](size_t index) const noexcept
     {
       assert_true("Invalid index!", index < size());
@@ -98,6 +146,15 @@ namespace clt
     {
       assert_true("Invalid size!", size() > 0);
       return (*this)[_size - 1];
+    }
+
+    /// @brief Returns a NUL-terminated string.
+    /// This is always guaranteed to work for ZStringView.
+    /// @return NUL-terminated string
+    constexpr const char* c_str() const noexcept
+      requires ZSTRING
+    {
+      return data();
     }
 
     /// @brief Shortens the view from the front by 1.
@@ -154,6 +211,8 @@ namespace clt
     }
   };
 
+  /// @brief Represents a view over contiguous characters
+  /// @tparam ENCODING The encoding of the StringView
   template<StringEncoding ENCODING>
   using StringView = BasicStringView<ENCODING, false>;
 
@@ -162,5 +221,23 @@ namespace clt
   template<StringEncoding ENCODING>
   using ZStringView = BasicStringView<ENCODING, true>;
 } // namespace clt
+
+template<bool ZSTRING>
+struct fmt::formatter<clt::BasicStringView<clt::StringEncoding::ASCII, ZSTRING>>
+{
+  using to_format = clt::BasicStringView<clt::StringEncoding::ASCII, ZSTRING>;
+
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template<typename FormatContext>
+  auto format(const to_format& vec, FormatContext& ctx) const
+  {
+    return fmt::format_to(ctx.out(), "{}", fmt::string_view{vec.data(), vec.size()});
+  }
+};
 
 #endif // !HG_DSA_STRING_VIEW
