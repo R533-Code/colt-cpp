@@ -28,3 +28,6 @@
 [submodule "libraries/hedley"]
 	path = libraries/hedley
 	url = https://github.com/nemequ/hedley.git
+[submodule "libraries/uni-algo"]
+	path = libraries/uni-algo
+	url = https://github.com/uni-algo/uni-algo.git
