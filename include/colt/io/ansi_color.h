@@ -154,7 +154,7 @@ namespace clt::io
 } // namespace clt::io
 
 template<>
-/// @brief {fmt} specialization of Color
+/// @brief {fmt} specialization of ANSIEffect
 struct fmt::formatter<clt::io::ANSIEffect>
 {
   template<typename ParseContext>
@@ -164,11 +164,6 @@ struct fmt::formatter<clt::io::ANSIEffect>
   }
 
   template<typename FormatContext>
-  /// @brief fmt overload
-  /// @tparam FormatContext The context to write
-  /// @param op The BinaryOperator to write
-  /// @param ctx The context
-  /// @return context
   auto format(const clt::io::ANSIEffect& op, FormatContext& ctx) const
   {
     // If OutputColor is false, we write an empty string "".
