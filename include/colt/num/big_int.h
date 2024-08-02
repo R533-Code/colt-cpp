@@ -10,13 +10,49 @@
 
 #include <concepts>
 #include <utility>
+#include <compare>
 
 #include "fmt/format.h"
+#include "colt/dsa/option.h"
 #include "colt/num/typedefs.h"
 #include "colt/macro/assert.h"
 #include "colt/macro/on_scope_exit.h"
 #include "colt/mem/composable_alloc.h"
 #include "gmp.h"
+
+#define COLT_MAKE_OPERATOR(op, mpz_fn, type, arg_expr)            \
+  BigInt& operator COLT_CONCAT(op, =)(type rhs) noexcept          \
+  {                                                               \
+    mpz_fn(storage, storage, arg_expr);                           \
+    return *this;                                                 \
+  }                                                               \
+  friend BigInt operator op(const BigInt& lhs, type rhs) noexcept \
+  {                                                               \
+    BigInt result = lhs;                                          \
+    result COLT_CONCAT(op, =) rhs;                                \
+    return result;                                                \
+  }
+
+#define COLT_MAKE_ASSIGNMENT(mpz_fn, type) \
+  BigInt& operator=(type rhs) noexcept     \
+  {                                        \
+    mpz_fn(storage, rhs);                  \
+    return *this;                          \
+  }
+
+#define COLT_MAKE_OVERLOAD_OPERATOR_U32_BIGINT(op, mpz_fn)   \
+  COLT_MAKE_OPERATOR(op, COLT_CONCAT(mpz_fn, _ui), u32, rhs) \
+  COLT_MAKE_OPERATOR(op, mpz_fn, const BigInt&, rhs.storage)
+
+#define COLT_MAKE_OVERLOAD_OPERATOR_U32_I32_BIGINT(op, mpz_fn) \
+  COLT_MAKE_OPERATOR(op, COLT_CONCAT(mpz_fn, _ui), u32, rhs)   \
+  COLT_MAKE_OPERATOR(op, COLT_CONCAT(mpz_fn, _si), i32, rhs)   \
+  COLT_MAKE_OPERATOR(op, mpz_fn, const BigInt&, rhs.storage)
+
+#define COLT_MAKE_OVERLOAD_ASSIGNMENT(mpz_fn)         \
+  COLT_MAKE_ASSIGNMENT(COLT_CONCAT(mpz_fn, _ui), u32) \
+  COLT_MAKE_ASSIGNMENT(COLT_CONCAT(mpz_fn, _si), i32) \
+  COLT_MAKE_ASSIGNMENT(COLT_CONCAT(mpz_fn, _d), f64)
 
 namespace clt::num
 {
@@ -67,56 +103,130 @@ namespace clt::num
       return *this;
     }
 
-    BigInt& operator+=(const BigInt& rhs)
+    COLT_MAKE_OVERLOAD_OPERATOR_U32_BIGINT(+, mpz_add);
+    template<typename T>
+    BigInt& add(const T& value) noexcept
     {
-      mpz_add(storage, storage, rhs.storage);
+      return *this += value;
+    }
+
+    COLT_MAKE_OVERLOAD_OPERATOR_U32_BIGINT(-, mpz_sub);
+    template<typename T>
+    BigInt& sub(const T& value) noexcept
+    {
+      return *this -= value;
+    }
+    
+    COLT_MAKE_OVERLOAD_OPERATOR_U32_I32_BIGINT(*, mpz_mul);
+    template<typename T>
+    BigInt& mul(const T& value) noexcept
+    {
+      return *this *= value;
+    }
+    
+    COLT_MAKE_OVERLOAD_OPERATOR_U32_BIGINT(/, mpz_div);
+    template<typename T>
+    BigInt& div(const T& value) noexcept
+    {
+      return *this /= value;
+    }
+
+    COLT_MAKE_OVERLOAD_ASSIGNMENT(mpz_set);
+
+    COLT_MAKE_OPERATOR(&, mpz_and, const BigInt&, rhs.storage);
+    COLT_MAKE_OPERATOR(|, mpz_ior, const BigInt&, rhs.storage);
+    COLT_MAKE_OPERATOR(^, mpz_xor, const BigInt&, rhs.storage);
+
+    BigInt& operator++() noexcept
+    {
+      *this += 1U;
       return *this;
     }
 
-    friend BigInt operator+(const BigInt& lhs, const BigInt& rhs)
+    BigInt operator++(int) noexcept
     {
-      BigInt result = lhs;
-      result += rhs;
-      return result;
+      BigInt tmp = *this;
+      operator++();
+      return tmp;
     }
 
-    BigInt& operator-=(const BigInt& rhs)
+    BigInt& operator--() noexcept
     {
-      mpz_sub(storage, storage, rhs.storage);
+      *this -= 1U;
       return *this;
     }
 
-    friend BigInt operator-(const BigInt& lhs, const BigInt& rhs)
+    BigInt operator--(int) noexcept
     {
-      BigInt result = lhs;
-      result -= rhs;
-      return result;
+      BigInt tmp = *this;
+      operator++();
+      return tmp;
     }
 
-    BigInt& operator*=(const BigInt& rhs)
+    /// @brief Returns the sign of the number.
+    /// Return 0 for 0, +1 for positive numbers, and -1 for negative numbers.
+    /// @return The sign of the number
+    int sgn() const noexcept { return mpz_sgn(storage); }
+
+    /// @brief Negates the current number
+    /// @return Self
+    BigInt& neg() noexcept
     {
-      mpz_mul(storage, storage, rhs.storage);
+      mpz_neg(storage, storage);
       return *this;
     }
 
-    friend BigInt operator*(const BigInt& lhs, const BigInt& rhs)
+    /// @brief Returns a negated copy of the current number
+    /// @return Negated copy of the current number
+    BigInt operator-() const noexcept
     {
-      BigInt result = lhs;
-      result *= rhs;
-      return result;
+      BigInt copy = *this;
+      copy.neg();
+      return copy;
     }
 
-    BigInt& operator/=(const BigInt& rhs)
-    {
-      mpz_div(storage, storage, rhs.storage);
-      return *this;
+    std::strong_ordering operator<=>(const BigInt& b) const noexcept
+    {      
+      auto cmp = mpz_cmp(storage, b.storage);
+      if (cmp < 0)
+        return std::strong_ordering::less;
+      else if (cmp == 0)
+        return std::strong_ordering::equivalent;
+      else
+        return std::strong_ordering::greater;
     }
 
-    friend BigInt operator/(const BigInt& lhs, const BigInt& rhs)
+    std::strong_ordering operator<=>(double b) const noexcept
     {
-      BigInt result = lhs;
-      result /= rhs;
-      return result;
+      auto cmp = mpz_cmp_d(storage, b);
+      if (cmp < 0)
+        return std::strong_ordering::less;
+      else if (cmp == 0)
+        return std::strong_ordering::equivalent;
+      else
+        return std::strong_ordering::greater;
+    }
+
+    std::strong_ordering operator<=>(u32 b) const noexcept
+    {
+      auto cmp = mpz_cmp_ui(storage, b);
+      if (cmp < 0)
+        return std::strong_ordering::less;
+      else if (cmp == 0)
+        return std::strong_ordering::equivalent;
+      else
+        return std::strong_ordering::greater;
+    }
+
+    std::strong_ordering operator<=>(i32 b) const noexcept
+    {
+      auto cmp = mpz_cmp_si(storage, b);
+      if (cmp < 0)
+        return std::strong_ordering::less;
+      else if (cmp == 0)
+        return std::strong_ordering::equivalent;
+      else
+        return std::strong_ordering::greater;
     }
 
     /// @brief Returns the number of characters needed to represent
@@ -125,12 +235,19 @@ namespace clt::num
     /// @return The number of characters (without counting a NUL-terminator)
     size_t str_size(int base = 10) const noexcept
     {
-      //TODO: add check for value
+      //TODO: add check for base
       const bool is_neg = mpz_sgn(storage) == -1;
       return mpz_sizeinbase(storage, base) + (size_t)is_neg;
     }
 
+    /// @brief Returns the internal mpz_t.
+    /// @warning Never call mpz_clear on the result
+    /// @param out The out parameter to which to write the storage
     void internal_storage(mpz_t out) const noexcept { out[0] = *storage; }
+
+    /// @brief Swaps two BigInt
+    /// @param with The BigInt to swap with
+    void swap(BigInt& with) noexcept { mpz_swap(storage, with.storage); }
 
     /// @brief Destructor, frees any resource used
     ~BigInt() noexcept { mpz_clear(storage); }
@@ -157,8 +274,10 @@ struct fmt::formatter<clt::num::BigInt>
   auto format(const clt::num::BigInt& op, FormatContext& ctx) const
   {
     using namespace clt::mem;
+    // Use stack spaces if possible else use malloc
     FallbackAllocator<StackAllocator<2048, 1>, Mallocator> allocator;
-    auto blk = allocator.alloc(op.str_size());
+    // + 1 for NUL terminator
+    auto blk = allocator.alloc(op.str_size() + 1);
 
     // Dealloc used memory
     ON_SCOPE_EXIT
