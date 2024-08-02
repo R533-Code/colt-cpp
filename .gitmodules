@@ -10,9 +10,6 @@
 [submodule "libraries/fast_float"]
 	path = libraries/fast_float
 	url = https://github.com/fastfloat/fast_float
-[submodule "libraries/utfcpp"]
-	path = libraries/utfcpp
-	url = https://github.com/nemtrif/utfcpp.git
 [submodule "libraries/gcem"]
 	path = libraries/gcem
 	url = https://github.com/kthohr/gcem.git
