@@ -31,10 +31,10 @@ namespace clt::meta
   };
 
   template<StringLiteral... Strs>
-  /// @brief Concatenates StringView at compile time
+  /// @brief Concatenates StringLiterals at compile time
   struct join
   {
-    /// @brief Concatenate all the StringView and returns an array storing the result
+    /// @brief Concatenate all the StringLiterals and returns an array storing the result
     static constexpr auto impl() noexcept
     {
       constexpr std::size_t len = (Strs.size() + ... + 0);
