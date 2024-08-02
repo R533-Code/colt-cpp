@@ -102,10 +102,12 @@ target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/
 ###########################
 
 ###########################
-# Add utfcpp
-message(STATUS "Adding 'utfcpp'...")
-target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/utfcpp/source")
-target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/utfcpp/source")
+# Add uni-algo
+message(STATUS "Adding 'uni-algo'...")
+set(UNI_ALGO_HEADER_ONLY ON CACHE INTERNAL "")
+add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/uni-algo")
+target_link_libraries(colt_helper_test PRIVATE uni-algo::uni-algo)
+target_link_libraries(colt_helper PRIVATE uni-algo::uni-algo)
 ###########################
 
 ###########################
