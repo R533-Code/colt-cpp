@@ -105,7 +105,8 @@ namespace clt
     static constexpr source_location current(const char* file = __builtin_FILE(),
       const char* fn = __builtin_FUNCTION(),
       std::uint_least32_t line = __builtin_LINE(),
-      std::uint_least32_t column = __builtin_COLUMN()) noexcept
+      // TODO: clang and msvc support builtin column
+      std::uint_least32_t column = 0) noexcept
 #else
     static constexpr source_location current(const char* file = "unknown",
       const char* fn = "unknown",
