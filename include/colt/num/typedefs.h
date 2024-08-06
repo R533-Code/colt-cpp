@@ -40,7 +40,7 @@ namespace clt::details
   class ErrorDebug
   {
     /// @brief The source location
-    std::source_location src;
+    clt::source_location src;
     /// @brief True if represents an error
     bool iserror;
     /// @brief True if the error state was read at least once
@@ -50,7 +50,7 @@ namespace clt::details
     /// The constructor is marked private so that the more readable success and error
     /// methods are used.
     /// @param is_error True if an error
-    ErrorDebug(bool is_error, const std::source_location& src)
+    ErrorDebug(bool is_error, const clt::source_location& src)
         : src(src)
         , iserror(is_error)
     {
@@ -84,14 +84,14 @@ namespace clt::details
     /// @brief Constructs a success
     /// @return State representing a success
     [[nodiscard]] static auto success(
-        std::source_location src = std::source_location::current()) noexcept
+        clt::source_location src = clt::source_location::current()) noexcept
     {
       return ErrorDebug(false, src);
     }
     /// @brief Constructs an error
     /// @return State representing an error
     [[nodiscard]] static auto error(
-        std::source_location src = std::source_location::current()) noexcept
+        clt::source_location src = clt::source_location::current()) noexcept
     {
       return ErrorDebug(true, src);
     }
