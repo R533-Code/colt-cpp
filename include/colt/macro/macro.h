@@ -11,6 +11,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <concepts>
+#include <cstdint>
 
 #include "hedley.h"
 #include "config.h"
@@ -69,7 +70,51 @@ namespace clt
 
   class source_location
   {
+    const char* file = "";
+    const char* function = "";
+    std::uint_least32_t line_;
+    std::uint_least32_t column_;
 
+  public:
+    constexpr source_location(const char* file, const char* fn, std::uint_least32_t line, std::uint_least32_t column) noexcept
+      : file(file), function(fn), line_(line), column_(column) {}
+    
+    constexpr source_location() noexcept = default;
+
+    constexpr const char* file_name() const noexcept
+    {
+      return file;
+    }
+
+    constexpr const char* function_name() const noexcept
+    {
+      return function;
+    }
+
+    constexpr auto line() const noexcept
+    {
+      return line_;
+    }
+
+    constexpr auto column() const noexcept
+    {
+      return column_;
+    }
+
+#if defined(COLT_MSVC) || defined(COLT_CLANG) || defined(COLT_GNU)
+    static constexpr source_location current(const char* file = __builtin_FILE(),
+      const char* fn = __builtin_FUNCTION(),
+      std::uint_least32_t line = __builtin_LINE(),
+      std::uint_least32_t column = __builtin_COLUMN()) noexcept
+#else
+    static constexpr source_location current(const char* file = "unknown",
+      const char* fn = "unknown",
+      std::uint_least32_t line = 0,
+      std::uint_least32_t column = 0) noexcept
+#endif
+    {
+      return source_location(file, fn, line, column);
+    }
   };
 } // namespace clt
 
