@@ -11,7 +11,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <concepts>
-#include <source_location>
 
 #include "hedley.h"
 #include "config.h"
@@ -67,6 +66,11 @@ namespace clt
     __DETAILS__COLT_DBREAK();
     std::abort();
   }
+
+  class source_location
+  {
+
+  };
 } // namespace clt
 
 /// @brief Colt intrinsic debug break

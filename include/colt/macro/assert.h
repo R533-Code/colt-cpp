@@ -11,7 +11,6 @@
 #include "colt/macro/macro.h"
 #include "colt/io/print.h"
 #include <hedley.h>
-#include <source_location>
 
 namespace clt
 {
@@ -22,7 +21,7 @@ namespace clt
   inline void
       unreachable(
           const char* error,
-          std::source_location src = std::source_location::current())
+          clt::source_location src = clt::source_location::current())
   {
     HEDLEY_UNREACHABLE();
     if constexpr (is_debug_build())
@@ -61,7 +60,7 @@ namespace clt::details
   /// @param src The source location
   /// @param ...bools The Assertion pack
   constexpr void assert_true_multiple(
-      const char* message, std::source_location src, BoolTs... bools) noexcept
+      const char* message, clt::source_location src, BoolTs... bools) noexcept
   {
     static_assert(
         (std::is_same_v<Assertion, std::remove_cvref_t<BoolTs>> && ...),
@@ -114,7 +113,7 @@ namespace clt::details
 /// @brief Asserts that all condition are true
 #define assert_true(MESSAGE, COND, ...)                                           \
   clt::details::assert_true_multiple(                                             \
-      MESSAGE, std::source_location::current() __DETAILS__COLT_TO_ASSERTION(COND) \
+      MESSAGE, clt::source_location::current() __DETAILS__COLT_TO_ASSERTION(COND) \
                    COLT_FOR_EACH(__DETAILS__COLT_TO_ASSERTION, __VA_ARGS__)),     \
       HEDLEY_ASSUME(COND) COLT_FOR_EACH(__DETAILS__COLT_TO_ASSUME, __VA_ARGS__)
 
