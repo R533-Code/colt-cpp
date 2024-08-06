@@ -261,7 +261,8 @@ namespace clt
         : _value((char32_t)bit::htob((u32)value))
     {
     }
-
+    
+    constexpr Char32BE() noexcept = default;
     MAKE_DEFAULT_COPY_AND_MOVE_FOR(Char32BE);
 
     /// @brief Return the current value as a host CodePoint.
@@ -320,6 +321,7 @@ namespace clt
     {
     }
 
+    constexpr Char32LE() noexcept = default;
     MAKE_DEFAULT_COPY_AND_MOVE_FOR(Char32LE);
 
     /// @brief Return the current value as a host CodePoint.
@@ -412,6 +414,7 @@ namespace clt
     {
     }
 
+    constexpr Char16BE() noexcept = default;
     MAKE_DEFAULT_COPY_AND_MOVE_FOR(Char16BE);
 
     /// @brief Return the current value as a host CodePoint.
@@ -482,6 +485,7 @@ namespace clt
     {
     }
 
+    constexpr Char16LE() noexcept = default;
     MAKE_DEFAULT_COPY_AND_MOVE_FOR(Char16LE);
 
     /// @brief Return the current value as a host CodePoint.
