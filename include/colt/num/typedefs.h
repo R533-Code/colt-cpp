@@ -79,6 +79,7 @@ namespace clt::details
       assert_checked();
       iserror    = move.iserror;
       is_checked = std::exchange(move.is_checked, true);
+      return *this;
     }
 
     /// @brief Constructs a success
