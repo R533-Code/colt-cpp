@@ -721,6 +721,17 @@ namespace clt
       INVALID_INPUT,
     };
 
+    /// @brief Converts any unicode encoding to UTF-8.
+    /// The pointers are taken by reference:
+    /// On INVALID_INPUT, 'from' will point to the start of the character
+    /// sequence that is invalid.
+    /// On NOT_ENOUGH_SPACE, 'from' will point to the 
+    /// @tparam Ty The source type
+    /// @param from The source start
+    /// @param from_size The source count (not byte size!)
+    /// @param result The result where to write
+    /// @param result_size The result buffer byte count
+    /// @return NO_ERROR or the encountered error.
     template<meta::CharType Ty>
     constexpr ConvError to_utf8(
         const Ty*& from, size_t from_size, char8_t*& result,
@@ -746,61 +757,50 @@ namespace clt
       }
       if constexpr (meta::is_any_of<Ty, Char32BE, Char32LE>)
       {
-        const auto min = math::min(from_size * sizeof(Ty), result_size);
-        const auto max_from   = from + (min / sizeof(Ty));
-        const auto max_result = result + min;
+        const auto max_from = from + from_size;
+        const auto max_result = result + result_size;
 
-        // TODO: second pass because there might still be some storage in the buffer.
         while (from != max_from)
         {
           const u32 as_host = from->as_host();
           if (as_host > CODE_POINT_MAX) [[unlikely]]
             return ConvError::INVALID_INPUT;
-          from++;
 
           if (const u32 cp = as_host; cp < 0x80) [[likely]]
-            *(result++) = static_cast<char8_t>(cp);          
+          {
+            if (result >= max_result)
+              return ConvError::NOT_ENOUGH_SPACE;
+            *(result++) = static_cast<char8_t>(cp);
+          }
           else if (cp < 0x800) // 2 bytes
           {
+            if (result + 1 >= max_result)
+              return ConvError::NOT_ENOUGH_SPACE;
             *result++ = static_cast<char8_t>((cp >> 6) | 0xc0);
             *result++ = static_cast<char8_t>((cp & 0x3f) | 0x80);
           }          
           else if (cp < 0x10000) // 3 bytes
           {
+            if (result + 2 >= max_result)
+              return ConvError::NOT_ENOUGH_SPACE;
             *result++ = static_cast<char8_t>((cp >> 12) | 0xe0);
             *result++ = static_cast<char8_t>(((cp >> 6) & 0x3f) | 0x80);
             *result++ = static_cast<char8_t>((cp & 0x3f) | 0x80);
           }          
           else // 4 bytes
           {
+            if (result + 3 >= max_result)
+              return ConvError::NOT_ENOUGH_SPACE;
             *result++ = static_cast<char8_t>((cp >> 18) | 0xf0);
             *result++ = static_cast<char8_t>(((cp >> 12) & 0x3f) | 0x80);
             *result++ = static_cast<char8_t>(((cp >> 6) & 0x3f) | 0x80);
             *result++ = static_cast<char8_t>((cp & 0x3f) | 0x80);
           }
+          from++;
         }
-        return min < from_size * sizeof(Ty) ? ConvError::NOT_ENOUGH_SPACE
-                                          : ConvError::NO_ERROR;
+        return ConvError::NO_ERROR;
       }
       // TODO: add UTF16 support
-    }
-
-    /// @brief Converts a code point in host endianness to a UTF16BE sequence
-    /// @param from The code point to convert
-    /// @param result Pointer to write to
-    /// @warning 'result' must have at least 2 16-bit integers of capacity
-    /// @return Pointer to after the last written character
-    template<bool BIG_OR_LITTLE>
-    constexpr char16_t* utf32to16(char32_t from, char16_t* result) noexcept
-    {
-      if (const u32 cp = from; is_in_bmp(from))
-        *(result++) = static_cast<char16_t>(cp);
-      else
-      {
-        *(result++) = (char16_t)bit::htol((u16)(LEAD_OFFSET + (cp >> 10)));
-        *(result++) = (char16_t)bit::htol((u16)(TRAIL_SURROGATE_MIN + (cp & 0x3FF)));
-      }
-      return result;
     }
 
     /// @brief Converts a code point in host endianness to a UTF16BE sequence
