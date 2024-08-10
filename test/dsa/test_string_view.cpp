@@ -41,7 +41,7 @@ TEST_CASE("StringView Indexing", "[StringView operator INDEX]")
     REQUIRE(a[1] == U'\u03BC');
   }
   SECTION("UTF32")
-  {
+  {  
     u32StringView a = ptr_to<const Char32*>(U"10\u03BC\u00BC");
     REQUIRE(a.front() == U'1');
     REQUIRE(a[0] == U'1');
