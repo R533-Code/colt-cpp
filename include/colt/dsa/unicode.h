@@ -584,6 +584,7 @@ namespace clt
     template<CharType T>
     consteval auto empty_string_literal() noexcept
     {
+      // We can cheat a bit as 0 is represented the same on different endianness.
       if constexpr (std::same_as<T, char>)
         return "";
       if constexpr (std::same_as<T, Char8>)
@@ -639,16 +640,17 @@ namespace clt
   /// @tparam T The char type
   /// @param start The string whose size in bytes to determine
   /// @return The size in bytes (not including NUL-terminator)
-  template<meta::CppCharType T>
+  template<typename T>
+    requires(meta::CppCharType<T> || meta::CharType<T>)
   constexpr size_t bytelen(const T* start) noexcept
   {
     assert_true("Expected non-null pointer!", start != nullptr);
-    if constexpr (meta::is_any_of<T, char, char8_t>)
+    if constexpr (meta::is_any_of<T, char, char8_t, Char8>)
     {
       if (std::is_constant_evaluated())
       {
         const T* end = start;
-        while (*end != T{0})
+        while (*end != T{})
           ++end;
         return end - start;
       }
@@ -660,7 +662,7 @@ namespace clt
       }
     }
     const T* end = start;
-    while (*end != T{0})
+    while (*end != T{})
       ++end;
     return (end - start) * sizeof(T);
   }
@@ -669,19 +671,20 @@ namespace clt
   /// @tparam T The char type
   /// @param start The string whose length to determine
   /// @return The size in code points (not including NUL-terminator)
-  template<meta::CppCharType T>
+  template<typename T>
+    requires(meta::CppCharType<T> || meta::CharType<T>)
   constexpr size_t strlen(const T* start) noexcept
   {
     assert_true("Expected non-null pointer!", start != nullptr);
     if constexpr (meta::is_any_of<T, char, char32_t>)
       return clt::bytelen(start) / sizeof(T);
 
-    if constexpr (std::same_as<T, char8_t>)
+    if constexpr (meta::is_any_of<T, char8_t, Char8>)
     {
       size_t len   = 0;
       const T* end = start;
       char8_t current;
-      while ((current = *end) != T{0})
+      while ((current = static_cast<char8_t>(*end)) != u8'\0')
       {
         if (current < 128)
           end += 1;
@@ -695,12 +698,12 @@ namespace clt
       }
       return len;
     }
-    if constexpr (std::same_as<T, char16_t>)
+    if constexpr (meta::is_any_of<T, char16_t, Char16BE, Char16LE>)
     {
       size_t len   = 0;
       const T* end = start;
       char16_t current;
-      while ((current = *end) != T{0})
+      while ((current = static_cast<char16_t>(*end)) != T{})
       {
         if (uni::is_lead_surrogate(current))
           end += 2;
@@ -808,7 +811,7 @@ namespace clt
     /// @param result Pointer to write to
     /// @warning 'result' must have at least 2 16-bit integers of capacity
     /// @return Pointer to after the last written character
-    constexpr char16_t* unsafe_utf32to16be(char32_t from, char16_t* result) noexcept
+    constexpr char16_t* unsafe_utf32to16(char32_t from, char16_t* result) noexcept
     {
       if (const u32 cp = from; cp < (u32)0x10000)
         *(result++) = static_cast<char16_t>(cp);
@@ -819,72 +822,86 @@ namespace clt
       }
       return result;
     }
+    
+    /// @brief Converts a UTF16 surrogate pair to code point
+    /// @param high The high surrogate
+    /// @param low The low surrogate
+    /// @return The code point
+    constexpr char32_t surrogate_to_cp(char16_t high, char16_t low) noexcept
+    {
+      return (high << 10) + low - 0x35fdc00;
+    }
 
-    //constexpr char8_t* unsafe_utf8to32be(char8_t* from, char32_t* result) noexcept
-    //{
-    //  auto first = *from;
-    //  auto ret   = static_cast<char32_t>(first);
-    //  switch_no_default(unsafe_sequence_length(first))
-    //  {
-    //  case 1:
-    //    break;
-    //  case 2:
-    //    ++from;
-    //    ret = ((ret << 6) & 0x7ff) + ((*from) & 0x3f);
-    //    break;
-    //  case 3:
-    //    ++from;
-    //    ret = ((ret << 12) & 0xffff) + ((*from << 6) & 0xfff);
-    //    ++from;
-    //    ret += (*from) & 0x3f;
-    //    break;
-    //  case 4:
-    //    ++from;
-    //    ret = ((ret << 18) & 0x1fffff) + ((*from << 12) & 0x3ffff);
-    //    ++from;
-    //    ret += (*from << 6) & 0xfff;
-    //    ++from;
-    //    ret += (*from) & 0x3f;
-    //    break;
-    //  }
-    //  ++from;
-    //  *result = bit::htol(ret);
-    //  return from;
-    //}
+    /// @brief Converts a UTF16 sequence to a code point
+    /// @param from The start of the sequence
+    /// @param result The result in which to write the code point
+    /// @return On error, returns 'from' and sets result to REPLACEMENT CHARACTER,
+    ///         else the next start of sequence.
+    template<typename T>
+      requires(meta::is_any_of<T, Char16BE, Char16LE>)
+    constexpr const T* unsafe_utf16to32(
+        const T* from, char32_t& result) noexcept
+    {
+      auto first = *from;
+      auto value = first.sequence_length();
+      if (first.is_lead_surrogate()) [[unlikely]]
+      {
+        if (auto second = from[1];
+          second.is_trail_surrogate()) [[likely]]
+        {
+          result = surrogate_to_cp(first, second);
+          return from + 2;
+        }
+        // lead surrogate must be followed by trail
+        result = U'\ufffd';
+        return from;
+      }
+      ++from;
+      result = static_cast<char32_t>(first);
+      return from;
+    }
 
-    ///// @brief Converts a code point in host endianness to a UTF8
-    ///// @param from The code point to convert
-    ///// @param result Pointer to write to
-    ///// @warning 'result' must have at least 4 bytes of capacity
-    ///// @return Pointer to after the last written character
-    //constexpr char8_t* unsafe_utf32to8(char32_t from, char8_t* result) noexcept
-    //{
-    //  // single byte
-    //  if (const u32 cp = from; cp < 0x80)
-    //    *(result++) = static_cast<char8_t>(cp);
-    //  // 2 bytes
-    //  else if (cp < 0x800)
-    //  {
-    //    *(result++) = static_cast<char8_t>((cp >> 6) | 0xc0);
-    //    *(result++) = static_cast<char8_t>((cp & 0x3f) | 0x80);
-    //  }
-    //  // 3 bytes
-    //  else if (cp < 0x10000)
-    //  {
-    //    *(result++) = static_cast<char8_t>((cp >> 12) | 0xe0);
-    //    *(result++) = static_cast<char8_t>(((cp >> 6) & 0x3f) | 0x80);
-    //    *(result++) = static_cast<char8_t>((cp & 0x3f) | 0x80);
-    //  }
-    //  // 4 bytes
-    //  else
-    //  {
-    //    *(result++) = static_cast<char8_t>((cp >> 18) | 0xf0);
-    //    *(result++) = static_cast<char8_t>(((cp >> 12) & 0x3f) | 0x80);
-    //    *(result++) = static_cast<char8_t>(((cp >> 6) & 0x3f) | 0x80);
-    //    *(result++) = static_cast<char8_t>((cp & 0x3f) | 0x80);
-    //  }
-    //  return result;
-    //}
+    /// @brief Converts a UTF8 sequence to a code point
+    /// @param from The start of the sequence
+    /// @param result The result in which to write the code point
+    /// @return On error, returns 'from' and sets result to REPLACEMENT CHARACTER,
+    ///         else the next start of sequence.
+    constexpr const Char8* unsafe_utf8to32(const Char8* from, char32_t& result) noexcept
+    {
+      auto first = *from;
+      auto value = first.sequence_length();
+      if (value.is_none())
+      {
+        result = U'\ufffd';
+        return from;
+      }
+      auto ret   = static_cast<char32_t>(first);
+      switch_no_default(*value)
+      {
+      case 1:
+        break;
+      case 2:
+        ++from;
+        ret = ((ret << 6) & 0x7ff) + ((*from) & 0x3f);
+        break;
+      case 3:
+        ++from;
+        ret = ((ret << 12) & 0xffff) + ((*from << 6) & 0xfff);
+        ++from;
+        ret += (*from) & 0x3f;
+        break;
+      case 4:
+        ++from;
+        ret = ((ret << 18) & 0x1fffff) + ((*from << 12) & 0x3ffff);
+        ++from;
+        ret += (*from << 6) & 0xfff;
+        ++from;
+        ret += (*from) & 0x3f;
+        break;
+      }
+      result = ret;
+      return from + 1;
+    }
   }
 } // namespace clt
 
