@@ -160,7 +160,7 @@ namespace clt
     /// @param index The index of the char to return
     /// @return The char at index 'index'
     constexpr char32_t operator[](size_t index) const noexcept
-    {      
+    {
       return index_front(index);
     }
 
@@ -176,7 +176,7 @@ namespace clt
       assert_true("Invalid index!", index < size());
       return uni::index_front(_ptr, index);
     }
-    
+
     constexpr char32_t index_back(u32 index) const noexcept
     {
       assert_true("Invalid index!", index < size());
@@ -302,12 +302,11 @@ namespace clt
     /// @param v1 The first view
     /// @param v2 The second view
     /// @return Result of comparison
+    template<StringEncoding ENCODING2, bool ZSTRING2>
     friend constexpr auto operator<=>(
-        const BasicStringView& v1, const BasicStringView& v2) noexcept
+        const BasicStringView& v1,
+        const BasicStringView<ENCODING2, ZSTRING2>& v2) noexcept
     {
-      //TODO: UTF8 can be compared as unsigned bytes...
-      // UTF16 cannot!
-      // https://stackoverflow.com/questions/3478985/is-comparing-two-byte-of-utf-8-encoded-strings-the-same-as-comparing-two-unico
       return std::lexicographical_compare_three_way(
           v1.begin(), v1.end(), v2.begin(), v2.end());
     }
