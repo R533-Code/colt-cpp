@@ -32,7 +32,7 @@ namespace clt
     constexpr BasicStringView() noexcept
       requires(!ZSTRING)
     = default;
-    
+
     /// @brief Constructs an empty ZStringView
     constexpr BasicStringView() noexcept
       requires ZSTRING
@@ -42,12 +42,12 @@ namespace clt
     }
 
     template<size_t N>
-    constexpr BasicStringView(const underlying_type(&str)[N]) noexcept
+    constexpr BasicStringView(const underlying_type (&str)[N]) noexcept
         : _ptr(str)
         , _size(N)
     {
     }
-    
+
     /// @brief Constructs a view starting at 'ptr', of size 'size'.
     /// For ZStringView, the character AFTER the last character MUST
     /// be a NUL-terminator: `ptr[size] == '\0'`.
@@ -61,7 +61,8 @@ namespace clt
       if constexpr (!ZSTRING)
       {
         assert_true(
-            "ptr cannot be null if size != 0!", implies(_ptr == nullptr, _size == 0));
+            "ptr cannot be null if size != 0!",
+            implies(_ptr == nullptr, _size == 0));
       }
       else
       {
@@ -86,12 +87,14 @@ namespace clt
       assert_true("begin must be <= end!", begin <= end);
       if constexpr (!ZSTRING)
       {
-        assert_true("ptr cannot be null if size != 0!",
+        assert_true(
+            "ptr cannot be null if size != 0!",
             implies(_ptr == nullptr, _size == 0));
       }
       else
       {
-        assert_true("ptr cannot be null for ZStringView!", begin != nullptr, end != nullptr);
+        assert_true(
+            "ptr cannot be null for ZStringView!", begin != nullptr, end != nullptr);
         assert_true(
             "ZStringView must be NUL-terminated!", *end == underlying_type{});
       }
@@ -111,11 +114,17 @@ namespace clt
 
     /// @brief Returns an iterator to the start of the view
     /// @return Iterator to the start of the view
-    //constexpr iterator begin() const noexcept { return _ptr; }
+    constexpr uni::code_point_iterator<ENCODING> begin() const noexcept
+    {
+      return _ptr;
+    }
     /// @brief Returns an iterator to the end of the view.
     /// This iterator should not be dereferenced.
     /// @return Iterator to the end of the view
-    //constexpr iterator end() const noexcept { return _ptr + _size; }
+    constexpr uni::code_point_iterator<ENCODING> end() const noexcept
+    {
+      return _ptr + _size;
+    }
 
     /// @brief Returns a pointer to the beginning of the data.
     /// The pointer may be NUL only if size() == 0.
@@ -135,7 +144,10 @@ namespace clt
     /// @brief Returns the byte size over which the view is spanning.
     /// For ASCII, this is the same as 'size()'.
     /// @return The byte size
-    constexpr size_t byte_size() const noexcept { return _size * sizeof(underlying_type); }
+    constexpr size_t byte_size() const noexcept
+    {
+      return _size * sizeof(underlying_type);
+    }
     /// @brief Check if the size is zero
     /// @return True if size() == 0
     constexpr bool is_empty() const noexcept { return size() == 0; }
@@ -143,45 +155,32 @@ namespace clt
     /// @brief Returns the char at index 'index'.
     /// Do not use this operator to iterate over the view:
     /// use a ranged for loop for performance.
+    /// Same as 'index_front'.
     /// @pre index < size()
     /// @param index The index of the char to return
     /// @return The char at index 'index'
     constexpr char32_t operator[](size_t index) const noexcept
+    {      
+      return index_front(index);
+    }
+
+    /// @brief Returns the char at index 'index'.
+    /// Do not use this operator to iterate over the view:
+    /// use a ranged for loop for performance.
+    /// Same as 'index_front'.
+    /// @pre index < size()
+    /// @param index The index of the char to return
+    /// @return The char at index 'index'
+    constexpr char32_t index_front(size_t index) const noexcept
     {
       assert_true("Invalid index!", index < size());
-      if constexpr (meta::is_any_of<underlying_type, Char32BE, Char32LE>)
-        return _ptr[index].as_host();
-      if constexpr (meta::is_any_of<underlying_type, char>)
-        return static_cast<char32_t>(_ptr[index]);
-      if constexpr (std::same_as<underlying_type, Char8>)
-      {
-        auto ptr = _ptr;
-        while (index != 0)
-        {
-          auto len = ptr->sequence_length();
-          assert_true("Invalid UTF8!", len.is_value());
-          --index;
-          ptr += *len;
-        }
-        char32_t result;
-        auto check = uni::unsafe_utf8to32(ptr, result);
-        assert_true("Invalid UTF8!", check != ptr);
-        return result;
-      }
-      if constexpr (meta::is_any_of<underlying_type, Char16BE, Char16LE>)
-      {
-        auto ptr = _ptr;
-        while (index != 0)
-        {
-          auto len = ptr->sequence_length();
-          --index;
-          ptr += len;
-        }
-        char32_t result;
-        auto check = uni::unsafe_utf16to32(ptr, result);
-        assert_true("Invalid UTF16!", check != ptr);
-        return result;
-      }
+      return uni::index_front(_ptr, index);
+    }
+    
+    constexpr char32_t index_back(u32 index) const noexcept
+    {
+      assert_true("Invalid index!", index < size());
+      return uni::index_back(_ptr + _size - 1, index);
     }
 
     /// @brief Get the front of the view.
@@ -189,7 +188,7 @@ namespace clt
     constexpr char32_t front() const noexcept
     {
       assert_true("Invalid size!", !is_empty());
-      return (*this)[0];
+      return index_front(0);
     }
 
     /// @brief Get the back of the view.
@@ -197,31 +196,7 @@ namespace clt
     constexpr char32_t back() const noexcept
     {
       assert_true("Invalid size!", !is_empty());
-      if constexpr (meta::is_any_of<underlying_type, char, Char32BE, Char32LE>)
-        return (*this)[_size - 1];
-      if constexpr (meta::is_any_of<underlying_type, Char8>)
-      {
-        auto ptr       = _ptr + _size - 1;
-        while (ptr->is_trail())
-          --ptr;
-        assert_true(
-            "Invalid UTF8!", (_ptr + _size - 1) - ptr <= Char8::max_sequence);
-        char32_t result;
-        auto check = uni::unsafe_utf8to32(ptr, result);
-        assert_true("Invalid UTF8!", check != ptr);
-        return result;
-      }
-      if constexpr (meta::is_any_of<underlying_type, Char16BE, Char16LE>)
-      {
-        auto ptr = _ptr + _size - 1;
-        if (ptr->is_trail_surrogate())
-        {
-          assert_true("Invalid UTF16!", ptr[-1].is_lead_surrogate(), _size > 1);
-          return uni::surrogate_to_cp(ptr[-1], ptr[0]);
-        }
-        else
-          return static_cast<char32_t>(ptr[0]);
-      }
+      return index_back(0);
     }
 
     /// @brief Returns a NUL-terminated string.
@@ -285,7 +260,7 @@ namespace clt
         --_size;
       if constexpr (meta::is_any_of<underlying_type, Char8>)
       {
-        auto ptr = _ptr + _size - 1;
+        auto ptr       = _ptr + _size - 1;
         auto copy_size = _size;
         do
         {
@@ -348,18 +323,24 @@ namespace clt
   template<StringEncoding ENCODING = StringEncoding::ASCII>
   using ZStringView = BasicStringView<ENCODING, true>;
 
-  using u8StringView = BasicStringView<StringEncoding::UTF8, false>;
-  using u16StringView = BasicStringView<StringEncoding::UTF16, false>;
-  using u32StringView = BasicStringView<StringEncoding::UTF32, false>;
-  using u8ZStringView = BasicStringView<StringEncoding::UTF8, true>;
-  using u16ZStringView = BasicStringView<StringEncoding::UTF16, true>;
-  using u32ZStringView = BasicStringView<StringEncoding::UTF32, true>;
+  /// @brief UTF8 StringView
+  using u8StringView = StringView<StringEncoding::UTF8>;
+  /// @brief UTF16 StringView (in host endianness)
+  using u16StringView = StringView<StringEncoding::UTF16>;
+  /// @brief UTF32 StringView (in host endianness)
+  using u32StringView = StringView<StringEncoding::UTF32>;
+  /// @brief UTF8 Nul-terminated StringView
+  using u8ZStringView = ZStringView<StringEncoding::UTF8>;
+  /// @brief UTF16 Nul-terminated StringView
+  using u16ZStringView = ZStringView<StringEncoding::UTF16>;
+  /// @brief UTF32 Nul-terminated StringView
+  using u32ZStringView = ZStringView<StringEncoding::UTF32>;
 } // namespace clt
 
-template<bool ZSTRING>
-struct fmt::formatter<clt::BasicStringView<clt::StringEncoding::ASCII, ZSTRING>>
+template<clt::StringEncoding ENCODING, bool ZSTRING>
+struct fmt::formatter<clt::BasicStringView<ENCODING, ZSTRING>>
 {
-  using to_format = clt::BasicStringView<clt::StringEncoding::ASCII, ZSTRING>;
+  using to_format = clt::BasicStringView<ENCODING, ZSTRING>;
 
   template<typename ParseContext>
   constexpr auto parse(ParseContext& ctx)
@@ -370,7 +351,20 @@ struct fmt::formatter<clt::BasicStringView<clt::StringEncoding::ASCII, ZSTRING>>
   template<typename FormatContext>
   auto format(const to_format& vec, FormatContext& ctx) const
   {
-    return fmt::format_to(ctx.out(), "{}", fmt::string_view{vec.data(), vec.size()});
+    using namespace clt;
+    using enum StringEncoding;
+    if constexpr (ENCODING == ASCII)
+    {
+      return fmt::format_to(
+          ctx.out(), "{}", fmt::string_view{vec.data(), vec.size()});
+    }
+    if constexpr (ENCODING == UTF8)
+    {
+      return fmt::format_to(
+          ctx.out(), "{}",
+          fmt::string_view{
+              reinterpret_cast<const char*>(vec.data()), vec.byte_size()});
+    }
   }
 };
 
