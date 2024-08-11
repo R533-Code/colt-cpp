@@ -17,9 +17,9 @@ namespace clt
   public:
     using underlying_type = meta::encoding_to_char_t<ENCODING>;
     /// @brief The string encoding of the current BasicStringView
-    static constexpr StringEncoding string_encoding = ENCODING;
+    static constexpr StringEncoding STR_ENCODING = ENCODING;
     /// @brief True if null terminated view
-    static constexpr bool is_zstring_view = ZSTRING;
+    static constexpr bool IS_ZSTRV = ZSTRING;
 
   private:
     /// @brief The pointer to the characters
@@ -357,12 +357,19 @@ struct fmt::formatter<clt::BasicStringView<ENCODING, ZSTRING>>
       return fmt::format_to(
           ctx.out(), "{}", fmt::string_view{vec.data(), vec.size()});
     }
-    if constexpr (ENCODING == UTF8)
+    else if constexpr (ENCODING == UTF8)
     {
       return fmt::format_to(
           ctx.out(), "{}",
           fmt::string_view{
               reinterpret_cast<const char*>(vec.data()), vec.byte_size()});
+    }
+    else
+    {
+      auto iter = ctx.out();
+      for (auto chr : vec)
+        iter = fmt::format_to(iter, "{}", Char32{chr});
+      return iter;
     }
   }
 };
