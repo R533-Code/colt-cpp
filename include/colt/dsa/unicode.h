@@ -88,46 +88,6 @@ namespace clt
     {
       return cp < char32_t(0x10000);
     }
-
-    /*
-    /// @brief Check if a code point is in the Basic Multilingual Plane
-    /// @param cp The code point
-    /// @return True if 'cp' is in the BMP
-    constexpr bool is_in_bmp(CodePoint cp)
-    {
-      return cp.value() < char32_t(0x10000);
-    }
-
-    template<bool SAFE = true>
-    constexpr std::conditional_t<SAFE, Option<u8>, u8> size_as_utf16(
-        CodePoint cp) noexcept
-    {
-      if constexpr (SAFE)
-        if (cp.value() > CODE_POINT_MAX)
-          return None;
-      return ((u8)!is_in_bmp(cp.value()) + 1) * 2;
-    }
-
-    template<bool SAFE = true>
-    constexpr std::conditional_t<SAFE, Option<u8>, u8> size_as_utf8(
-        CodePoint cp) noexcept
-    {
-      if (cp.value() < 0x80)
-        return 1;
-      else if (cp.value() < 0x800)
-        return 2;
-      else if (cp.value() < 0x10000)
-        return 3;
-      if constexpr (!SAFE)
-        return 4;
-      else
-      {
-        if (cp <= CODE_POINT_MAX)
-          return 4;
-        return None;
-      }
-    }
-*/    
   } // namespace uni
 
   /// @brief 8-bit char (used for UTF8)
@@ -595,6 +555,21 @@ namespace clt
         return U"";
     }
 
+    /// @brief Converts an C++ character type to the Colt character type
+    /// that encodes it.
+    /// @tparam T The C++ character type
+    template<CppCharType T>
+    using cppchar_to_char_t = decltype([]() {
+      if constexpr (std::same_as<T, char>)
+        return char{};
+      if constexpr (std::same_as<T, char8_t>)
+        return Char8{};
+      if constexpr (std::same_as<T, char16_t>)
+        return Char16{};
+      if constexpr (std::same_as<T, char32_t>)
+        return Char32{};
+      }());
+
     /// @brief Converts an encoding to the char that must represent it
     /// @tparam ENCODING The encoding to convert
     template<StringEncoding ENCODING>
@@ -902,6 +877,139 @@ namespace clt
       result = ret;
       return from + 1;
     }
+
+    /// @brief Indexes into a sequence of characters, returning the n-th code point.
+    /// @tparam underlying_type The character encoding type
+    /// @param _ptr The start of the sequence
+    /// @param index The code point index
+    /// @return The n-th code point
+    /// @warning The sequence must be valid unicode
+    template<meta::CharType underlying_type>
+    constexpr char32_t index_front(const underlying_type* _ptr, size_t index) noexcept
+    {
+      if constexpr (meta::is_any_of<underlying_type, Char32BE, Char32LE>)
+        return _ptr[index].as_host();
+      if constexpr (meta::is_any_of<underlying_type, char>)
+        return static_cast<char32_t>(_ptr[index]);
+      if constexpr (std::same_as<underlying_type, Char8>)
+      {
+        auto ptr = _ptr;
+        while (index != 0)
+        {
+          auto len = ptr->sequence_length();
+          assert_true("Invalid UTF8!", len.is_value());
+          --index;
+          ptr += *len;
+        }
+        char32_t result;
+        auto check = uni::unsafe_utf8to32(ptr, result);
+        assert_true("Invalid UTF8!", check != ptr);
+        return result;
+      }
+      if constexpr (meta::is_any_of<underlying_type, Char16BE, Char16LE>)
+      {
+        auto ptr = _ptr;
+        while (index != 0)
+        {
+          auto len = ptr->sequence_length();
+          --index;
+          ptr += len;
+        }
+        char32_t result;
+        auto check = uni::unsafe_utf16to32(ptr, result);
+        assert_true("Invalid UTF16!", check != ptr);
+        return result;
+      }
+    }
+
+    template<meta::CharType underlying_type>
+    constexpr char32_t index_back(const underlying_type* _ptr, u32 _index) noexcept
+    {
+      if constexpr (meta::is_any_of<underlying_type, char, Char32BE, Char32LE>)
+        return _ptr[-static_cast<i64>(_index)];
+      if constexpr (meta::is_any_of<underlying_type, Char8>)
+      {
+        auto ptr = _ptr;
+        while (_index != 0)
+        {
+          while (ptr->is_trail())
+            --ptr;
+          --ptr;
+          --_index;
+        }
+        while (ptr->is_trail())
+          --ptr;
+        char32_t result;
+        auto check = uni::unsafe_utf8to32(ptr, result);
+        assert_true("Invalid UTF8!", check != ptr);
+        return result;
+      }
+      if constexpr (meta::is_any_of<underlying_type, Char16BE, Char16LE>)
+      {
+        auto ptr = _ptr;
+        while (_index != 0)
+        {
+          ptr -= 1 + (i64)ptr->is_trail_surrogate();
+          --_index;
+        }
+        if (ptr->is_trail_surrogate())
+        {
+          assert_true("Invalid UTF16!", ptr[-1].is_lead_surrogate());
+          return uni::surrogate_to_cp(ptr[-1], ptr[0]);
+        }
+        else
+          return static_cast<char32_t>(ptr[0]);
+      }
+    }
+
+    template<StringEncoding ENCODING>
+    class code_point_iterator
+    {
+      using ptr_t = meta::encoding_to_char_t<ENCODING>;
+
+      const ptr_t* ptr;
+
+    public:
+      constexpr code_point_iterator(const ptr_t* ptr) noexcept
+          : ptr(ptr)
+      {
+      }
+
+      MAKE_DEFAULT_COPY_AND_MOVE_FOR(code_point_iterator);
+
+      constexpr code_point_iterator& operator++()
+      {
+        return *this;
+      }
+
+      constexpr code_point_iterator operator++(int)
+      {
+        auto copy = *this;
+        ++(*this);
+        return copy;
+      }
+
+      constexpr code_point_iterator& operator--()
+      {
+        return *this;
+      }
+
+      constexpr code_point_iterator operator--(int)
+      {
+        auto copy = *this;
+        --(*this);
+        return copy;
+      }
+
+      constexpr char32_t operator*() noexcept
+      {
+        return;
+      }
+
+      friend constexpr bool operator<=>(
+          const code_point_iterator&, const code_point_iterator&) noexcept =
+          default;
+    };
   }
 } // namespace clt
 
