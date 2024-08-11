@@ -12,7 +12,7 @@
 #include <mutex>
 
 #include "simple_alloc.h"
-#include "colt/math/math.h"
+#include "colt/num/math.h"
 #include "colt/meta/traits.h"
 
 namespace clt::mem

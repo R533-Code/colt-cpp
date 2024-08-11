@@ -1,5 +1,5 @@
 #include <catch2/catch_all.hpp>
-#include <colt/math/math.h>
+#include <colt/num/math.h>
 
 TEST_CASE("Absolute Values", "[absolute_value]")
 {

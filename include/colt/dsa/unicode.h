@@ -11,7 +11,7 @@
 #include "colt/macro/assert.h"
 #include "colt/macro/on_scope_exit.h"
 #include "colt/bit/endian.h"
-#include "colt/math/math.h"
+#include "colt/num/math.h"
 #include "colt/dsa/option.h"
 
 /// @brief The major version of unicode used by Colt
@@ -53,6 +53,16 @@ namespace clt
   #error
 #endif // COLT_LITTLE_ENDIAN
   };
+
+  /// @brief Check if 'encoding' is UTF16 or UTF8 (where a single code point
+  /// might occupy more than a single object).
+  /// @param encoding The encoding to check for
+  /// @return True if UTF16BE, UTF16LE or UTF8
+  constexpr bool is_variadic_encoding(StringEncoding encoding) noexcept
+  {
+    using enum clt::StringEncoding;
+    return encoding == UTF16BE || encoding == UTF16LE || encoding == UTF8;
+  }
 
   namespace uni
   {
