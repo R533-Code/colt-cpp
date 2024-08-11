@@ -50,7 +50,7 @@ namespace clt
     /// @brief UTF32 in host format (big endian)
     UTF32 = UTF32BE
 #else
-    #error
+  #error
 #endif // COLT_LITTLE_ENDIAN
   };
 
@@ -75,7 +75,7 @@ namespace clt
     {
       return value >= LEAD_SURROGATE_MIN && value <= LEAD_SURROGATE_MAX;
     }
-    
+
     constexpr bool is_trail_surrogate(char16_t value) noexcept
     {
       return value >= TRAIL_SURROGATE_MIN && value <= TRAIL_SURROGATE_MAX;
@@ -119,26 +119,17 @@ namespace clt
     MAKE_DEFAULT_COPY_AND_MOVE_FOR(Char8);
 
     /// @brief Returns the value
-    constexpr operator char8_t() const noexcept
-    {
-      return _value;
-    }
+    constexpr operator char8_t() const noexcept { return _value; }
 
     /// @brief Returns the value
     /// @return The value of the Char8
-    constexpr char8_t value() const noexcept
-    {
-      return _value;
-    }
+    constexpr char8_t value() const noexcept { return _value; }
 
     /// @brief Check if the current char represents a trailing UTF8.
     /// A trailing UTF8 is any char that is NOT the beginning of a UTF8
     /// sequence. An invalid UTF8 char cannot be trail.
     /// @return True if not the beginning of a UTF8 sequence
-    constexpr bool is_trail() const noexcept
-    {
-      return (_value >> 6) == 0b10;
-    }
+    constexpr bool is_trail() const noexcept { return (_value >> 6) == 0b10; }
 
     /// @brief Check if the current char represents a lead UTF8.
     /// A lead UTF8 is either an ASCII character or the start
@@ -155,7 +146,8 @@ namespace clt
     ///              lead. If this is false, the method returns 1.
     /// @return [1, 4] or None (if SAFE and invalid lead)
     template<bool SAFE = true>
-    constexpr std::conditional_t<SAFE, Option<u8>, u8> sequence_length() const noexcept
+    constexpr std::conditional_t<SAFE, Option<u8>, u8> sequence_length()
+        const noexcept
     {
       if (_value < 0x80) [[likely]]
         return 1;
@@ -210,7 +202,7 @@ namespace clt
     /// @brief The encoding of the current type
     static constexpr StringEncoding encoding = StringEncoding::UTF32BE;
     /// @brief The maximum count of Char32 needed to form a code point
-    static constexpr size_t max_sequence     = 1;
+    static constexpr size_t max_sequence = 1;
 
     /// @brief Constructs a big endian value from a little endian value
     /// @param value The value (in little endian)
@@ -221,7 +213,7 @@ namespace clt
         : _value((char32_t)bit::htob((u32)value))
     {
     }
-    
+
     constexpr Char32BE() noexcept = default;
     MAKE_DEFAULT_COPY_AND_MOVE_FOR(Char32BE);
 
@@ -238,10 +230,7 @@ namespace clt
     /// @brief Return the current value as a big endian CodePoint.
     /// This is a no-op.
     /// @return The current value as a big endian CodePoint
-    constexpr Char32BE as_big() const noexcept
-    {
-      return *this;
-    }
+    constexpr Char32BE as_big() const noexcept { return *this; }
 
     /// @brief Returns the value in host endian
     constexpr operator char32_t() const noexcept { return as_host(); }
@@ -270,7 +259,7 @@ namespace clt
     static constexpr StringEncoding encoding = StringEncoding::UTF32LE;
     /// @brief The maximum count of Char32 needed to form a code point
     static constexpr size_t max_sequence = 1;
-    
+
     /// @brief Constructs a little endian value from a big endian value
     /// @param value The value (in little endian)
     constexpr Char32LE(Char32BE value) noexcept;
@@ -294,10 +283,7 @@ namespace clt
     /// @brief Return the current value as a little endian CodePoint.
     /// This is a no-op.
     /// @return The current value as a little endian CodePoint
-    constexpr Char32LE as_little() const noexcept
-    {
-      return *this;
-    }
+    constexpr Char32LE as_little() const noexcept { return *this; }
     /// @brief Return the current value as a big endian CodePoint.
     /// @return The current value as a big endian CodePoint
     constexpr Char32BE as_big() const noexcept;
@@ -305,7 +291,7 @@ namespace clt
     /// @brief Returns the value in host endian
     constexpr operator char32_t() const noexcept { return as_host(); }
     /// @brief Returns the value in big endian
-    constexpr operator Char32BE() const noexcept;    
+    constexpr operator Char32BE() const noexcept;
 
     /// @brief Returns the value in little endian
     /// @return Value in little endian
@@ -327,7 +313,7 @@ namespace clt
   constexpr Char32LE Char32BE::as_little() const noexcept
   {
     return (char32_t)bit::byteswap((u32)_value);
-  }  
+  }
 
   constexpr Char32BE::operator Char32LE() const noexcept
   {
@@ -345,7 +331,7 @@ namespace clt
   constexpr Char32BE Char32LE::as_big() const noexcept
   {
     return (char32_t)bit::byteswap((u32)_value);
-  }  
+  }
 
   constexpr Char32LE::operator Char32BE() const noexcept
   {
@@ -363,7 +349,7 @@ namespace clt
     static constexpr StringEncoding encoding = StringEncoding::UTF16BE;
     /// @brief The maximum count of Char16 needed to form a code point
     static constexpr size_t max_sequence = 2;
-    
+
     /// @brief Constructs a big endian value from a little endian value
     /// @param value The value (in little endian)
     constexpr Char16BE(Char16LE value) noexcept;
@@ -409,7 +395,7 @@ namespace clt
     {
       return uni::is_lead_surrogate(*this);
     }
-    
+
     /// @brief Check if the current Char16 represents a trail surrogate.
     /// A trail surrogate must be preceded by a lead surrogate to form
     /// a valid UTF16 sequence.
@@ -421,7 +407,10 @@ namespace clt
 
     /// @brief The UTF16 sequence length if this is the start of the sequence.
     /// @return 1 or 2
-    constexpr u8 sequence_length() const noexcept { return 1 + (u8)is_lead_surrogate(); }
+    constexpr u8 sequence_length() const noexcept
+    {
+      return 1 + (u8)is_lead_surrogate();
+    }
   };
 
   /// @brief Little Endian 16-bit Char
@@ -434,7 +423,7 @@ namespace clt
     static constexpr StringEncoding encoding = StringEncoding::UTF16LE;
     /// @brief The maximum count of Char16 needed to form a code point
     static constexpr size_t max_sequence = 2;
-    
+
     /// @brief Constructs a little endian value from a big endian value
     /// @param value The value (in little endian)
     constexpr Char16LE(Char16BE value) noexcept;
@@ -492,7 +481,10 @@ namespace clt
 
     /// @brief The UTF16 sequence length if this is the start of the sequence.
     /// @return 1 or 2
-    constexpr u8 sequence_length() const noexcept { return 1 + (u8)is_lead_surrogate(); }
+    constexpr u8 sequence_length() const noexcept
+    {
+      return 1 + (u8)is_lead_surrogate();
+    }
   };
 
   constexpr Char16BE::Char16BE(Char16LE value) noexcept
@@ -532,7 +524,8 @@ namespace clt
   {
     /// @brief Represents any of the Colt char types
     template<typename T>
-    concept CharType = meta::is_any_of<T, char, Char8, Char16LE, Char16BE, Char32LE, Char32BE>;
+    concept CharType =
+        meta::is_any_of<T, char, Char8, Char16LE, Char16BE, Char32LE, Char32BE>;
 
     /// @brief Represents any of the C++ char types
     template<typename T>
@@ -703,7 +696,7 @@ namespace clt
     /// The pointers are taken by reference:
     /// On INVALID_INPUT, 'from' will point to the start of the character
     /// sequence that is invalid.
-    /// On NOT_ENOUGH_SPACE, 'from' will point to the 
+    /// On NOT_ENOUGH_SPACE, 'from' will point to the
     /// @tparam Ty The source type
     /// @param from The source start
     /// @param from_size The source count (not byte size!)
@@ -722,7 +715,7 @@ namespace clt
         {
           const auto max_from = from + min;
           while (from != max_from)
-            *result++ = *from++;          
+            *result++ = *from++;
         }
         else
         {
@@ -735,7 +728,7 @@ namespace clt
       }
       if constexpr (meta::is_any_of<Ty, Char32BE, Char32LE>)
       {
-        const auto max_from = from + from_size;
+        const auto max_from   = from + from_size;
         const auto max_result = result + result_size;
 
         while (from != max_from)
@@ -756,7 +749,7 @@ namespace clt
               return ConvError::NOT_ENOUGH_SPACE;
             *result++ = static_cast<char8_t>((cp >> 6) | 0xc0);
             *result++ = static_cast<char8_t>((cp & 0x3f) | 0x80);
-          }          
+          }
           else if (cp < 0x10000) // 3 bytes
           {
             if (result + 2 >= max_result)
@@ -764,7 +757,7 @@ namespace clt
             *result++ = static_cast<char8_t>((cp >> 12) | 0xe0);
             *result++ = static_cast<char8_t>(((cp >> 6) & 0x3f) | 0x80);
             *result++ = static_cast<char8_t>((cp & 0x3f) | 0x80);
-          }          
+          }
           else // 4 bytes
           {
             if (result + 3 >= max_result)
@@ -797,7 +790,7 @@ namespace clt
       }
       return result;
     }
-    
+
     /// @brief Converts a UTF16 surrogate pair to code point
     /// @param high The high surrogate
     /// @param low The low surrogate
@@ -814,15 +807,13 @@ namespace clt
     ///         else the next start of sequence.
     template<typename T>
       requires(meta::is_any_of<T, Char16BE, Char16LE>)
-    constexpr const T* unsafe_utf16to32(
-        const T* from, char32_t& result) noexcept
+    constexpr const T* unsafe_utf16to32(const T* from, char32_t& result) noexcept
     {
       auto first = *from;
       auto value = first.sequence_length();
       if (first.is_lead_surrogate()) [[unlikely]]
       {
-        if (auto second = from[1];
-          second.is_trail_surrogate()) [[likely]]
+        if (auto second = from[1]; second.is_trail_surrogate()) [[likely]]
         {
           result = surrogate_to_cp(first, second);
           return from + 2;
@@ -841,7 +832,8 @@ namespace clt
     /// @param result The result in which to write the code point
     /// @return On error, returns 'from' and sets result to REPLACEMENT CHARACTER,
     ///         else the next start of sequence.
-    constexpr const Char8* unsafe_utf8to32(const Char8* from, char32_t& result) noexcept
+    constexpr const Char8* unsafe_utf8to32(
+        const Char8* from, char32_t& result) noexcept
     {
       auto first = *from;
       auto value = first.sequence_length();
@@ -850,7 +842,7 @@ namespace clt
         result = U'\ufffd';
         return from;
       }
-      auto ret   = static_cast<char32_t>(first);
+      auto ret = static_cast<char32_t>(first);
       switch_no_default(*value)
       {
       case 1:
@@ -885,7 +877,8 @@ namespace clt
     /// @return The n-th code point
     /// @warning The sequence must be valid unicode
     template<meta::CharType underlying_type>
-    constexpr char32_t index_front(const underlying_type* _ptr, size_t index) noexcept
+    constexpr char32_t index_front(
+        const underlying_type* _ptr, size_t index) noexcept
     {
       if constexpr (meta::is_any_of<underlying_type, Char32BE, Char32LE>)
         return _ptr[index].as_host();
@@ -949,7 +942,7 @@ namespace clt
         auto ptr = _ptr;
         while (_index != 0)
         {
-          ptr -= 1 + (i64)ptr->is_trail_surrogate();
+          ptr -= 1 + ptr->is_trail_surrogate();
           --_index;
         }
         if (ptr->is_trail_surrogate())
@@ -962,39 +955,61 @@ namespace clt
       }
     }
 
+    /// @brief Iterator over Unicode encoded strings
+    /// @tparam ENCODING The encoding
     template<StringEncoding ENCODING>
-    class code_point_iterator
+    class CodePointIterator
     {
       using ptr_t = meta::encoding_to_char_t<ENCODING>;
 
       const ptr_t* ptr;
 
     public:
-      constexpr code_point_iterator(const ptr_t* ptr) noexcept
+      constexpr CodePointIterator(const ptr_t* ptr) noexcept
           : ptr(ptr)
       {
       }
 
-      MAKE_DEFAULT_COPY_AND_MOVE_FOR(code_point_iterator);
+      MAKE_DEFAULT_COPY_AND_MOVE_FOR(CodePointIterator);
 
-      constexpr code_point_iterator& operator++()
+      constexpr CodePointIterator& operator++() noexcept
       {
+        if constexpr (meta::is_any_of<ptr_t, Char32BE, Char32LE, char>)
+          ++ptr;
+        if constexpr (meta::is_any_of<ptr_t, Char16BE, Char16LE>)
+          ptr += ptr->sequence_length();
+        if constexpr (meta::is_any_of<ptr_t, Char8>)
+        {
+          auto value = ptr->sequence_length();
+          assert_true("Invalid UTF8!", value.is_value());
+          ptr += *value;
+        }
         return *this;
       }
 
-      constexpr code_point_iterator operator++(int)
+      constexpr CodePointIterator operator++(int)
       {
         auto copy = *this;
         ++(*this);
         return copy;
       }
 
-      constexpr code_point_iterator& operator--()
+      constexpr CodePointIterator& operator--()
       {
+        if constexpr (meta::is_any_of<ptr_t, Char32BE, Char32LE, char>)
+          --ptr;
+        if constexpr (meta::is_any_of<ptr_t, Char16BE, Char16LE>)
+          ptr -= 1 + ptr->is_trail_surrogate();
+        if constexpr (meta::is_any_of<ptr_t, Char8>)
+        {
+          --ptr;
+          while (ptr->is_trail())
+            --ptr;
+        }
         return *this;
       }
 
-      constexpr code_point_iterator operator--(int)
+      constexpr CodePointIterator operator--(int)
       {
         auto copy = *this;
         --(*this);
@@ -1003,14 +1018,28 @@ namespace clt
 
       constexpr char32_t operator*() noexcept
       {
-        return;
+        if constexpr (meta::is_any_of<ptr_t, Char32BE, Char32LE, char>)
+          return static_cast<char32_t>(*ptr);
+        if constexpr (meta::is_any_of<ptr_t, Char16BE, Char16LE>)
+        {
+          char32_t result;
+          auto check = unsafe_utf16to32(ptr, result);
+          assert_true("Invalid UTF16!", check != ptr);
+          return result;
+        }
+        if constexpr (meta::is_any_of<ptr_t, Char8>)
+        {
+          char32_t result;
+          auto check = unsafe_utf8to32(ptr, result);
+          assert_true("Invalid UTF8!", check != ptr);
+          return result;
+        }
       }
 
-      friend constexpr bool operator<=>(
-          const code_point_iterator&, const code_point_iterator&) noexcept =
-          default;
+      friend constexpr auto operator<=>(
+          const CodePointIterator&, const CodePointIterator&) noexcept = default;
     };
-  }
+  } // namespace uni
 } // namespace clt
 
 template<clt::meta::is_any_of<clt::Char32BE, clt::Char32LE> Ty>
@@ -1023,17 +1052,18 @@ struct fmt::formatter<Ty>
   }
 
   template<typename FormatContext>
-  auto format(Ty op, FormatContext& ctx) const
+  auto format(const Ty op, FormatContext& ctx) const
   {
     using namespace clt::uni;
 
     // 4 char max for utf-8 + NUL terminator
-    char8_t array8[5] = { 0 };
-    auto from         = &op;
-    auto result       = &array8[0];
+    char8_t array8[clt::Char8::max_sequence + 1] = {0};
+    auto from                                    = &op;
+    auto result                                  = &array8[0];
     if (to_utf8(from, 1, result, 5) == ConvError::NO_ERROR)
       return fmt::format_to(ctx.out(), "{}", reinterpret_cast<const char*>(array8));
     FMT_THROW(std::runtime_error("invalid unicode"));
+    clt::unreachable("Cannot be reached!");
   }
 };
 
