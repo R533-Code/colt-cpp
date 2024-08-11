@@ -1,6 +1,62 @@
 #include <catch2/catch_all.hpp>
 #include <colt/dsa/unicode.h>
 
+TEST_CASE("Unicode Indexing", "[index_back index_front]")
+{
+  using namespace clt;
+  using enum StringEncoding;
+
+  // As sizeof includes NUL terminator, we need to decrement by one.
+
+#define CREATE_STR(literal, var_name)                                          \
+  using COLT_CONCAT(var_name, _t) =                                            \
+      meta::cppchar_to_char_t<std::remove_cvref_t<decltype(literal[0])>>;      \
+  auto var_name =                                                              \
+      ptr_to<std::add_pointer_t<std::add_const_t<COLT_CONCAT(var_name, _t)>>>( \
+          literal);                                                            \
+  auto COLT_CONCAT(var_name, _front) = var_name;                               \
+  auto COLT_CONCAT(var_name, _back) =                                          \
+      var_name + (sizeof literal) / sizeof(COLT_CONCAT(var_name, _t)) - 2
+
+  CREATE_STR(u8"\u000D\u1F79\u03C3\u03BC\u03B5", chr8);
+  CREATE_STR(u"\u000D\u1F79\u03C3\u03BC\u03B5", chr16);
+
+  SECTION("UTF8 front")
+  {
+    REQUIRE(uni::index_front(chr8_front, 0) == U'\u000D');
+    REQUIRE(uni::index_front(chr8_front, 1) == U'\u1F79');
+    REQUIRE(uni::index_front(chr8_front, 2) == U'\u03C3');
+    REQUIRE(uni::index_front(chr8_front, 3) == U'\u03BC');
+    REQUIRE(uni::index_front(chr8_front, 4) == U'\u03B5');
+  }
+  SECTION("UTF8 back")
+  {
+    REQUIRE(uni::index_back(chr8_back, 0) == U'\u03B5');
+    REQUIRE(uni::index_back(chr8_back, 1) == U'\u03BC');
+    REQUIRE(uni::index_back(chr8_back, 2) == U'\u03C3');
+    REQUIRE(uni::index_back(chr8_back, 3) == U'\u1F79');
+    REQUIRE(uni::index_back(chr8_back, 4) == U'\u000D');
+  }
+  SECTION("UTF16 front")
+  {
+    REQUIRE(uni::index_front(chr16_front, 0) == U'\u000D');
+    REQUIRE(uni::index_front(chr16_front, 1) == U'\u1F79');
+    REQUIRE(uni::index_front(chr16_front, 2) == U'\u03C3');
+    REQUIRE(uni::index_front(chr16_front, 3) == U'\u03BC');
+    REQUIRE(uni::index_front(chr16_front, 4) == U'\u03B5');
+  }
+  SECTION("UTF16 back")
+  {
+    REQUIRE(uni::index_back(chr16_back, 0) == U'\u03B5');
+    REQUIRE(uni::index_back(chr16_back, 1) == U'\u03BC');
+    REQUIRE(uni::index_back(chr16_back, 2) == U'\u03C3');
+    REQUIRE(uni::index_back(chr16_back, 3) == U'\u1F79');
+    REQUIRE(uni::index_back(chr16_back, 4) == U'\u000D');
+  }
+
+#undef CREATE_STR
+}
+
 TEST_CASE("Unicode Length", "[strlen]")
 {
   using namespace clt;
@@ -95,7 +151,7 @@ TEST_CASE("Unicode UTF32 to UTF8", "[utf32_to_utf8]")
   {
     for (size_t i = 0; i < sizeofA; i++)
       A[i] = bit::byteswap((u32)A[i]);
-    
+
     // The reversed bytes will be invalid unicode
     auto from = ptr_to<const Char32*>(&A[0]);
     REQUIRE(to_utf8(from, 6, result, 256) == ConvError::INVALID_INPUT);
