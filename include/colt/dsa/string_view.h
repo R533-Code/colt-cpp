@@ -114,14 +114,14 @@ namespace clt
 
     /// @brief Returns an iterator to the start of the view
     /// @return Iterator to the start of the view
-    constexpr uni::code_point_iterator<ENCODING> begin() const noexcept
+    constexpr uni::CodePointIterator<ENCODING> begin() const noexcept
     {
       return _ptr;
     }
     /// @brief Returns an iterator to the end of the view.
     /// This iterator should not be dereferenced.
     /// @return Iterator to the end of the view
-    constexpr uni::code_point_iterator<ENCODING> end() const noexcept
+    constexpr uni::CodePointIterator<ENCODING> end() const noexcept
     {
       return _ptr + _size;
     }
