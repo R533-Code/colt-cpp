@@ -1,7 +1,43 @@
+/*****************************************************************//**
+ * @file   unicode.h
+ * @brief  Contains unicode utilities used throughout the library.
+ * 
+ * A Primer On Unicode:
+ * Unicode defines a mapping between symbols and positive integers.
+ * In a simplified way, Unicode defines that the character A is
+ * represented as 65 (called its CODE POINT).
+ * The different encoding types exist to encode that integer in
+ * a smart way.
+ * UTF8: variadic, storage type of 8 bits.
+ * UTF16: variadic, storage type of 16 bits.
+ * UTF32: fixed, storage type of 32 bits.
+ * 
+ * 'Variadic' means that a single code point may be represented
+ * using a sequence of storage type:
+ * As an example, 0x0101 is represented using 2 bytes in UTF8.
+ * 
+ * Computers also have a property called endianness:
+ * The order of bytes representing an integer.
+ * It usually comes in two flavors:
+ * - Little: stores the least-significant byte first
+ * - Big: stores the most-significant byte first
+ * This means that for UTF16 and UTF32 the encoding might be
+ * Little Endian (LE) or Big Endian (BE).
+ * 
+ * A GRAPHEME is a single unit seen by the user.
+ * Take for example the female construction worker emoji.
+ * This is perceived as a single character by the user.
+ * But, it is represented by 3 code points:
+ * {Construction Worker}{ZWJ}{Female Sign}.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_DSA_UNICODE
 #define HG_DSA_UNICODE
 
 #include <uni_algo/all.h>
+#include <simdutf.h>
 #include <cstring>
 #include <utility>
 #include <ranges>
@@ -89,6 +125,31 @@ namespace clt
     constexpr bool is_trail_surrogate(char16_t value) noexcept
     {
       return value >= TRAIL_SURROGATE_MIN && value <= TRAIL_SURROGATE_MAX;
+    }
+
+    /// @brief Returns the sequence length of a UTF16 sequence starting with value.
+    /// @param value The start of the sequence
+    /// @return 1 or 2
+    constexpr u8 sequence_length(char16_t value) noexcept
+    {
+      return 1 + (u8)is_lead_surrogate(value);
+    }
+
+    /// @brief Returns the sequence length of a UTF8 sequence starting with value.
+    /// This function will return 1 on invalid UTF8.
+    /// @param value The start of the sequence
+    /// @return 1 or 2
+    constexpr u8 sequence_length(char8_t _value) noexcept
+    {
+      if (_value < 0x80) [[likely]]
+        return 1;
+      else if ((_value >> 5) == 0b110)
+        return 2;
+      else if ((_value >> 4) == 0b1110)
+        return 3;
+      if ((_value >> 3) == 0b1110)
+        return 4;
+      return 1;
     }
 
     /// @brief Check if a code point is in the Basic Multilingual Plane
@@ -315,39 +376,6 @@ namespace clt
     }
   };
 
-  constexpr Char32BE::Char32BE(Char32LE value) noexcept
-      : _value((char32_t)bit::byteswap((u32)value.in_endian()))
-  {
-  }
-
-  constexpr Char32LE Char32BE::as_little() const noexcept
-  {
-    return (char32_t)bit::byteswap((u32)_value);
-  }
-
-  constexpr Char32BE::operator Char32LE() const noexcept
-  {
-    return as_little();
-  }
-
-  // ^^^ BIG ENDIAN
-  // vvv LITTLE ENDIAN
-
-  constexpr Char32LE::Char32LE(Char32BE value) noexcept
-      : _value((char32_t)bit::byteswap((u32)value.in_endian()))
-  {
-  }
-
-  constexpr Char32BE Char32LE::as_big() const noexcept
-  {
-    return (char32_t)bit::byteswap((u32)_value);
-  }
-
-  constexpr Char32LE::operator Char32BE() const noexcept
-  {
-    return as_big();
-  }
-
   /// @brief Big Endian 16-bit Char
   class Char16BE
   {
@@ -495,40 +523,7 @@ namespace clt
     {
       return 1 + (u8)is_lead_surrogate();
     }
-  };
-
-  constexpr Char16BE::Char16BE(Char16LE value) noexcept
-      : _value((char16_t)bit::byteswap((u16)value.in_endian()))
-  {
-  }
-
-  constexpr Char16LE Char16BE::as_little() const noexcept
-  {
-    return (char16_t)bit::byteswap((u16)_value);
-  }
-
-  constexpr Char16BE::operator Char16LE() const noexcept
-  {
-    return as_little();
-  }
-
-  // ^^^ BIG ENDIAN
-  // vvv LITTLE ENDIAN
-
-  constexpr Char16LE::Char16LE(Char16BE value) noexcept
-      : _value((char16_t)bit::byteswap((u16)value.in_endian()))
-  {
-  }
-
-  constexpr Char16BE Char16LE::as_big() const noexcept
-  {
-    return (char16_t)bit::byteswap((u16)_value);
-  }
-
-  constexpr Char16LE::operator Char16BE() const noexcept
-  {
-    return as_big();
-  }
+  };  
 
   namespace meta
   {
@@ -614,91 +609,16 @@ namespace clt
     }();
   } // namespace meta
 
-  /// @brief Returns the size in bytes of a NUL-terminated string
-  /// @tparam T The char type
-  /// @param start The string whose size in bytes to determine
-  /// @return The size in bytes (not including NUL-terminator)
-  template<typename T>
-    requires(meta::CppCharType<T> || meta::CharType<T>)
-  constexpr size_t bytelen(const T* start) noexcept
-  {
-    assert_true("Expected non-null pointer!", start != nullptr);
-    if constexpr (meta::is_any_of<T, char, char8_t, Char8>)
-    {
-      if (std::is_constant_evaluated())
-      {
-        const T* end = start;
-        while (*end != T{})
-          ++end;
-        return end - start;
-      }
-      else
-      {
-        if constexpr (std::same_as<char, T>)
-          return std::strlen(start);
-        return std::strlen(reinterpret_cast<const char*>(start));
-      }
-    }
-    const T* end = start;
-    while (*end != T{})
-      ++end;
-    return (end - start) * sizeof(T);
-  }
-
-  /// @brief Returns the number of code points of a NUL-terminated string
-  /// @tparam T The char type
-  /// @param start The string whose length to determine
-  /// @return The size in code points (not including NUL-terminator)
-  template<typename T>
-    requires(meta::CppCharType<T> || meta::CharType<T>)
-  constexpr size_t strlen(const T* start) noexcept
-  {
-    assert_true("Expected non-null pointer!", start != nullptr);
-    if constexpr (meta::is_any_of<T, char, char32_t>)
-      return clt::bytelen(start) / sizeof(T);
-
-    if constexpr (meta::is_any_of<T, char8_t, Char8>)
-    {
-      size_t len   = 0;
-      const T* end = start;
-      char8_t current;
-      while ((current = static_cast<char8_t>(*end)) != u8'\0')
-      {
-        if (current < 128)
-          end += 1;
-        else if ((current & 0xE0) == 0xC0)
-          end += 2;
-        else if ((current & 0xF0) == 0xE0)
-          end += 3;
-        else if ((current & 0xF8) == 0xF0)
-          end += 4;
-        ++len;
-      }
-      return len;
-    }
-    if constexpr (meta::is_any_of<T, char16_t, Char16BE, Char16LE>)
-    {
-      size_t len   = 0;
-      const T* end = start;
-      char16_t current;
-      while ((current = static_cast<char16_t>(*end)) != T{})
-      {
-        if (uni::is_lead_surrogate(current))
-          end += 2;
-        else
-          end += 1;
-        ++len;
-      }
-      return len;
-    }
-  }
-
   namespace uni
   {
+    /// @brief Represents a conversion error
     enum class ConvError
     {
+      /// @brief No errors
       NO_ERROR,
+      /// @brief Not enough space in the resulting buffer
       NOT_ENOUGH_SPACE,
+      /// @brief Invalid input sequence
       INVALID_INPUT,
     };
 
@@ -716,90 +636,14 @@ namespace clt
     template<meta::CharType Ty>
     constexpr ConvError to_utf8(
         const Ty*& from, size_t from_size, char8_t*& result,
-        size_t result_size) noexcept
-    {
-      if constexpr (std::same_as<Ty, char>)
-      {
-        const auto min = math::min(from_size, result_size);
-        if (std::is_constant_evaluated())
-        {
-          const auto max_from = from + min;
-          while (from != max_from)
-            *result++ = *from++;
-        }
-        else
-        {
-          std::memcpy(result, from, min);
-          result += min;
-          from += min;
-        }
-        return min < from_size * sizeof(Ty) ? ConvError::NOT_ENOUGH_SPACE
-                                            : ConvError::NO_ERROR;
-      }
-      if constexpr (meta::is_any_of<Ty, Char32BE, Char32LE>)
-      {
-        const auto max_from   = from + from_size;
-        const auto max_result = result + result_size;
-
-        while (from != max_from)
-        {
-          const u32 as_host = from->as_host();
-          if (as_host > CODE_POINT_MAX) [[unlikely]]
-            return ConvError::INVALID_INPUT;
-
-          if (const u32 cp = as_host; cp < 0x80) [[likely]]
-          {
-            if (result >= max_result)
-              return ConvError::NOT_ENOUGH_SPACE;
-            *(result++) = static_cast<char8_t>(cp);
-          }
-          else if (cp < 0x800) // 2 bytes
-          {
-            if (result + 1 >= max_result)
-              return ConvError::NOT_ENOUGH_SPACE;
-            *result++ = static_cast<char8_t>((cp >> 6) | 0xc0);
-            *result++ = static_cast<char8_t>((cp & 0x3f) | 0x80);
-          }
-          else if (cp < 0x10000) // 3 bytes
-          {
-            if (result + 2 >= max_result)
-              return ConvError::NOT_ENOUGH_SPACE;
-            *result++ = static_cast<char8_t>((cp >> 12) | 0xe0);
-            *result++ = static_cast<char8_t>(((cp >> 6) & 0x3f) | 0x80);
-            *result++ = static_cast<char8_t>((cp & 0x3f) | 0x80);
-          }
-          else // 4 bytes
-          {
-            if (result + 3 >= max_result)
-              return ConvError::NOT_ENOUGH_SPACE;
-            *result++ = static_cast<char8_t>((cp >> 18) | 0xf0);
-            *result++ = static_cast<char8_t>(((cp >> 12) & 0x3f) | 0x80);
-            *result++ = static_cast<char8_t>(((cp >> 6) & 0x3f) | 0x80);
-            *result++ = static_cast<char8_t>((cp & 0x3f) | 0x80);
-          }
-          from++;
-        }
-        return ConvError::NO_ERROR;
-      }
-      // TODO: add UTF16 support
-    }
+        size_t result_size) noexcept;
 
     /// @brief Converts a code point in host endianness to a UTF16BE sequence
     /// @param from The code point to convert
     /// @param result Pointer to write to
     /// @warning 'result' must have at least 2 16-bit integers of capacity
     /// @return Pointer to after the last written character
-    constexpr char16_t* unsafe_utf32to16(char32_t from, char16_t* result) noexcept
-    {
-      if (const u32 cp = from; cp < (u32)0x10000)
-        *(result++) = static_cast<char16_t>(cp);
-      else
-      {
-        *(result++) = (char16_t)bit::htob((u16)(LEAD_OFFSET + (cp >> 10)));
-        *(result++) = (char16_t)bit::htob((u16)(TRAIL_SURROGATE_MIN + (cp & 0x3FF)));
-      }
-      return result;
-    }
+    constexpr char16_t* unsafe_utf32to16(char32_t from, char16_t* result) noexcept;
 
     /// @brief Converts a UTF16 surrogate pair to code point
     /// @param high The high surrogate
@@ -817,25 +661,7 @@ namespace clt
     ///         else the next start of sequence.
     template<typename T>
       requires(meta::is_any_of<T, Char16BE, Char16LE>)
-    constexpr const T* unsafe_utf16to32(const T* from, char32_t& result) noexcept
-    {
-      auto first = *from;
-      auto value = first.sequence_length();
-      if (first.is_lead_surrogate()) [[unlikely]]
-      {
-        if (auto second = from[1]; second.is_trail_surrogate()) [[likely]]
-        {
-          result = surrogate_to_cp(first, second);
-          return from + 2;
-        }
-        // lead surrogate must be followed by trail
-        result = U'\ufffd';
-        return from;
-      }
-      ++from;
-      result = static_cast<char32_t>(first);
-      return from;
-    }
+    constexpr const T* unsafe_utf16to32(const T* from, char32_t& result) noexcept;
 
     /// @brief Converts a UTF8 sequence to a code point
     /// @param from The start of the sequence
@@ -843,42 +669,7 @@ namespace clt
     /// @return On error, returns 'from' and sets result to REPLACEMENT CHARACTER,
     ///         else the next start of sequence.
     constexpr const Char8* unsafe_utf8to32(
-        const Char8* from, char32_t& result) noexcept
-    {
-      auto first = *from;
-      auto value = first.sequence_length();
-      if (value.is_none())
-      {
-        result = U'\ufffd';
-        return from;
-      }
-      auto ret = static_cast<char32_t>(first);
-      switch_no_default(*value)
-      {
-      case 1:
-        break;
-      case 2:
-        ++from;
-        ret = ((ret << 6) & 0x7ff) + ((*from) & 0x3f);
-        break;
-      case 3:
-        ++from;
-        ret = ((ret << 12) & 0xffff) + ((*from << 6) & 0xfff);
-        ++from;
-        ret += (*from) & 0x3f;
-        break;
-      case 4:
-        ++from;
-        ret = ((ret << 18) & 0x1fffff) + ((*from << 12) & 0x3ffff);
-        ++from;
-        ret += (*from << 6) & 0xfff;
-        ++from;
-        ret += (*from) & 0x3f;
-        break;
-      }
-      result = ret;
-      return from + 1;
-    }
+        const Char8* from, char32_t& result) noexcept;
 
     /// @brief Indexes into a sequence of characters, returning the n-th code point.
     /// @tparam underlying_type The character encoding type
@@ -888,82 +679,57 @@ namespace clt
     /// @warning The sequence must be valid unicode
     template<meta::CharType underlying_type>
     constexpr char32_t index_front(
-        const underlying_type* _ptr, size_t index) noexcept
-    {
-      if constexpr (meta::is_any_of<underlying_type, Char32BE, Char32LE>)
-        return _ptr[index].as_host();
-      if constexpr (meta::is_any_of<underlying_type, char>)
-        return static_cast<char32_t>(_ptr[index]);
-      if constexpr (std::same_as<underlying_type, Char8>)
-      {
-        auto ptr = _ptr;
-        while (index != 0)
-        {
-          auto len = ptr->sequence_length();
-          assert_true("Invalid UTF8!", len.is_value());
-          --index;
-          ptr += *len;
-        }
-        char32_t result;
-        auto check = uni::unsafe_utf8to32(ptr, result);
-        assert_true("Invalid UTF8!", check != ptr);
-        return result;
-      }
-      if constexpr (meta::is_any_of<underlying_type, Char16BE, Char16LE>)
-      {
-        auto ptr = _ptr;
-        while (index != 0)
-        {
-          auto len = ptr->sequence_length();
-          --index;
-          ptr += len;
-        }
-        char32_t result;
-        auto check = uni::unsafe_utf16to32(ptr, result);
-        assert_true("Invalid UTF16!", check != ptr);
-        return result;
-      }
-    }
+        const underlying_type* _ptr, size_t index) noexcept;
 
+    /// @brief Indexes the back of a unicode sequence.
+    /// This function will fire an assert on invalid sequences
+    /// @tparam underlying_type The encoding char type
+    /// @param _ptr The pointer (must be passed the end of the last character)
+    /// @param _index The index (0 for last, 1 for penultimate)
+    /// @return The decoded code point
     template<meta::CharType underlying_type>
-    constexpr char32_t index_back(const underlying_type* _ptr, size_t _index) noexcept
-    {
-      if constexpr (meta::is_any_of<underlying_type, char, Char32BE, Char32LE>)
-        return _ptr[-static_cast<i64>(_index)];
-      if constexpr (meta::is_any_of<underlying_type, Char8>)
-      {
-        auto ptr = _ptr;
-        while (_index != 0)
-        {
-          while (ptr->is_trail())
-            --ptr;
-          --ptr;
-          --_index;
-        }
-        while (ptr->is_trail())
-          --ptr;
-        char32_t result;
-        auto check = uni::unsafe_utf8to32(ptr, result);
-        assert_true("Invalid UTF8!", check != ptr);
-        return result;
-      }
-      if constexpr (meta::is_any_of<underlying_type, Char16BE, Char16LE>)
-      {
-        auto ptr = _ptr;
-        while (_index != 0)
-        {
-          ptr -= 1 + ptr->is_trail_surrogate();
-          --_index;
-        }
-        if (ptr->is_trail_surrogate())
-        {
-          assert_true("Invalid UTF16!", ptr[-1].is_lead_surrogate());
-          return uni::surrogate_to_cp(ptr[-1], ptr[0]);
-        }
-        else
-          return static_cast<char32_t>(ptr[0]);
-      }
-    }
+    constexpr char32_t index_back(
+        const underlying_type* _ptr, size_t _index) noexcept;
+
+    /// @brief Returns the size in bytes of a NUL-terminated string
+    /// @tparam T The char type
+    /// @param start The string whose size in bytes to determine
+    /// @return The size in bytes (not including NUL-terminator)
+    template<typename T>
+      requires(meta::CppCharType<T> || meta::CharType<T>)
+    constexpr size_t unitlen(const T* start) noexcept;
+
+    /// @brief Count the number of code points of a string of size 'count'.
+    /// @tparam T The encoding char type
+    /// @param start The start of the 
+    /// @param units The unit count
+    /// @return The number of code points
+    template<typename T>
+      requires(meta::CppCharType<T> || meta::CharType<T>)
+    constexpr size_t count(const T* start, size_t units) noexcept;
+
+    /// @brief Returns the number of code points of a NUL-terminated string
+    /// @tparam T The char type
+    /// @param start The string whose length to determine
+    /// @return The size in code points (not including NUL-terminator)
+    template<typename T>
+      requires(meta::CppCharType<T> || meta::CharType<T>)
+    constexpr size_t strlen(const T* start) noexcept;    
+
+    /// @brief Optimized unitlen for 16 bit characters.
+    /// This works for both endianness as zero are represented the same
+    /// way on both endianness.
+    /// The implementation uses SIMD instructions.
+    /// @param ptr The NUL-terminated string whose unit count to return
+    /// @return Return the count of char16_t forming the string
+    size_t unitlen16(const char16_t* ptr) noexcept;
+    /// @brief Optimized unitlen for 16 bit characters.
+    /// This works for both endianness as zero are represented the same
+    /// way on both endianness.
+    /// The implementation uses SIMD instructions.
+    /// @param ptr The NUL-terminated string whose unit count to return
+    /// @return Return the count of char32_t forming the string
+    size_t unitlen32(const char32_t* ptr) noexcept;
 
     /// @brief Iterator over Unicode encoded strings
     /// @tparam ENCODING The encoding
@@ -1049,7 +815,398 @@ namespace clt
       friend constexpr auto operator<=>(
           const CodePointIterator&, const CodePointIterator&) noexcept = default;
     };
+
+    /************************
+    | IMPLEMENTATIONS vvv   |
+    ************************/
+    
+    constexpr char16_t* unsafe_utf32to16(char32_t from, char16_t* result) noexcept
+    {
+      if (const u32 cp = from; cp < (u32)0x10000)
+        *(result++) = static_cast<char16_t>(cp);
+      else
+      {
+        *(result++) = (char16_t)(u16)(LEAD_OFFSET + (cp >> 10));
+        *(result++) = (char16_t)(u16)(TRAIL_SURROGATE_MIN + (cp & 0x3FF));
+      }
+      return result;
+    }
+
+    constexpr const Char8* unsafe_utf8to32(
+        const Char8* from, char32_t& result) noexcept
+    {
+      auto first = *from;
+      auto value = first.sequence_length();
+      if (value.is_none())
+      {
+        result = U'\ufffd';
+        return from;
+      }
+      auto ret = static_cast<char32_t>(first);
+      switch_no_default(*value)
+      {
+      case 1:
+        break;
+      case 2:
+        ++from;
+        ret = ((ret << 6) & 0x7ff) + ((*from) & 0x3f);
+        break;
+      case 3:
+        ++from;
+        ret = ((ret << 12) & 0xffff) + ((*from << 6) & 0xfff);
+        ++from;
+        ret += (*from) & 0x3f;
+        break;
+      case 4:
+        ++from;
+        ret = ((ret << 18) & 0x1fffff) + ((*from << 12) & 0x3ffff);
+        ++from;
+        ret += (*from << 6) & 0xfff;
+        ++from;
+        ret += (*from) & 0x3f;
+        break;
+      }
+      result = ret;
+      return from + 1;
+    }
+
+    template<meta::CharType Ty>
+    constexpr ConvError to_utf8(
+        const Ty*& from, size_t from_size, char8_t*& result,
+        size_t result_size) noexcept
+    {
+      if constexpr (std::same_as<Ty, char>)
+      {
+        const auto min = math::min(from_size, result_size);
+        if (std::is_constant_evaluated())
+        {
+          const auto max_from = from + min;
+          while (from != max_from)
+            *result++ = *from++;
+        }
+        else
+        {
+          std::memcpy(result, from, min);
+          result += min;
+          from += min;
+        }
+        return min < from_size * sizeof(Ty) ? ConvError::NOT_ENOUGH_SPACE
+                                            : ConvError::NO_ERROR;
+      }
+      if constexpr (meta::is_any_of<Ty, Char32BE, Char32LE>)
+      {
+        const auto max_from   = from + from_size;
+        const auto max_result = result + result_size;
+
+        while (from != max_from)
+        {
+          const u32 as_host = from->as_host();
+          if (as_host > CODE_POINT_MAX) [[unlikely]]
+            return ConvError::INVALID_INPUT;
+
+          if (const u32 cp = as_host; cp < 0x80) [[likely]]
+          {
+            if (result >= max_result)
+              return ConvError::NOT_ENOUGH_SPACE;
+            *(result++) = static_cast<char8_t>(cp);
+          }
+          else if (cp < 0x800) // 2 bytes
+          {
+            if (result + 1 >= max_result)
+              return ConvError::NOT_ENOUGH_SPACE;
+            *result++ = static_cast<char8_t>((cp >> 6) | 0xc0);
+            *result++ = static_cast<char8_t>((cp & 0x3f) | 0x80);
+          }
+          else if (cp < 0x10000) // 3 bytes
+          {
+            if (result + 2 >= max_result)
+              return ConvError::NOT_ENOUGH_SPACE;
+            *result++ = static_cast<char8_t>((cp >> 12) | 0xe0);
+            *result++ = static_cast<char8_t>(((cp >> 6) & 0x3f) | 0x80);
+            *result++ = static_cast<char8_t>((cp & 0x3f) | 0x80);
+          }
+          else // 4 bytes
+          {
+            if (result + 3 >= max_result)
+              return ConvError::NOT_ENOUGH_SPACE;
+            *result++ = static_cast<char8_t>((cp >> 18) | 0xf0);
+            *result++ = static_cast<char8_t>(((cp >> 12) & 0x3f) | 0x80);
+            *result++ = static_cast<char8_t>(((cp >> 6) & 0x3f) | 0x80);
+            *result++ = static_cast<char8_t>((cp & 0x3f) | 0x80);
+          }
+          from++;
+        }
+        return ConvError::NO_ERROR;
+      }
+      // TODO: add UTF16 support
+    }
+
+    template<typename T>
+      requires(meta::is_any_of<T, Char16BE, Char16LE>)
+    constexpr const T* unsafe_utf16to32(const T* from, char32_t& result) noexcept
+    {
+      auto first = *from;
+      auto value = first.sequence_length();
+      if (first.is_lead_surrogate()) [[unlikely]]
+      {
+        if (auto second = from[1]; second.is_trail_surrogate()) [[likely]]
+        {
+          result = surrogate_to_cp(first, second);
+          return from + 2;
+        }
+        // lead surrogate must be followed by trail
+        result = U'\ufffd';
+        return from;
+      }
+      ++from;
+      result = static_cast<char32_t>(first);
+      return from;
+    }
+
+    template<meta::CharType underlying_type>
+    constexpr char32_t index_front(
+        const underlying_type* _ptr, size_t index) noexcept
+    {
+      if constexpr (meta::is_any_of<underlying_type, Char32BE, Char32LE>)
+        return _ptr[index].as_host();
+      if constexpr (meta::is_any_of<underlying_type, char>)
+        return static_cast<char32_t>(_ptr[index]);
+      if constexpr (std::same_as<underlying_type, Char8>)
+      {
+        auto ptr = _ptr;
+        while (index != 0)
+        {
+          auto len = ptr->sequence_length();
+          assert_true("Invalid UTF8!", len.is_value());
+          --index;
+          ptr += *len;
+        }
+        char32_t result;
+        auto check = uni::unsafe_utf8to32(ptr, result);
+        assert_true("Invalid UTF8!", check != ptr);
+        return result;
+      }
+      if constexpr (meta::is_any_of<underlying_type, Char16BE, Char16LE>)
+      {
+        auto ptr = _ptr;
+        while (index != 0)
+        {
+          auto len = ptr->sequence_length();
+          --index;
+          ptr += len;
+        }
+        char32_t result;
+        auto check = uni::unsafe_utf16to32(ptr, result);
+        assert_true("Invalid UTF16!", check != ptr);
+        return result;
+      }
+    }    
+
+    template<typename T>
+      requires(meta::CppCharType<T> || meta::CharType<T>)
+    constexpr size_t unitlen(const T* start) noexcept
+    {
+      assert_true("Expected non-null pointer!", start != nullptr);
+      if (std::is_constant_evaluated())
+      {
+        const T* end = start;
+        while (*end != T{})
+          ++end;
+        return end - start;
+      }
+      else
+      {
+        if constexpr (std::same_as<char, T>)
+          return std::strlen(start);
+        if constexpr (meta::is_any_of<T, char8_t, Char8>)
+          return std::strlen(reinterpret_cast<const char*>(start));
+        if constexpr (meta::is_any_of<T, char16_t, Char16LE, Char16BE>)
+          return unitlen16(reinterpret_cast<const char16_t*>(start));
+        if constexpr (meta::is_any_of<T, char32_t, Char32LE, Char32BE>)
+          return unitlen32(reinterpret_cast<const char32_t*>(start));
+      }
+    }
+
+    template<typename T>
+      requires(meta::CppCharType<T> || meta::CharType<T>)
+    constexpr size_t count(const T* start, size_t count) noexcept
+    {
+      assert_true("Expected non-null pointer!", start != nullptr);
+      if constexpr (meta::is_any_of<T, char, char32_t, Char32BE, Char32LE>)
+        return count;
+      if (std::is_constant_evaluated())
+      {
+        size_t result = 0;
+        size_t index  = 0;
+        // ^ this variable exist to avoid overflow with count if decrementing.
+        // Such overflow could happen if the last char16 was a lead surrogate
+        while (index < count)
+        {
+          size_t len = sequence_length(*start);
+          index += len;
+          start += len;
+          ++result;
+        }
+        return result;
+      }
+      else if constexpr (std::same_as<T, Char16BE>)
+        return simdutf::count_utf16be(ptr_to<const char16_t*>(start), count);
+      else if constexpr (std::same_as<T, Char16LE>)
+        return simdutf::count_utf16le(ptr_to<const char16_t*>(start), count);
+      else if constexpr (std::same_as<T, char16_t>)
+        return simdutf::count_utf16(ptr_to<const char16_t*>(start), count);
+      else if constexpr (std::same_as<T, char8_t>)
+        return simdutf::count_utf8(start, count);
+      else if constexpr (std::same_as<T, Char8>)
+        return simdutf::count_utf8(ptr_to<const char*>(start), count);
+    }
+    
+    template<typename T>
+      requires(meta::CppCharType<T> || meta::CharType<T>)
+    constexpr size_t strlen(const T* start) noexcept
+    {
+      assert_true("Expected non-null pointer!", start != nullptr);
+      if constexpr (meta::is_any_of<T, char, char32_t>)
+        return uni::unitlen(start);
+
+      if constexpr (meta::is_any_of<T, char8_t, Char8>)
+      {
+        size_t len   = 0;
+        const T* end = start;
+        char8_t current;
+        while ((current = static_cast<char8_t>(*end)) != u8'\0')
+        {
+          end += sequence_length(*end);
+          ++len;
+        }
+        return len;
+      }
+      if constexpr (meta::is_any_of<T, char16_t, Char16BE, Char16LE>)
+      {
+        size_t len   = 0;
+        const T* end = start;
+        char16_t current;
+        while ((current = static_cast<char16_t>(*end)) != T{})
+        {
+          end += sequence_length(*end);
+          ++len;
+        }
+        return len;
+      }
+    }
+
+    template<meta::CharType underlying_type>
+    constexpr char32_t index_back(
+        const underlying_type* _ptr, size_t _index) noexcept
+    {
+      // TODO: handle possible overflow when negating index
+      if constexpr (meta::is_any_of<underlying_type, char, Char32BE, Char32LE>)
+        return _ptr[-static_cast<i64>(_index)];
+      if constexpr (meta::is_any_of<underlying_type, Char8>)
+      {
+        auto ptr = _ptr;
+        while (_index != 0)
+        {
+          while (ptr->is_trail())
+            --ptr;
+          --ptr;
+          --_index;
+        }
+        while (ptr->is_trail())
+          --ptr;
+        char32_t result;
+        auto check = uni::unsafe_utf8to32(ptr, result);
+        assert_true("Invalid UTF8!", check != ptr);
+        return result;
+      }
+      if constexpr (meta::is_any_of<underlying_type, Char16BE, Char16LE>)
+      {
+        auto ptr = _ptr;
+        while (_index != 0)
+        {
+          ptr -= 1 + ptr->is_trail_surrogate();
+          --_index;
+        }
+        if (ptr->is_trail_surrogate())
+        {
+          assert_true("Invalid UTF16!", ptr[-1].is_lead_surrogate());
+          return uni::surrogate_to_cp(ptr[-1], ptr[0]);
+        }
+        else
+          return static_cast<char32_t>(ptr[0]);
+      }
+    }
   } // namespace uni
+
+  
+  constexpr Char32BE::Char32BE(Char32LE value) noexcept
+      : _value((char32_t)bit::byteswap((u32)value.in_endian()))
+  {
+  }
+
+  constexpr Char32LE Char32BE::as_little() const noexcept
+  {
+    return (char32_t)bit::byteswap((u32)_value);
+  }
+
+  constexpr Char32BE::operator Char32LE() const noexcept
+  {
+    return as_little();
+  }
+
+  // ^^^ BIG ENDIAN
+  // vvv LITTLE ENDIAN
+
+  constexpr Char32LE::Char32LE(Char32BE value) noexcept
+      : _value((char32_t)bit::byteswap((u32)value.in_endian()))
+  {
+  }
+
+  constexpr Char32BE Char32LE::as_big() const noexcept
+  {
+    return (char32_t)bit::byteswap((u32)_value);
+  }
+
+  constexpr Char32LE::operator Char32BE() const noexcept
+  {
+    return as_big();
+  }
+
+  // ^^^ 32
+  // vvv 16
+
+  constexpr Char16BE::Char16BE(Char16LE value) noexcept
+      : _value((char16_t)bit::byteswap((u16)value.in_endian()))
+  {
+  }
+
+  constexpr Char16LE Char16BE::as_little() const noexcept
+  {
+    return (char16_t)bit::byteswap((u16)_value);
+  }
+
+  constexpr Char16BE::operator Char16LE() const noexcept
+  {
+    return as_little();
+  }
+
+  // ^^^ BIG ENDIAN
+  // vvv LITTLE ENDIAN
+
+  constexpr Char16LE::Char16LE(Char16BE value) noexcept
+      : _value((char16_t)bit::byteswap((u16)value.in_endian()))
+  {
+  }
+
+  constexpr Char16BE Char16LE::as_big() const noexcept
+  {
+    return (char16_t)bit::byteswap((u16)_value);
+  }
+
+  constexpr Char16LE::operator Char16BE() const noexcept
+  {
+    return as_big();
+  }
 } // namespace clt
 
 template<clt::meta::is_any_of<clt::Char32BE, clt::Char32LE> Ty>
