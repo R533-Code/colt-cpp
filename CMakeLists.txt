@@ -167,10 +167,14 @@ macro(get_all_targets_recursive targets dir)
 endmacro()
 
 get_all_targets(ALL_TARGETS)
-set(KEEP_TARGETS colt_helper colt_helper_test simdutf fmt scn uni-algo)
+set(KEEP_TARGETS colt_helper colt_helper_test simdutf fmt scn)
 list(REMOVE_ITEM ALL_TARGETS  ${KEEP_TARGETS})
 # Put these targets in the 'HiddenTargets' folder in the IDE.
+set_target_properties(${SIMDUTF_TO_EXCLUDE} PROPERTIES EXCLUDE_FROM_ALL True)
 set_target_properties(${ALL_TARGETS} PROPERTIES FOLDER HiddenTargets)
+
+# Used to avoid dependencies from adding their own tests.
+configure_file(${CMAKE_SOURCE_DIR}/resources/CTestCustom.cmake ${CMAKE_BINARY_DIR} @ONLY)
 
 #########################################
 # COLT CONFIG
