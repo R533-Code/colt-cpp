@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4)
+cmake_minimum_required(VERSION 3.15)
 
 # C++20 is required
 set(CMAKE_CXX_STANDARD 20)
@@ -111,17 +111,18 @@ target_link_libraries(colt_helper_test PRIVATE uni-algo::uni-algo)
 ###########################
 
 ###########################
+# Add simdutf
+message(STATUS "Adding 'simdutf'...")
+add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/simdutf")
+target_link_libraries(colt_helper PRIVATE simdutf)
+target_link_libraries(colt_helper_test PRIVATE simdutf)
+###########################
+
+###########################
 # Add hedley
 message(STATUS "Adding 'hedley'...")
 target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/hedley")
 target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/hedley")
-###########################
-
-###########################
-# Add ctre
-message(STATUS "Adding 'ctre'...")
-target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/compile-time-regular-expressions/include")
-target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/compile-time-regular-expressions/include")
 ###########################
 
 ###########################
@@ -130,6 +131,8 @@ message(STATUS "Adding 'date'...")
 target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/date/include")
 target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/date/include")
 ###########################
+
+
 
 ###########################
 # Catch2
