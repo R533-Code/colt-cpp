@@ -136,11 +136,13 @@ namespace clt
     /// @return The byte size
     constexpr size_t size() const noexcept
     {
+      // TODO: fix count
       if constexpr (meta::is_any_of<underlying_type, char, Char32BE, Char32LE>)
         return _size;
       else
         return clt::strlen(_ptr);
     }
+    
     /// @brief Returns the byte size over which the view is spanning.
     /// For ASCII, this is the same as 'size()'.
     /// @return The byte size
@@ -148,9 +150,10 @@ namespace clt
     {
       return _size * sizeof(underlying_type);
     }
+    
     /// @brief Check if the size is zero
     /// @return True if size() == 0
-    constexpr bool is_empty() const noexcept { return size() == 0; }
+    constexpr bool is_empty() const noexcept { return byte_size() == 0; }
 
     /// @brief Returns the char at index 'index'.
     /// Do not use this operator to iterate over the view:
@@ -177,7 +180,7 @@ namespace clt
       return uni::index_front(_ptr, index);
     }
 
-    constexpr char32_t index_back(u32 index) const noexcept
+    constexpr char32_t index_back(size_t index) const noexcept
     {
       assert_true("Invalid index!", index < size());
       return uni::index_back(_ptr + _size - 1, index);
