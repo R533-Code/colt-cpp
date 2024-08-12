@@ -9,7 +9,6 @@ TEST_CASE("String Indexing", "[String operator INDEX]")
   {
     u8StringView a = ptr_to<const Char8*>(u8"10\u03BC\u00BC");
     u8String<mem::Mallocator> ab = {mem::Mallocator{}, a};
-    fmt::print("{}", ab);
     REQUIRE(ab.front() == U'1');
     REQUIRE(ab[0] == U'1');
     REQUIRE(ab[1] == U'0');
