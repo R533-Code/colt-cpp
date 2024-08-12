@@ -105,7 +105,7 @@ namespace clt
     /// @param ptr The NUL-terminated string
     constexpr BasicStringView(const underlying_type* ptr) noexcept
         : _ptr(ptr)
-        , _size(clt::bytelen(ptr) / sizeof(underlying_type))
+        , _size(uni::unitlen(ptr))
     {
       assert_true("ptr cannot be null!", _ptr != nullptr);
     }
@@ -131,29 +131,27 @@ namespace clt
     /// @return Pointer to the beginning of the data
     constexpr auto data() const noexcept { return _ptr; }
 
-    /// @brief The number of characters over which the view is spanning.
+    /// @brief The number of code points over which the view is spanning.
     /// For ZStringView, this does not include the NUL-terminator
     /// @return The byte size
     constexpr size_t size() const noexcept
     {
-      // TODO: fix count
       if constexpr (meta::is_any_of<underlying_type, char, Char32BE, Char32LE>)
         return _size;
       else
-        return clt::strlen(_ptr);
+        return uni::count(_ptr, _size);
     }
     
-    /// @brief Returns the byte size over which the view is spanning.
-    /// For ASCII, this is the same as 'size()'.
-    /// @return The byte size
-    constexpr size_t byte_size() const noexcept
+    /// @brief Returns the unit count over which the view is spanning.
+    /// @return The unit count
+    constexpr size_t unit_len() const noexcept
     {
-      return _size * sizeof(underlying_type);
+      return _size;
     }
     
     /// @brief Check if the size is zero
     /// @return True if size() == 0
-    constexpr bool is_empty() const noexcept { return byte_size() == 0; }
+    constexpr bool is_empty() const noexcept { return unit_len() == 0; }
 
     /// @brief Returns the char at index 'index'.
     /// Do not use this operator to iterate over the view:
@@ -365,7 +363,7 @@ struct fmt::formatter<clt::BasicStringView<ENCODING, ZSTRING>>
       return fmt::format_to(
           ctx.out(), "{}",
           fmt::string_view{
-              reinterpret_cast<const char*>(vec.data()), vec.byte_size()});
+              reinterpret_cast<const char*>(vec.data()), vec.unit_len()});
     }
     else
     {

@@ -288,7 +288,7 @@ namespace clt
         BasicStringView<STR_ENCODING, IS_ZSTRING> str,
         size_t added_capacity = 0) noexcept
         : ALLOCATOR(ALLOC)
-        , _size(str.byte_size() / sizeof(char_t))
+        , _size(str.unit_len())
         , _capacity(0)
     {
       alloc(_size + added_capacity + 1);
@@ -327,20 +327,20 @@ namespace clt
     {
       if constexpr (HAS_COUNT)
         return _is_long() ? _ptr_or_buffer.count()
-                          : clt::strlen(_ptr_or_buffer.buffer());
+                          : uni::count(_ptr_or_buffer.buffer(), _size);
       else
-        return clt::strlen(data());
+        return uni::count(data(), _size);
     }
 
-    /// @brief Returns the byte size over which the string is spanning.
+    /// @brief Returns the unit count over which the view is spanning.
     /// This does not include the NUL terminator.
-    /// @return The byte size
-    size_t byte_size() const noexcept { return _size * sizeof(char_t); }
+    /// @return The unit count
+    size_t unit_len() const noexcept { return _size; }
 
     /// @brief Check if the current string is empty.
     /// Empty strings are still NUL terminated.
     /// @return True if size() == 0
-    bool is_empty() const noexcept { return byte_size() == 0; }
+    bool is_empty() const noexcept { return unit_len() == 0; }
 
     /// @brief Returns the char at index 'index'.
     /// Do not use this operator to iterate over the view:
