@@ -926,7 +926,7 @@ namespace clt
     }
 
     template<meta::CharType underlying_type>
-    constexpr char32_t index_back(const underlying_type* _ptr, u32 _index) noexcept
+    constexpr char32_t index_back(const underlying_type* _ptr, size_t _index) noexcept
     {
       if constexpr (meta::is_any_of<underlying_type, char, Char32BE, Char32LE>)
         return _ptr[-static_cast<i64>(_index)];
