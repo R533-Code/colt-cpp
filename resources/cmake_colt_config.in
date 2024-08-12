@@ -9,6 +9,12 @@
   #define COLT_LITTLE_ENDIAN
 #endif
 
+#if defined(__ARM_NEON__) || (defined(COLT_MSVC) && defined(__ARM_ARCH))
+  /// @brief If defined, NEON intrinsics are supported
+  #define COLT_ARM_NEON
+  #include <arm_neon.h>
+#endif
+
 /// @brief Major version of Colt
 #define COLT_VERSION_MAJOR 		${PROJECT_VERSION_MAJOR}
 /// @brief Minor version of Colt
@@ -60,6 +66,7 @@
 #if defined(__x86_64__) || defined(_M_X64)
   #define COLT_x86_64
   #define COLT_ARCH_STRING "x86_64"
+  #include <immintrin.h>
 #elif defined(i386) || defined(__i386__) || defined(__i386) || defined(_M_IX86)
   #define COLT_x86_32
   #define COLT_ARCH_STRING "x86_32"
