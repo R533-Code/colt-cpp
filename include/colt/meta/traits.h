@@ -15,6 +15,14 @@
 
 namespace clt::meta
 {
+  /// @brief Helpers to inherit from built-in types
+  /// @tparam T The built-in type to inherit from
+  template<typename T, u64 LINE>
+  struct inherit_t
+  {
+    T value{};
+  };
+
   /// @brief empty_t struct helper
   struct empty_t
   {
