@@ -16,9 +16,6 @@
 [submodule "libraries/zpp_bits"]
 	path = libraries/zpp_bits
 	url = https://github.com/eyalz800/zpp_bits
-[submodule "libraries/fast_io"]
-	path = libraries/fast_io
-	url = https://github.com/cppfastio/fast_io
 [submodule "libraries/Catch2"]
 	path = libraries/Catch2
 	url = https://github.com/catchorg/Catch2
@@ -28,3 +25,6 @@
 [submodule "libraries/uni-algo"]
 	path = libraries/uni-algo
 	url = https://github.com/uni-algo/uni-algo.git
+[submodule "libraries/simdutf"]
+	path = libraries/simdutf
+	url = https://github.com/simdutf/simdutf.git
