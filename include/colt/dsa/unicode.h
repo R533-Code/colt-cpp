@@ -571,22 +571,40 @@ namespace clt
     /// @brief Converts an encoding to the char that must represent it
     /// @tparam ENCODING The encoding to convert
     template<StringEncoding ENCODING>
-    using encoding_to_char_t = decltype([]()
-      {
-        using enum clt::StringEncoding;
-        if constexpr (ENCODING == ASCII)
-          return char{};
-        if constexpr (ENCODING == UTF8)
-          return Char8{};
-        if constexpr (ENCODING == UTF16BE)
-          return Char16BE{};
-        if constexpr (ENCODING == UTF16LE)
-          return Char16LE{};
-        if constexpr (ENCODING == UTF32BE)
-          return Char32BE{};
-        if constexpr (ENCODING == UTF32LE)
-          return Char32LE{};
-      }());
+    struct encoding_to_char{};
+    template<>
+    struct encoding_to_char<StringEncoding::ASCII>
+    {
+      using type = char;
+    };
+    template<>
+    struct encoding_to_char<StringEncoding::UTF8>
+    {
+      using type = Char8;
+    };
+    template<>
+    struct encoding_to_char<StringEncoding::UTF16BE>
+    {
+      using type = Char16BE;
+    };
+    template<>
+    struct encoding_to_char<StringEncoding::UTF16LE>
+    {
+      using type = Char16LE;
+    };
+    template<>
+    struct encoding_to_char<StringEncoding::UTF32BE>
+    {
+      using type = Char32BE;
+    };
+    template<>
+    struct encoding_to_char<StringEncoding::UTF32LE>
+    {
+      using type = Char32LE;
+    };
+
+    template<StringEncoding ENCODING>
+    using encoding_to_char_t = typename encoding_to_char<ENCODING>::type;
 
     /// @brief Converts a char type to its encoding
     /// @tparam type The character type
