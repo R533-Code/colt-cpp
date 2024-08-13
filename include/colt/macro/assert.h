@@ -107,10 +107,10 @@ namespace clt::details
     #expr, (expr)                          \
   }
 
-#ifndef COLT_CLANG
-  #define __DETAILS__COLT_TO_ASSUME(expr) , (void)HEDLEY_ASSUME(expr)
-#else
+#ifndef COLT_MSVC
   #define __DETAILS__COLT_TO_ASSUME(expr)
+#else
+  #define __DETAILS__COLT_TO_ASSUME(expr) , HEDLEY_ASSUME(expr)
 #endif // COLT_CLANG
 
 
