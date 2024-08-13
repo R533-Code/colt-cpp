@@ -1,3 +1,29 @@
+/*****************************************************************//**
+ * @file   detect_simd.h
+ * @brief  Contains 'choose_simd_function' to select a function depending
+ *         on CPU supported instructions.
+ * 'choose_simd_function' chooses the first supported function.
+ * As an example:
+ * @code{.cpp}
+ * size_t unitlen32(const char32_t* ptr) noexcept
+ * {
+ *   static const auto FN =
+ *     choose_simd_function<simd_flag::AVX512F, simd_flag::AVX2, simd_flag::DEFAULT>(
+ *       &unitlen32AVX512F, &unitlen32AVX2, &unitlen16default);
+ *   return (*FN)(ptr);
+ * }
+ * @endcode
+ * In the example above, 'choose_simd_function' will:
+ * - check if AVX512F instructions are supported, if so returns the first argument
+ *   of the function,
+ * - else, check if AVX2 instructions are supported, if so returns the second argument
+ *   of the function,
+ * - else return the third argument of the function.
+ * The result is cached by unitlen32 to only check once which function to use.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_BIT_DETECT_SIMD
 #define HG_BIT_DETECT_SIMD
 
@@ -61,21 +87,10 @@ namespace clt::bit
 
   /// @brief Chooses a function depending on supported features of the CPU.
   /// The result of this function must be cached for performance.
-  /// @code{.cpp}
-  /// size_t unitlen32(const char32_t* ptr) noexcept
-  /// {
-  ///   // The code below chooses the first supported function or return null
-  ///   // if none are supported.
-  ///   // The result is cached for performance.
-  ///   static const auto FN = choose_simd_function<simd_flag::AVX512F, simd_flag::AVX2>(
-  ///       &unitlen32AVX512F, &unitlen32AVX2);
-  ///   return (*FN)(ptr);
-  /// }
-  /// @endcode
   /// @tparam ...FnPtrs Function pointer type pack
   /// @tparam FnPtr Function pointer type
   /// @tparam ...PREFERED The pack of simd_flag starting with most performant
-  ///                     to least.
+  ///                     to least (the last MUST be simd_flag::DEFAULT).
   /// @param first The first function pointer
   /// @param ...pack The pack of function pointers
   /// @return The first supported function (from left to right) or the last function
