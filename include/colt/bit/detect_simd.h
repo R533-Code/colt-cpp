@@ -89,7 +89,7 @@ namespace clt::bit
     simd_flag ARRAY[]           = {PREFERED...};
     FnPtr ARRAYFN[]             = {first, pack...};
     for (size_t i = 0; i < ARRAY_SIZE; i++)
-      if (support | ARRAY[i])
+      if (support & ARRAY[i])
         return ARRAYFN[i];
     return static_cast<FnPtr>(nullptr);
   }
