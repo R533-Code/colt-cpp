@@ -10,8 +10,6 @@
 #endif
 
 #if defined(__ARM_NEON__) || (defined(COLT_MSVC) && defined(__ARM_ARCH))
-  /// @brief If defined, NEON intrinsics are supported
-  #define COLT_ARM_NEON
   #include <arm_neon.h>
 #endif
 
@@ -90,21 +88,27 @@
   #define COLT_ARCH_STRING "ARM6"
 #elif defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
   #define COLT_ARM7
+  #define COLT_ARM_7or8
   #define COLT_ARCH_STRING "ARM7"
 #elif defined(__ARM_ARCH_7A__) || defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
   #define COLT_ARM7A
+  #define COLT_ARM_7or8
   #define COLT_ARCH_STRING "ARM7A"
 #elif defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) || defined(__ARM_ARCH_7S__)
   #define COLT_ARM7R
+  #define COLT_ARM_7or8
   #define COLT_ARCH_STRING "ARM7R"
 #elif defined(__ARM_ARCH_7M__)
   #define COLT_ARM7M
+  #define COLT_ARM_7or8
   #define COLT_ARCH_STRING "ARM7M"
 #elif defined(__ARM_ARCH_7S__)
   #define COLT_ARM7S
+  #define COLT_ARM_7or8
   #define COLT_ARCH_STRING "ARM7S"
 #elif defined(__aarch64__) || defined(_M_ARM64)
   #define COLT_ARM64;
+  #define COLT_ARM_7or8
   #define COLT_ARCH_STRING "ARM64"
 #elif defined(mips) || defined(__mips__) || defined(__mips)
   #define COLT_MIPS
