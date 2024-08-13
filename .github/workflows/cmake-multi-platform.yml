@@ -23,22 +23,22 @@ jobs:
       #
       # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-24.04, windows-latest]
         build_type: [Release]
-        c_compiler: [gcc-12, clang, cl]
+        c_compiler: [gcc-14, clang, cl]
         include:
           - os: windows-latest
             c_compiler: cl
             cpp_compiler: cl
           - os: ubuntu-latest
-            c_compiler: gcc-12
-            cpp_compiler: g++-12
+            c_compiler: gcc-14
+            cpp_compiler: g++-14
           - os: ubuntu-latest
             c_compiler: clang
             cpp_compiler: clang++
         exclude:
           - os: windows-latest
-            c_compiler: gcc-12
+            c_compiler: gcc-14
           - os: windows-latest
             c_compiler: clang
           - os: ubuntu-latest
@@ -66,8 +66,8 @@ jobs:
         -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
         -S ${{ github.workspace }}
       env:
-        CC: gcc-12
-        CXX: g++-12
+        CC: gcc-14
+        CXX: g++-14
 
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
