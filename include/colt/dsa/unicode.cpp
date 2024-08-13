@@ -21,7 +21,7 @@ size_t unitlen32default(const char32_t* ptr) noexcept
 COLT_FORCE_SSE2 size_t unitlen16SSE2(const char16_t* ptr) noexcept
 {
   const auto copy = ptr;
-  // Align pointer to 32 byte boundary to use aligned load
+  // Align pointer to 16 byte boundary to use aligned load
   // and avoid page faults.
   while (uintptr_t(ptr) % 16 != 0)
   {
@@ -105,7 +105,7 @@ COLT_FORCE_AVX512BW size_t unitlen16AVX512F(const char16_t* ptr) noexcept
 COLT_FORCE_SSE2 size_t unitlen32SSE2(const char32_t* ptr) noexcept
 {
   const auto copy = ptr;
-  // Align pointer to 32 byte boundary to use aligned load
+  // Align pointer to 16 byte boundary to use aligned load
   // and avoid page faults.
   while (uintptr_t(ptr) % 16 != 0)
   {
