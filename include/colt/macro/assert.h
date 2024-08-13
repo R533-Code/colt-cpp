@@ -107,15 +107,20 @@ namespace clt::details
     #expr, (expr)                          \
   }
 
-#define __DETAILS__COLT_TO_ASSUME(expr) \
-    , (void)HEDLEY_ASSUME(expr)
+#ifndef COLT_CLANG
+  #define __DETAILS__COLT_TO_ASSUME(expr) , (void)HEDLEY_ASSUME(expr)
+#else
+  #define __DETAILS__COLT_TO_ASSUME(expr)
+#endif // COLT_CLANG
+
 
 /// @brief Asserts that all condition are true
 #define assert_true(MESSAGE, COND, ...)                                           \
   clt::details::assert_true_multiple(                                             \
       MESSAGE, clt::source_location::current() __DETAILS__COLT_TO_ASSERTION(COND) \
-                   COLT_FOR_EACH(__DETAILS__COLT_TO_ASSERTION, __VA_ARGS__)),     \
-      (void)HEDLEY_ASSUME(COND) COLT_FOR_EACH(__DETAILS__COLT_TO_ASSUME, __VA_ARGS__)
+                   COLT_FOR_EACH(__DETAILS__COLT_TO_ASSERTION, __VA_ARGS__))      \
+      __DETAILS__COLT_TO_ASSUME(COND)                                             \
+          COLT_FOR_EACH(__DETAILS__COLT_TO_ASSUME, __VA_ARGS__)
 
 /// @brief switch case with no default
 #define switch_no_default(...)                                    \
