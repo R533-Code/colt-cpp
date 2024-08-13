@@ -4,7 +4,7 @@
 #include "colt/macro/macro.h"
 #include "colt/num/typedefs.h"
 
-// We make use of an internal header of SIMDUTF
+// We make use of simdutf internal header
 #include <simdutf/internal/isadetection.h>
 
 #if defined(COLT_CLANG) || defined(COLT_GNU)
@@ -17,32 +17,33 @@
   #define COLT_FORCE_AVX2  COLT_ATTRIBUTE_TARGET("avx2")
   #define COLT_FORCE_SSE2  COLT_ATTRIBUTE_TARGET("sse2")
   #define COLT_FORCE_SSE42 COLT_ATTRIBUTE_TARGET("sse4.2")
-  // AVX-512 Foundation (F) – expands most 32-bit and 64-bit based AVX instructions
+  // AVX-512 Foundation (F) - expands most 32-bit and 64-bit based AVX instructions
   // with the EVEX coding scheme to support 512-bit registers, operation masks,
   // parameter broadcasting, and embedded rounding and exception control.
   #define COLT_FORCE_AVX512F COLT_ATTRIBUTE_TARGET("avx512f")
-  // AVX-512 Doubleword and Quadword Instructions (DQ) – adds new 32-bit and 64-bit
+  // AVX-512 Doubleword and Quadword Instructions (DQ) - adds new 32-bit and 64-bit
   // AVX-512 instructions.
   #define COLT_FORCE_AVX512DQ COLT_ATTRIBUTE_TARGET("avx512dq")
-  // AVX-512 Integer Fused Multiply Add (IFMA) – fused multiply add of integers
+  // AVX-512 Integer Fused Multiply Add (IFMA) - fused multiply add of integers
   // using 52-bit precision.
   #define COLT_FORCE_AVX512IFMA COLT_ATTRIBUTE_TARGET("avx512ifma")
-  // AVX-512 Prefetch Instructions (PF) – new prefetch capabilities.
+  // AVX-512 Prefetch Instructions (PF) - new prefetch capabilities.
   #define COLT_FORCE_AVX512PF
-  // AVX-512 Exponential and Reciprocal Instructions (ER) – exponential and reciprocal
+  // AVX-512 Exponential and Reciprocal Instructions (ER) - exponential and reciprocal
   // operations designed to help implement transcendental operations.
   #define COLT_FORCE_AVX512ER COLT_ATTRIBUTE_TARGET("avx512er")
-  // AVX-512 Conflict Detection Instructions (CD) – efficient conflict detection
+  // AVX-512 Conflict Detection Instructions (CD) - efficient conflict detection
   // to allow more loops to be vectorized.
   #define COLT_FORCE_AVX512CD COLT_ATTRIBUTE_TARGET("avx512cd")
-  // AVX-512 Vector Length Extensions (VL) – extends most AVX-512 operations
+  // AVX-512 Vector Length Extensions (VL) - extends most AVX-512 operations
   // to also operate on XMM (128-bit) and YMM (256-bit) registers
   #define COLT_FORCE_AVX512VL COLT_ATTRIBUTE_TARGET("avx512vl")
   // Same as AVX-512VL but with bytes and words
   #define COLT_FORCE_AVX512BW COLT_ATTRIBUTE_TARGET("avx512bw")
   // AVX512 Vector population count instruction
   #define COLT_FORCE_AVX512VPOPCNTDQ COLT_ATTRIBUTE_TARGET("avx512vpopcntdq")
-  // AVX-512 Vector Byte Manipulation Instructions 2 (VBMI2) – byte/word load, store and concatenation with shift.
+  // AVX-512 Vector Byte Manipulation Instructions 2 (VBMI2) - byte/word load,
+  // store and concatenation with shift.
   #define COLT_FORCE_AVX512VBMI2 COLT_ATTRIBUTE_TARGET("avx512vbmi2")
 #endif // COLT_x86_64
 
