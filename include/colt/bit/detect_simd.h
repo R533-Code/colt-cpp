@@ -8,7 +8,7 @@
 #include <simdutf/internal/isadetection.h>
 
 #if defined(COLT_CLANG) || defined(COLT_GNU)
-  #define COLT_ATTRIBUTE_TARGET(target) __attribute__((target))
+  #define COLT_ATTRIBUTE_TARGET(_target) __attribute__((target(_target)))
 #else
   #define COLT_ATTRIBUTE_TARGET(target)
 #endif // (defined(COLT_CLANG) || defined(COLT_GNU))
