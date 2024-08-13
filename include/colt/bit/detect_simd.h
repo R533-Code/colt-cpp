@@ -55,8 +55,7 @@ namespace clt::bit
   /// @return simd_flag with the supported features marked as 1
   static inline simd_flag detect_supported_architectures() noexcept
   {
-    static const auto value =
-        simdutf::internal::detect_supported_architectures() | simd_flag::DEFAULT;
+    static const auto value = simdutf::internal::detect_supported_architectures();
     return static_cast<simd_flag>(value);
   }
 
@@ -79,20 +78,23 @@ namespace clt::bit
   ///                     to least.
   /// @param first The first function pointer
   /// @param ...pack The pack of function pointers
-  /// @return The first supported function (from left to right) or null if none are supported.
+  /// @return The first supported function (from left to right) or the last function
+  ///         if none are supported.
   template<simd_flag... PREFERED, typename FnPtr, typename... FnPtrs>
     requires(sizeof...(PREFERED) == sizeof...(FnPtrs) + 1)
             && meta::are_all_same<FnPtr, FnPtrs...>
   auto choose_simd_function(FnPtr first, FnPtrs... pack) noexcept
   {
+    static_assert((PREFERED, ...) == simd_flag::DEFAULT,
+        "The last item of PREFERED must be DEFAULT.");
     auto support                = detect_supported_architectures();
     constexpr size_t ARRAY_SIZE = sizeof...(PREFERED);
-    simd_flag ARRAY[]           = {PREFERED...};
+    const simd_flag ARRAY[]     = {PREFERED...};
     FnPtr ARRAYFN[]             = {first, pack...};
-    for (size_t i = 0; i < ARRAY_SIZE; i++)
+    for (size_t i = 0; i < ARRAY_SIZE - 1; i++)
       if (support & ARRAY[i])
         return ARRAYFN[i];
-    return static_cast<FnPtr>(nullptr);
+    return ARRAYFN[ARRAY_SIZE - 1];
   }
 } // namespace clt::bit
 #endif // !HG_BIT_DETECT_SIMD
