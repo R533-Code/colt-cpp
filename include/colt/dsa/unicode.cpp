@@ -136,7 +136,47 @@ COLT_FORCE_AVX2 size_t strlen8AVX2(const char8_t* ptr) noexcept
   }
   // We might have ended on trailing byte
   // so we can't really use sequence_length here.
-  // In any cases, there are at most 16 byte to check.
+  // In any cases, there are at most 32 byte to check.
+  while (true)
+  {
+    if (*ptr == '\0')
+      return len;
+    len += (size_t)(!clt::uni::is_trail(*ptr));
+    ++ptr;
+  }
+  clt::unreachable("programming error");
+}
+
+COLT_FORCE_AVX512BW size_t strlen8AXV512BW(const char8_t* ptr) noexcept
+{
+  size_t len = 0;
+  while (uintptr_t(ptr) % 64 != 0)
+  {
+    if (*ptr == '\0')
+      return len;
+    len += (size_t)(!clt::uni::is_trail(*ptr));
+    ++ptr;
+  }
+
+  const __m512i zero        = _mm512_setzero_si512();
+  const __m512i trail_mask  = _mm512_set1_epi8((u8)0b1100'0000);
+  const __m512i trail_value = _mm512_set1_epi8((u8)0b1000'0000);
+  constexpr auto PACK_COUNT = sizeof(__m512i) / sizeof(u8);
+  unsigned long long mask;
+  while (true)
+  {
+    __m512i values = _mm512_load_si512(reinterpret_cast<const __m512i*>(ptr));
+    mask = _mm512_cmpeq_epi8_mask(values, zero);
+    // If we found NUL-terminator break.
+    if (mask != 0)
+      break;
+    __m512i is_trail = _mm512_and_si512(values, trail_mask);
+    len += PACK_COUNT - std::popcount(_mm512_cmpeq_epi8_mask(is_trail, trail_value));
+    ptr += PACK_COUNT;
+  }
+  // We might have ended on trailing byte
+  // so we can't really use sequence_length here.
+  // In any cases, there are at most 64 byte to check.
   while (true)
   {
     if (*ptr == '\0')
@@ -365,8 +405,8 @@ size_t clt::uni::details::strlen8(const char8_t* ptr) noexcept
   using namespace clt::bit;
 #ifdef COLT_x86_64
   static const auto FN =
-      choose_simd_function<simd_flag::AVX2, simd_flag::DEFAULT>(
-          &strlen8AVX2, &strlen8SSE2);
+      choose_simd_function<simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>(
+          &strlen8AXV512BW, &strlen8AVX2, &strlen8SSE2);
   return (*FN)(ptr);
 #else
   return strlen8default(ptr);
