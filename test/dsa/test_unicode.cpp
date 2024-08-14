@@ -1,6 +1,10 @@
 #include <catch2/catch_all.hpp>
 #include <colt/dsa/unicode.h>
 
+// Using COLT_FOR_EACH, we can generate a test for each of the strings below.
+// COLT_CONCAT(x, ...) is used to concatenate the string literal (u8, u, U).
+// Each test string must be followed by ', \'.
+// Poor compilers...
 // clang-format off
 #define TEST_STRING(x) \
   COLT_CONCAT(x, "\u000D"), \
