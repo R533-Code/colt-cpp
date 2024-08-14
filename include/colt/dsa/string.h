@@ -30,19 +30,30 @@ namespace clt
 
       /// @brief Check if the string has a Small String Optimization buffer.
       /// The size of that buffer is calculated by 'buffer_bytesize'.
-      /// @return
+      /// @return True if the string has a buffer
       constexpr bool has_buffer() const noexcept { return BUFFER_SIZE != 0; }
       /// @brief True if the string must cache the count of code point stored.
+      /// This can never be true if the buffer does not provide enough memory
+      /// to store the count.
       /// @return True if CACHE_COUNT
       constexpr bool has_count() const noexcept
       {
-        return is_variadic_encoding(ENCODING) && CACHE_COUNT;
+        return is_variadic_encoding(ENCODING)
+          && buffer_bytesize() > sizeof(void*) + sizeof(size_t)
+          && CACHE_COUNT;
       }
       /// @brief True if the string must cache the offset to the middle code point.
+      /// This can never be true if the count is not cached as computing the middle
+      /// already computes the count.
+      /// This can never be true if the buffer does not provide enough memory
+      /// to store the count.
       /// @return True if CACHE_MIDDLE
       constexpr bool has_middle() const noexcept
       {
-        return is_variadic_encoding(ENCODING) && CACHE_MIDDLE;
+        return is_variadic_encoding(ENCODING)
+               && buffer_bytesize() > sizeof(void*) + 2 * sizeof(size_t)
+               && CACHE_COUNT
+               && CACHE_MIDDLE;
       }
       /// @brief True if the string will not make copy of literal unless a modification occurs.
       /// If the current platform does not support it, then returns false.
@@ -202,6 +213,7 @@ namespace clt
     size_t _size;
     size_t _capacity;
 
+    HEDLEY_ALWAYS_INLINE
     bool _is_long() const noexcept
       requires HAS_BUFFER
     {
@@ -255,10 +267,20 @@ namespace clt
     BasicString(const ALLOCATOR& ALLOC) noexcept
       requires HAS_BUFFER
         : ALLOCATOR(ALLOC)
-        , _size(1)
+        , _size(0)
         , _capacity(SSO_SIZE)
     {
       _ptr_or_buffer.buffer()[0] = '\0';
+      if constexpr (HAS_COUNT)
+      {
+        if (_is_long())
+          _ptr_or_buffer.count() = 0;
+      }
+      if constexpr (HAS_MIDDLE)
+      {
+        if (_is_long())
+          _ptr_or_buffer.middle() = 0;
+      }
     }
 
     BasicString(const ALLOCATOR& ALLOC) noexcept
@@ -267,19 +289,7 @@ namespace clt
         , _size(0)
         , _capacity(0)
     {
-      _ptr_or_buffer.ptr() = "";
-    }
-
-    BasicString(
-        const ALLOCATOR& ALLOC, char_t FILL, size_t count,
-        size_t added_capacity = 0) noexcept
-        : ALLOCATOR(ALLOC)
-        , _size(count)
-        , _capacity(0)
-    {
-      alloc(count + added_capacity + 1);
-      std::fill_n(data(), count, FILL);
-      data()[_size] = '\0';
+      _ptr_or_buffer.ptr() = meta::empty_string_literal<char_t>();
     }
 
     template<bool IS_ZSTRING>
@@ -292,8 +302,23 @@ namespace clt
         , _capacity(0)
     {
       alloc(_size + added_capacity + 1);
-      ::memcpy(data(), str.data(), sizeof(char_t) * _size);
-      data()[_size] = '\0';
+      const auto cache_data = data();
+      ::memcpy(cache_data, str.data(), sizeof(char_t) * _size);
+      cache_data[_size] = '\0';
+      if constexpr (HAS_MIDDLE)
+      {
+        if (_is_long())
+        {
+          auto [count, middle] = uni::count_and_middle(cache_data, _size);
+          _ptr_or_buffer.count() = count;
+          _ptr_or_buffer.middle() = middle;
+        }
+      }
+      else if constexpr (HAS_COUNT)
+      {
+        if (_is_long())
+          _ptr_or_buffer.count() = uni::count(cache_data, _size);
+      }
     }
 
     ~BasicString() { dealloc(); }
