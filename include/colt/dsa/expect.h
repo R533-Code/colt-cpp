@@ -587,10 +587,17 @@ namespace clt
 
 template<typename T, typename E>
   requires fmt::is_formattable<T>::value && fmt::is_formattable<E>::value
-struct fmt::formatter<clt::Expect<T, E>> : public clt::meta::DefaultParserFMT
+struct fmt::formatter<clt::Expect<T, E>>
 {
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    // TODO: add format option
+    return ctx.begin();
+  }
+
   template<typename FormatContext>
-  auto format(const clt::Expect<T, E>& exp, FormatContext& ctx)
+  auto format(const clt::Expect<T, E>& exp, FormatContext& ctx) const
   {
     auto fmt_to = ctx.out();
     if (exp.is_error())

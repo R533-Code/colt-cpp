@@ -484,7 +484,7 @@ struct fmt::formatter<clt::Option<T>>
   }
 
   template<typename FormatContext>
-  auto format(const clt::Option<T>& opt, FormatContext& ctx)
+  auto format(const clt::Option<T>& opt, FormatContext& ctx) const
   {
     auto fmt_to = ctx.out();
     if (opt.is_value())
