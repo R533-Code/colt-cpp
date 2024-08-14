@@ -127,6 +127,11 @@ namespace clt
       return value >= TRAIL_SURROGATE_MIN && value <= TRAIL_SURROGATE_MAX;
     }
 
+    constexpr bool is_trail(char8_t value) noexcept
+    {
+      return (value >> 6) == 0b10;
+    }
+
     /// @brief Returns the sequence length of a UTF16 sequence starting with value.
     /// @param value The start of the sequence
     /// @return 1 or 2
@@ -734,20 +739,39 @@ namespace clt
       requires(meta::CppCharType<T> || meta::CharType<T>)
     constexpr size_t strlen(const T* start) noexcept;    
 
-    /// @brief Optimized unitlen for 16 bit characters.
-    /// This works for both endianness as zero are represented the same
-    /// way on both endianness.
-    /// The implementation uses SIMD instructions.
-    /// @param ptr The NUL-terminated string whose unit count to return
-    /// @return Return the count of char16_t forming the string
-    size_t unitlen16(const char16_t* ptr) noexcept;
-    /// @brief Optimized unitlen for 16 bit characters.
-    /// This works for both endianness as zero are represented the same
-    /// way on both endianness.
-    /// The implementation uses SIMD instructions.
-    /// @param ptr The NUL-terminated string whose unit count to return
-    /// @return Return the count of char32_t forming the string
-    size_t unitlen32(const char32_t* ptr) noexcept;
+    namespace details
+    {
+      /// @brief Optimized strlen for UTF8
+      /// @param ptr The NUL-terminated string whose code point count to return
+      /// @return Return the number of code point (not including NUL-terminator)
+      size_t strlen8(const char8_t* ptr) noexcept;
+      /// @brief Optimized strlen for UTF16LE
+      /// @param ptr The NUL-terminated string whose code point count to return
+      /// @return Return the number of code point (not including NUL-terminator)
+      size_t strlen16LE(const char16_t* ptr) noexcept;
+      /// @brief Optimized strlen for UTF16BE
+      /// @param ptr The NUL-terminated string whose code point count to return
+      /// @return Return the number of code point (not including NUL-terminator)
+      size_t strlen16BE(const char16_t* ptr) noexcept;
+      /// @brief Optimized strlen for native UTF16
+      /// @param ptr The NUL-terminated string whose code point count to return
+      /// @return Return the number of code point (not including NUL-terminator)
+      size_t strlen16(const char16_t* ptr) noexcept;
+      /// @brief Optimized unitlen for UTF16.
+      /// This works for both endianness as zero are represented the same
+      /// way on both endianness.
+      /// The implementation uses SIMD instructions.
+      /// @param ptr The NUL-terminated string whose unit count to return
+      /// @return Return the count of char16_t forming the string
+      size_t unitlen16(const char16_t* ptr) noexcept;
+      /// @brief Optimized unitlen for UTF32.
+      /// This works for both endianness as zero are represented the same
+      /// way on both endianness.
+      /// The implementation uses SIMD instructions.
+      /// @param ptr The NUL-terminated string whose unit count to return
+      /// @return Return the count of char32_t forming the string
+      size_t unitlen32(const char32_t* ptr) noexcept;
+    }    
 
     /// @brief Iterator over Unicode encoded strings
     /// @tparam ENCODING The encoding
@@ -1039,26 +1063,60 @@ namespace clt
         if constexpr (meta::is_any_of<T, char8_t, Char8>)
           return std::strlen(reinterpret_cast<const char*>(start));
         if constexpr (meta::is_any_of<T, char16_t, Char16LE, Char16BE>)
-          return unitlen16(reinterpret_cast<const char16_t*>(start));
+          return details::unitlen16(reinterpret_cast<const char16_t*>(start));
         if constexpr (meta::is_any_of<T, char32_t, Char32LE, Char32BE>)
-          return unitlen32(reinterpret_cast<const char32_t*>(start));
+          return details::unitlen32(reinterpret_cast<const char32_t*>(start));
       }
     }
 
     template<typename T>
       requires(meta::CppCharType<T> || meta::CharType<T>)
-    constexpr size_t count(const T* start, size_t count) noexcept
+    constexpr std::pair<size_t, size_t> count_and_middle(const T* start, size_t unit_len) noexcept
+    {
+      if constexpr (meta::is_any_of<T, char, char32_t, Char32BE, Char32LE>)
+        return {unit_len, unit_len / 2 };
+      auto second = start + unit_len / 2;
+      // Correct pointer
+      if constexpr (meta::is_any_of<T, char8_t, Char8>)
+      {
+        while (is_trail(*second))
+          ++second;
+      }
+      else
+      {
+        if (is_trail_surrogate(*second))
+          ++second;
+      }
+      auto lhs = uni::count(start, second - start);
+      auto rhs = uni::count(second, (start + unit_len) - second);
+      const auto count_result = lhs + rhs;
+      // TODO: correct 'second'
+      if (lhs < rhs)
+      {
+      }
+      else if (rhs < lhs)
+      {
+
+      }
+      // If they are equal then the lucky guess was the middle
+      return {count_result, second - start};
+    }
+
+
+    template<typename T>
+      requires(meta::CppCharType<T> || meta::CharType<T>)
+    constexpr size_t count(const T* start, size_t unit_len) noexcept
     {
       assert_true("Expected non-null pointer!", start != nullptr);
       if constexpr (meta::is_any_of<T, char, char32_t, Char32BE, Char32LE>)
-        return count;
+        return unit_len;
       if (std::is_constant_evaluated())
       {
         size_t result = 0;
         size_t index  = 0;
-        // ^ this variable exist to avoid overflow with count if decrementing.
+        // ^ this variable exist to avoid overflow with unit_len if decrementing.
         // Such overflow could happen if the last char16 was a lead surrogate
-        while (index < count)
+        while (index < unit_len)
         {
           size_t len = sequence_length(*start);
           index += len;
@@ -1068,15 +1126,15 @@ namespace clt
         return result;
       }
       else if constexpr (std::same_as<T, Char16BE>)
-        return simdutf::count_utf16be(ptr_to<const char16_t*>(start), count);
+        return simdutf::count_utf16be(ptr_to<const char16_t*>(start), unit_len);
       else if constexpr (std::same_as<T, Char16LE>)
-        return simdutf::count_utf16le(ptr_to<const char16_t*>(start), count);
+        return simdutf::count_utf16le(ptr_to<const char16_t*>(start), unit_len);
       else if constexpr (std::same_as<T, char16_t>)
-        return simdutf::count_utf16(ptr_to<const char16_t*>(start), count);
+        return simdutf::count_utf16(ptr_to<const char16_t*>(start), unit_len);
       else if constexpr (std::same_as<T, char8_t>)
-        return simdutf::count_utf8(start, count);
+        return simdutf::count_utf8(start, unit_len);
       else if constexpr (std::same_as<T, Char8>)
-        return simdutf::count_utf8(ptr_to<const char*>(start), count);
+        return simdutf::count_utf8(ptr_to<const char*>(start), unit_len);
     }
     
     template<typename T>
@@ -1084,32 +1142,49 @@ namespace clt
     constexpr size_t strlen(const T* start) noexcept
     {
       assert_true("Expected non-null pointer!", start != nullptr);
-      if constexpr (meta::is_any_of<T, char, char32_t>)
+      if constexpr (meta::is_any_of<T, char, char32_t, Char32BE, Char32LE>)
         return uni::unitlen(start);
 
       if constexpr (meta::is_any_of<T, char8_t, Char8>)
       {
-        size_t len   = 0;
-        const T* end = start;
-        char8_t current;
-        while ((current = static_cast<char8_t>(*end)) != u8'\0')
+        if (std::is_constant_evaluated())
         {
-          end += sequence_length(*end);
-          ++len;
+          size_t len   = 0;
+          const T* end = start;
+          char8_t current;
+          while ((current = static_cast<char8_t>(*end)) != u8'\0')
+          {
+            end += sequence_length(current);
+            ++len;
+          }
+          return len;
         }
-        return len;
+        else
+          return details::strlen8(reinterpret_cast<const char8_t*>(start));
       }
       if constexpr (meta::is_any_of<T, char16_t, Char16BE, Char16LE>)
       {
-        size_t len   = 0;
-        const T* end = start;
-        char16_t current;
-        while ((current = static_cast<char16_t>(*end)) != T{})
+        if (std::is_constant_evaluated())
         {
-          end += sequence_length(*end);
-          ++len;
+          size_t len   = 0;
+          const T* end = start;
+          char16_t current;
+          while ((current = static_cast<char16_t>(*end)) != T{})
+          {
+            end += sequence_length(current);
+            ++len;
+          }
+          return len;
         }
-        return len;
+        else
+        {
+          if constexpr (std::same_as<T, char16_t>)
+            return details::strlen16(start);
+          if constexpr (std::same_as<T, Char16BE>)
+            return details::strlen16BE(reinterpret_cast<const char16_t*>(start));
+          if constexpr (std::same_as<T, Char16LE>)
+            return details::strlen16LE(reinterpret_cast<const char16_t*>(start));
+        }
       }
     }
 
