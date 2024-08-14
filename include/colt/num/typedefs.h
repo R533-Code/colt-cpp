@@ -57,7 +57,7 @@ namespace clt::details
     }
 
     /// @brief Asserts that the state was read at least once
-    void assert_checked() noexcept
+    void assert_checked() const noexcept
     {
       if (!is_checked)
         clt::unreachable("'Error' result must be checked!", src);
