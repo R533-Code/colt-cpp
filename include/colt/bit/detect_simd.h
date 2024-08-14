@@ -1,4 +1,4 @@
-/*****************************************************************//**
+/*****************************************************************/ /**
  * @file   detect_simd.h
  * @brief  Contains 'choose_simd_function' to select a function depending
  *         on CPU supported instructions.
@@ -29,6 +29,8 @@
 
 #include "colt/macro/macro.h"
 #include "colt/num/typedefs.h"
+#include "colt/meta/traits.h"
+#include "fmt/base.h"
 
 // We make use of simdutf internal header
 #include <simdutf/internal/isadetection.h>
@@ -100,7 +102,8 @@ namespace clt::bit
             && meta::are_all_same<FnPtr, FnPtrs...>
   auto choose_simd_function(FnPtr first, FnPtrs... pack) noexcept
   {
-    static_assert((PREFERED, ...) == simd_flag::DEFAULT,
+    static_assert(
+        (PREFERED, ...) == simd_flag::DEFAULT,
         "The last item of PREFERED must be DEFAULT.");
     auto support                = detect_supported_architectures();
     constexpr size_t ARRAY_SIZE = sizeof...(PREFERED);
@@ -112,4 +115,39 @@ namespace clt::bit
     return ARRAYFN[ARRAY_SIZE - 1];
   }
 } // namespace clt::bit
+
+template<>
+struct fmt::formatter<clt::bit::simd_flag>
+{
+  static constexpr std::array FLAG_VALUES = {
+      0x0,   0x1,   0x4,    0x8,    0x10,   0x20,   0x40,    0x80,   0x100,  0x200,
+      0x400, 0x800, 0x1000, 0x2000, 0x4000, 0x8000, 0x10000, 0x2000, 0x4000, 0x8000,
+  };
+  static constexpr std::array FLAG_TO_STR = {
+      "DEFAULT",  "NEON",        "AVX2",
+      "SSE42",    "PCLMULQDQ",   "BMI1",
+      "BMI2",     "ALTIVEC",     "AVX512F",
+      "AVX512DQ", "AVX512IFMA",  "AVX512PF",
+      "AVX512ER", "AVX512CD",    "AVX512BW",
+      "AVX512VL", "AVX512VBMI2", "AVX512VPOPCNTDQ",
+      "RVV",      "ZVBB"};
+
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    // TODO: add format option
+    return ctx.begin();
+  }
+
+  template<typename FormatContext>
+  auto format(clt::bit::simd_flag flag, FormatContext& ctx) const
+  {
+    auto fmt_to = fmt::format_to(ctx.out(), "(");
+    for (size_t i = 1; i < FLAG_VALUES.size(); i++)
+      if (flag & FLAG_VALUES[i])
+        fmt_to = fmt::format_to(fmt_to, "{} | ", FLAG_TO_STR[i]);
+    return fmt::format_to(fmt_to, "DEFAULT)");
+  }
+};
+
 #endif // !HG_BIT_DETECT_SIMD
