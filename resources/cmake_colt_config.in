@@ -125,6 +125,14 @@
 #elif defined(__sparc__) || defined(__sparc)
   #define COLT_SPARC
   #define COLT_ARCH_STRING "Sparc"
+#elif (defined(__riscv) || defined(__riscv__)) // RISC-V
+  #if __riscv_xlen == 32
+    #define COLT_RV32
+    #define COLT_ARCH_STRING "RV32"
+  #elif __riscv_xlen == 64
+    #define COLT_RV64
+    #define COLT_ARCH_STRING "RV64"
+  #endif //  (__riscv_xlen == 32)
 #elif defined(__m68k__)
   #define COLT_M68K
   #define COLT_ARCH_STRING "M68K"
