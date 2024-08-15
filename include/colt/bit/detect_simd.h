@@ -120,20 +120,59 @@ template<>
 struct fmt::formatter<clt::bit::simd_flag>
 {
   static constexpr std::array FLAG_VALUES = {
-      0x0,   0x1,   0x4,    0x8,    0x10,   0x20,   0x40,    0x80,   0x100,  0x200,
-      0x400, 0x800, 0x1000, 0x2000, 0x4000, 0x8000, 0x10000, 0x2000,
 #if defined(COLT_RV32) || defined(COLT_RV64)
-      0x4000, 0x8000,
-#endif // DEBUG
+    0x0,
+    0x4000,
+    0x8000,
+#else
+    0x0,
+    0x1,
+    0x4,
+    0x8,
+    0x10,
+    0x20,
+    0x40,
+    0x80,
+    0x100,
+    0x200,
+    0x400,
+    0x800,
+    0x1000,
+    0x2000,
+    0x4000,
+    0x8000,
+    0x10000,
+    0x2000,
+#endif // COLT_RV32 || COLT_RV64
   };
   static constexpr std::array FLAG_TO_STR = {
-      "DEFAULT",  "NEON",        "AVX2",
-      "SSE42",    "PCLMULQDQ",   "BMI1",
-      "BMI2",     "ALTIVEC",     "AVX512F",
-      "AVX512DQ", "AVX512IFMA",  "AVX512PF",
-      "AVX512ER", "AVX512CD",    "AVX512BW",
-      "AVX512VL", "AVX512VBMI2", "AVX512VPOPCNTDQ",
-      "RVV",      "ZVBB"};
+#if defined(COLT_RV32) || defined(COLT_RV64)
+    "DEFAULT",
+    "RVV",
+    "ZVBB"
+#else
+    "DEFAULT",
+    "NEON",
+    "AVX2",
+    "SSE42",
+    "PCLMULQDQ",
+    "BMI1",
+    "BMI2",
+    "ALTIVEC",
+    "AVX512F",
+    "AVX512DQ",
+    "AVX512IFMA",
+    "AVX512PF",
+    "AVX512ER",
+    "AVX512CD",
+    "AVX512BW",
+    "AVX512VL",
+    "AVX512VBMI2",
+    "AVX512VPOPCNTDQ",
+    "RVV",
+    "ZVBB"
+#endif // COLT_RV32 || COLT_RV64
+  };
 
   template<typename ParseContext>
   constexpr auto parse(ParseContext& ctx)
