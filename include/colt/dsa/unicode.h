@@ -558,21 +558,6 @@ namespace clt
         return U"";
     }
 
-    /// @brief Converts an C++ character type to the Colt character type
-    /// that encodes it.
-    /// @tparam T The C++ character type
-    template<CppCharType T>
-    using cppchar_to_char_t = decltype([]() {
-      if constexpr (std::same_as<T, char>)
-        return char{};
-      if constexpr (std::same_as<T, char8_t>)
-        return Char8{};
-      if constexpr (std::same_as<T, char16_t>)
-        return Char16{};
-      if constexpr (std::same_as<T, char32_t>)
-        return Char32{};
-      }());
-
     /// @brief Converts an encoding to the char that must represent it
     /// @tparam ENCODING The encoding to convert
     template<StringEncoding ENCODING>
