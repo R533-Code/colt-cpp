@@ -9,6 +9,7 @@
 #define HG_DSA_COMMON
 
 #include <concepts>
+#include <functional>
 #include <type_traits>
 #include <compare>
 
