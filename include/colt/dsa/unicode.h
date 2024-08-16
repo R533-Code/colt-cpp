@@ -558,6 +558,31 @@ namespace clt
         return U"";
     }
 
+    template<CppCharType Ty>
+    struct cppchar_to_char{};
+    template<>
+    struct cppchar_to_char<char>
+    {
+      using type = char;
+    };
+    template<>
+    struct cppchar_to_char<char8_t>
+    {
+      using type = Char8;
+    };
+    template<>
+    struct cppchar_to_char<char16_t>
+    {
+      using type = Char16;
+    };
+    template<>
+    struct cppchar_to_char<char32_t>
+    {
+      using type = Char32;
+    };
+    template<CppCharType Ty>
+    using cppchar_to_char_t = typename cppchar_to_char<Ty>::type;
+
     /// @brief Converts an encoding to the char that must represent it
     /// @tparam ENCODING The encoding to convert
     template<StringEncoding ENCODING>
