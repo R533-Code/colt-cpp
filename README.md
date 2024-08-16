@@ -29,6 +29,7 @@ These include portable bit-fields, endianness utilities, io, argument parsing an
 |Compile-time Map and BiMap|✅| |
 |Compile-time Math Functions|✅| |
 |Overflow checks|⚠️| |
-|Macro FOR_EACH|✅| |
-|Macro assert_true|✅| Works at compile time.|
-|Macro switch_no_default|✅| |
+|Macro `FOR_EACH`|✅| |
+|Macro `assert_true`|✅| Works at compile time.|
+|Macro `switch_no_default`|✅| |
+|OS `DynamicLib`|✅| |
