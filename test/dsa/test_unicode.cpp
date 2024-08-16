@@ -83,6 +83,48 @@ TEST_CASE("Unicode Length", "[strlen]")
 #undef TEST_STRLEN32
 }
 
+TEST_CASE("Unicode Count and Middle", "[count_and_middle]")
+{
+  using namespace clt;
+  using namespace clt::uni;
+
+#define TEST_MIDDLE(str, middle) \
+  REQUIRE(                       \
+      count_and_middle(str, ((sizeof str) / sizeof(str[0]) - 1)).second == middle)
+#define TEST_COUNT(value)                                                    \
+  REQUIRE(                                                                   \
+      count_and_middle(value, ((sizeof value) / sizeof(value[0]) - 1)).first \
+      == simdutf::count_utf8(                                                \
+          (const char*)value, ((sizeof value) / sizeof(value[0]) - 1)));
+
+  SECTION("UTF8")
+  {
+    COLT_FOR_EACH(TEST_COUNT, TEST_STRING8);
+    TEST_MIDDLE(u8"", 0);
+    TEST_MIDDLE(u8"1", 0);
+    TEST_MIDDLE(u8"10", 0);
+    TEST_MIDDLE(u8"100", 1);
+    TEST_MIDDLE(u8"1000", 1);
+    TEST_MIDDLE(u8"10000", 2);
+    TEST_MIDDLE(u8"100000", 2);
+    TEST_MIDDLE(u8"1000000", 3);
+    TEST_MIDDLE(u8"10000000", 3);
+    TEST_MIDDLE(u8"100000000", 4);
+    TEST_MIDDLE(u8"1000000000", 4);
+    TEST_MIDDLE(u8"\u0100ab", 2);
+    TEST_MIDDLE(u8"\u1100ab", 3);
+    TEST_MIDDLE(u8"\u1100\u1100\u1100ab", 6);
+    TEST_MIDDLE(u8"\u1100\u1100\u1100abc", 6);
+    TEST_MIDDLE(u8"ab\u1100\u1100\u1100", 5);
+    TEST_MIDDLE(u8"abc\u1100\u1100\u1100", 2);
+    TEST_MIDDLE(u8"\u1100\u1100\u1100abcd", 9);
+    TEST_MIDDLE(u8"\u1100\u1100\u1100abcdf", 9);
+  }
+
+#undef TEST_MIDDLE
+#undef TEST_COUNT
+}
+
 TEST_CASE("Unicode Size", "[unitlen]")
 {
   using namespace clt;
