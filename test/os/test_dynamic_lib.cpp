@@ -16,6 +16,6 @@ TEST_CASE("DynamicLib", "[dynamic_lib]")
   REQUIRE(invalid.is_none());
   REQUIRE(current.is_value());
   REQUIRE(current->find_symbol("1234567890qwertyuiopasdfghjklzxcvbnm") == nullptr);
-  REQUIRE(current->find_symbol("CLT_test_export") == &CLT_test_export);
+  REQUIRE(current->find_symbol("CLT_test_export") == (void*)&CLT_test_export);
   REQUIRE((*current->find<int (*)(void)>("CLT_test_export"))() == 1029384756);
 }
