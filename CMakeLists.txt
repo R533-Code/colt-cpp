@@ -38,6 +38,8 @@ target_compile_options(
   PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
 )
 
+set_target_properties(colt_helper_test PROPERTIES LINK_FLAGS $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:"-Wl,-export-dynamic">)
+
 target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/include/")
 target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/include")
 
