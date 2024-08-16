@@ -61,8 +61,9 @@ namespace clt::num
   /// always make use of '[+-*/]=' whenever possible.
   class BigInt
   {
-  public:
     mpz_t storage{};
+
+  public:
     /// @brief Constructor, sets the value to 0
     BigInt() noexcept { mpz_init(storage); }
     /// @brief Constructor, sets the value to 'value'
@@ -116,14 +117,14 @@ namespace clt::num
     {
       return *this -= value;
     }
-    
+
     COLT_MAKE_OVERLOAD_OPERATOR_U32_I32_BIGINT(*, mpz_mul);
     template<typename T>
     BigInt& mul(const T& value) noexcept
     {
       return *this *= value;
     }
-    
+
     COLT_MAKE_OVERLOAD_OPERATOR_U32_BIGINT(/, mpz_div);
     template<typename T>
     BigInt& div(const T& value) noexcept
@@ -186,7 +187,7 @@ namespace clt::num
     }
 
     std::strong_ordering operator<=>(const BigInt& b) const noexcept
-    {      
+    {
       auto cmp = mpz_cmp(storage, b.storage);
       if (cmp < 0)
         return std::strong_ordering::less;
