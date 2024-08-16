@@ -71,7 +71,7 @@ namespace clt::os
     Option<Ty> find(ZStringView name)
     {
       auto sym = find_symbol(name.c_str());
-      return sym ? reinterpret_cast<Ty>(sym) : None;
+      return sym ? reinterpret_cast<Ty>(sym) : (Ty)nullptr;
     }
 
     /// @brief Searches for a symbol in the currently loaded library.
@@ -83,8 +83,8 @@ namespace clt::os
       requires std::is_pointer_v<Ty>
     Option<Ty> find(const char* name)
     {
-      auto sym = find_symbol(name.c_str());
-      return sym ? reinterpret_cast<Ty>(sym) : None;
+      auto sym = find_symbol(name);
+      return sym ? reinterpret_cast<Ty>(sym) : (Ty)nullptr;
     }
 
     /// @brief Opens the current process as a dynamic library
