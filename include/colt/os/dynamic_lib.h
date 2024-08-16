@@ -9,6 +9,7 @@
 
 namespace clt::os
 {
+  /// @brief Represents a dynamic library in an platform-agnostic way.
   class DynamicLib
   {
     /// @brief The handle to the library
