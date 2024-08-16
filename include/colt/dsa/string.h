@@ -39,8 +39,7 @@ namespace clt
       constexpr bool has_count() const noexcept
       {
         return is_variadic_encoding(ENCODING)
-          && buffer_bytesize() > sizeof(void*) + sizeof(size_t)
-          && CACHE_COUNT;
+               && buffer_bytesize() > sizeof(void*) + sizeof(size_t) && CACHE_COUNT;
       }
       /// @brief True if the string must cache the offset to the middle code point.
       /// This can never be true if the count is not cached as computing the middle
@@ -52,8 +51,7 @@ namespace clt
       {
         return is_variadic_encoding(ENCODING)
                && buffer_bytesize() > sizeof(void*) + 2 * sizeof(size_t)
-               && CACHE_COUNT
-               && CACHE_MIDDLE;
+               && CACHE_COUNT && CACHE_MIDDLE;
       }
       /// @brief True if the string will not make copy of literal unless a modification occurs.
       /// If the current platform does not support it, then returns false.
@@ -85,7 +83,7 @@ namespace clt
     {
       size_t value{};
     };
-    
+
     struct SSOCount
     {
       size_t value{};
@@ -242,7 +240,7 @@ namespace clt
       ::memcpy(data(), blk.ptr(), _true_size());
       dealloc();
       _ptr_or_buffer.ptr() = ptr_to<char_t*>(blk.ptr());
-      _capacity = new_capacity;
+      _capacity            = new_capacity;
     }
 
     /// @brief Deallocates current allocated memory.
@@ -294,8 +292,7 @@ namespace clt
 
     template<bool IS_ZSTRING>
     BasicString(
-        const ALLOCATOR& ALLOC,
-        BasicStringView<STR_ENCODING, IS_ZSTRING> str,
+        const ALLOCATOR& ALLOC, BasicStringView<STR_ENCODING, IS_ZSTRING> str,
         size_t added_capacity = 0) noexcept
         : ALLOCATOR(ALLOC)
         , _size(str.unit_len())
@@ -309,8 +306,8 @@ namespace clt
       {
         if (_is_long())
         {
-          auto [count, middle] = uni::count_and_middle(cache_data, _size);
-          _ptr_or_buffer.count() = count;
+          auto [count, middle]    = uni::count_and_middle(cache_data, _size);
+          _ptr_or_buffer.count()  = count;
           _ptr_or_buffer.middle() = middle;
         }
       }
@@ -477,15 +474,27 @@ namespace clt
 
     /// @brief Returns a StringView over the characters
     /// @return StringView over all the characters
-    StringView<STR_ENCODING> to_view() const noexcept { return {data(), _size}; }
+    BasicStringView<STR_ENCODING> to_view() const noexcept
+    {
+      return {data(), _size};
+    }
     /// @brief Returns a StringView over the characters
-    operator StringView<STR_ENCODING>() const noexcept { return {data(), _size}; }
+    operator BasicStringView<STR_ENCODING>() const noexcept
+    {
+      return {data(), _size};
+    }
 
     /// @brief Returns a ZStringView over the characters
     /// @return StringView over all the characters
-    ZStringView<STR_ENCODING> to_zview() const noexcept { return {data(), _size}; }
+    BasicZStringView<STR_ENCODING> to_zview() const noexcept
+    {
+      return {data(), _size};
+    }
     /// @brief Returns a ZStringView over the characters
-    operator ZStringView<STR_ENCODING>() const noexcept { return {data(), _size}; }
+    operator BasicZStringView<STR_ENCODING>() const noexcept
+    {
+      return {data(), _size};
+    }
 
     /// @brief Lexicographically compare two views
     /// @param v1 The first view
@@ -508,7 +517,8 @@ namespace clt
   bool maybe_in_const_segment(const void* ptr) noexcept;
 
   template<typename ALLOCATOR, StringEncoding ENCODING = StringEncoding::ASCII>
-  using String = BasicString<meta::StringCustomization{ ENCODING, 24, true, true, true }, ALLOCATOR>;
+  using String = BasicString<
+      meta::StringCustomization{ENCODING, 24, true, true, true}, ALLOCATOR>;
   template<typename ALLOCATOR>
   using u8String = String<ALLOCATOR, StringEncoding::UTF8>;
   template<typename ALLOCATOR>
