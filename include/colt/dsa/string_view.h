@@ -11,7 +11,7 @@ namespace clt
   /// BasicStringView can happen to not lose the NUL-terminator.
   /// @tparam ENCODING The encoding of the characters
   /// @tparam ZSTRING If true, then the view is NUL-terminated
-  template<StringEncoding ENCODING, bool ZSTRING>
+  template<StringEncoding ENCODING, bool ZSTRING = false>
   class BasicStringView
   {
   public:
@@ -313,28 +313,27 @@ namespace clt
     }
   };
 
-  /// @brief Represents a view over contiguous characters
-  /// @tparam ENCODING The encoding of the StringView
-  template<StringEncoding ENCODING = StringEncoding::ASCII>
-  using StringView = BasicStringView<ENCODING, false>;
-
   /// @brief Represents a NUL-terminated StringView
   /// @tparam ENCODING The encoding of the StringView
-  template<StringEncoding ENCODING = StringEncoding::ASCII>
-  using ZStringView = BasicStringView<ENCODING, true>;
+  template<StringEncoding ENCODING>
+  using BasicZStringView = BasicStringView<ENCODING, true>;
 
+  /// @brief ASCII StringView
+  using StringView = BasicStringView<StringEncoding::ASCII>;
   /// @brief UTF8 StringView
-  using u8StringView = StringView<StringEncoding::UTF8>;
+  using u8StringView = BasicStringView<StringEncoding::UTF8>;
   /// @brief UTF16 StringView (in host endianness)
-  using u16StringView = StringView<StringEncoding::UTF16>;
+  using u16StringView = BasicStringView<StringEncoding::UTF16>;
   /// @brief UTF32 StringView (in host endianness)
-  using u32StringView = StringView<StringEncoding::UTF32>;
+  using u32StringView = BasicStringView<StringEncoding::UTF32>;
+  /// @brief ASCII Nul-terminated ZStringView
+  using ZStringView = BasicZStringView<StringEncoding::ASCII>;
   /// @brief UTF8 Nul-terminated StringView
-  using u8ZStringView = ZStringView<StringEncoding::UTF8>;
+  using u8ZStringView = BasicZStringView<StringEncoding::UTF8>;
   /// @brief UTF16 Nul-terminated StringView
-  using u16ZStringView = ZStringView<StringEncoding::UTF16>;
+  using u16ZStringView = BasicZStringView<StringEncoding::UTF16>;
   /// @brief UTF32 Nul-terminated StringView
-  using u32ZStringView = ZStringView<StringEncoding::UTF32>;
+  using u32ZStringView = BasicZStringView<StringEncoding::UTF32>;
 } // namespace clt
 
 template<clt::StringEncoding ENCODING, bool ZSTRING>
