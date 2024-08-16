@@ -54,7 +54,7 @@ namespace clt::os
 
   Option<DynamicLib> DynamicLib::open() noexcept
   {
-    auto ptr = dlopen(nullptr);
+    auto ptr = dlopen(nullptr, RTLD_LAZY);
     if (ptr)
       return DynamicLib((void*)ptr);
     return None;
@@ -63,7 +63,7 @@ namespace clt::os
   Option<DynamicLib> DynamicLib::open(const char* path) noexcept
   {
     assert_true("Path must not be NUL!", path != nullptr);
-    auto ptr = dlopen(path);
+    auto ptr = dlopen(path, RTLD_LAZY);
     if (ptr)
       return DynamicLib((void*)ptr);
     return None;
