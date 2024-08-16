@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.15)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-project(Colt-Cpp VERSION 0.0.3.0 LANGUAGES CXX C)
+project(Colt-Cpp VERSION 0.0.4.0 LANGUAGES CXX C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -38,7 +38,9 @@ target_compile_options(
   PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
 )
 
-set_target_properties(colt_helper_test PROPERTIES LINK_FLAGS $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:"-Wl,-export-dynamic">)
+if (NOT MSVC)
+    set_target_properties(colt_helper_test PROPERTIES LINK_FLAGS "-Wl,-export-dynamic")
+endif()
 
 target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/include/")
 target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/include")
