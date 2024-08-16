@@ -1,4 +1,4 @@
-/*****************************************************************//**
+/*****************************************************************/ /**
  * @file   unicode.h
  * @brief  Contains unicode utilities used throughout the library.
  * 
@@ -528,7 +528,7 @@ namespace clt
     {
       return 1 + (u8)is_lead_surrogate();
     }
-  };  
+  };
 
   namespace meta
   {
@@ -559,7 +559,9 @@ namespace clt
     }
 
     template<CppCharType Ty>
-    struct cppchar_to_char{};
+    struct cppchar_to_char
+    {
+    };
     template<>
     struct cppchar_to_char<char>
     {
@@ -586,7 +588,9 @@ namespace clt
     /// @brief Converts an encoding to the char that must represent it
     /// @tparam ENCODING The encoding to convert
     template<StringEncoding ENCODING>
-    struct encoding_to_char{};
+    struct encoding_to_char
+    {
+    };
     template<>
     struct encoding_to_char<StringEncoding::ASCII>
     {
@@ -724,6 +728,16 @@ namespace clt
     constexpr char32_t index_back(
         const underlying_type* _ptr, size_t _index) noexcept;
 
+    template<typename underlying_type>
+      requires(meta::CharType<underlying_type> || meta::CppCharType<underlying_type>)
+    constexpr const underlying_type* iterator_index_front(
+        const underlying_type* _ptr, size_t _index) noexcept;
+
+    template<typename underlying_type>
+      requires(meta::CharType<underlying_type> || meta::CppCharType<underlying_type>)
+    constexpr const underlying_type* iterator_index_back(
+        const underlying_type* _ptr, size_t _index) noexcept;
+
     /// @brief Returns the size in bytes of a NUL-terminated string
     /// @tparam T The char type
     /// @param start The string whose size in bytes to determine
@@ -734,7 +748,7 @@ namespace clt
 
     /// @brief Count the number of code points of a string of size 'count'.
     /// @tparam T The encoding char type
-    /// @param start The start of the 
+    /// @param start The start of the
     /// @param units The unit count
     /// @return The number of code points
     template<typename T>
@@ -747,7 +761,7 @@ namespace clt
     /// @return The size in code points (not including NUL-terminator)
     template<typename T>
       requires(meta::CppCharType<T> || meta::CharType<T>)
-    constexpr size_t strlen(const T* start) noexcept;    
+    constexpr size_t strlen(const T* start) noexcept;
 
     namespace details
     {
@@ -781,7 +795,7 @@ namespace clt
       /// @param ptr The NUL-terminated string whose unit count to return
       /// @return Return the count of char32_t forming the string
       size_t unitlen32(const char32_t* ptr) noexcept;
-    }    
+    } // namespace details
 
     /// @brief Iterator over Unicode encoded strings
     /// @tparam ENCODING The encoding
@@ -871,7 +885,7 @@ namespace clt
     /************************
     | IMPLEMENTATIONS vvv   |
     ************************/
-    
+
     constexpr char16_t* unsafe_utf32to16(char32_t from, char16_t* result) noexcept
     {
       if (const u32 cp = from; cp < (u32)0x10000)
@@ -1019,40 +1033,103 @@ namespace clt
     constexpr char32_t index_front(
         const underlying_type* _ptr, size_t index) noexcept
     {
-      if constexpr (meta::is_any_of<underlying_type, Char32BE, Char32LE>)
-        return _ptr[index].as_host();
-      if constexpr (meta::is_any_of<underlying_type, char>)
-        return static_cast<char32_t>(_ptr[index]);
-      if constexpr (std::same_as<underlying_type, Char8>)
+      auto ptr = iterator_index_front(_ptr, index);
+      if constexpr (meta::is_any_of<underlying_type, Char32BE, Char32LE, char>)
+        return static_cast<char32_t>(*ptr);
+      if constexpr (meta::is_any_of<underlying_type, Char8>)
       {
-        auto ptr = _ptr;
-        while (index != 0)
-        {
-          auto len = ptr->sequence_length();
-          assert_true("Invalid UTF8!", len.is_value());
-          --index;
-          ptr += *len;
-        }
         char32_t result;
-        auto check = uni::unsafe_utf8to32(ptr, result);
-        assert_true("Invalid UTF8!", check != ptr);
+        auto check = unsafe_utf8to32(ptr, result);
+        assert_true("Invalid UTF8!", ptr != check);
         return result;
       }
       if constexpr (meta::is_any_of<underlying_type, Char16BE, Char16LE>)
       {
+        char32_t result;
+        auto check = unsafe_utf16to32(ptr, result);
+        assert_true("Invalid UTF16!", ptr != check);
+        return result;
+      }
+    }
+
+    template<meta::CharType underlying_type>
+    constexpr char32_t index_back(
+        const underlying_type* _ptr, size_t _index) noexcept
+    {
+      auto ptr = iterator_index_back(_ptr, _index);
+      if constexpr (meta::is_any_of<underlying_type, Char32BE, Char32LE, char>)
+        return static_cast<char32_t>(*ptr);
+      if constexpr (meta::is_any_of<underlying_type, Char8>)
+      {
+        char32_t result;
+        auto check = unsafe_utf8to32(ptr, result);
+        assert_true("Invalid UTF8!", ptr != check);
+        return result;
+      }
+      if constexpr (meta::is_any_of<underlying_type, Char16BE, Char16LE>)
+      {
+        char32_t result;
+        auto check = unsafe_utf16to32(ptr, result);
+        assert_true("Invalid UTF16!", ptr != check);
+        return result;
+      }
+    }
+
+    template<typename underlying_type>
+      requires(meta::CharType<underlying_type> || meta::CppCharType<underlying_type>)
+    constexpr const underlying_type* iterator_index_front(
+        const underlying_type* _ptr, size_t index) noexcept
+    {
+      if constexpr (meta::is_any_of<underlying_type, Char32BE, Char32LE>)
+        return _ptr + index;
+      else if constexpr (meta::is_any_of<underlying_type, char>)
+        return _ptr + index;
+      else
+      {
         auto ptr = _ptr;
         while (index != 0)
         {
-          auto len = ptr->sequence_length();
+          auto len = uni::sequence_length(*ptr);
           --index;
           ptr += len;
         }
-        char32_t result;
-        auto check = uni::unsafe_utf16to32(ptr, result);
-        assert_true("Invalid UTF16!", check != ptr);
-        return result;
+        return ptr;
       }
-    }    
+    }
+
+    template<typename underlying_type>
+      requires(meta::CharType<underlying_type> || meta::CppCharType<underlying_type>)
+    constexpr const underlying_type* iterator_index_back(
+        const underlying_type* _ptr, size_t _index) noexcept
+    {
+      // TODO: handle possible overflow when negating index
+      if constexpr (meta::is_any_of<underlying_type, char, Char32BE, Char32LE>)
+        return _ptr + -static_cast<i64>(_index);
+      if constexpr (meta::is_any_of<underlying_type, Char8, char8_t>)
+      {
+        auto ptr = _ptr;
+        while (_index != 0)
+        {
+          while (uni::is_trail(*ptr))
+            --ptr;
+          --ptr;
+          --_index;
+        }
+        while (uni::is_trail(*ptr))
+          --ptr;
+        return ptr;
+      }
+      if constexpr (meta::is_any_of<underlying_type, Char16BE, Char16LE, char16_t>)
+      {
+        auto ptr = _ptr;
+        while (_index != 0)
+        {
+          ptr -= 1 + uni::is_trail_surrogate(*ptr);
+          --_index;
+        }
+        return ptr;
+      }
+    }
 
     template<typename T>
       requires(meta::CppCharType<T> || meta::CharType<T>)
@@ -1081,10 +1158,12 @@ namespace clt
 
     template<typename T>
       requires(meta::CppCharType<T> || meta::CharType<T>)
-    constexpr std::pair<size_t, size_t> count_and_middle(const T* start, size_t unit_len) noexcept
+    constexpr std::pair<size_t, size_t> count_and_middle(
+        const T* start, size_t unit_len) noexcept
     {
       if constexpr (meta::is_any_of<T, char, char32_t, Char32BE, Char32LE>)
-        return {unit_len, unit_len / 2 };
+        return {unit_len, unit_len / 2};
+
       auto second = start + unit_len / 2;
       // Correct pointer
       if constexpr (meta::is_any_of<T, char8_t, Char8>)
@@ -1097,21 +1176,19 @@ namespace clt
         if (is_trail_surrogate(*second))
           ++second;
       }
-      auto lhs = uni::count(start, second - start);
-      auto rhs = uni::count(second, (start + unit_len) - second);
+      auto lhs                = uni::count(start, second - start);
+      auto rhs                = uni::count(second, (start + unit_len) - second);
       const auto count_result = lhs + rhs;
-      // TODO: correct 'second'
-      if (lhs < rhs)
-      {
-      }
-      else if (rhs < lhs)
-      {
-
-      }
-      // If they are equal then the lucky guess was the middle
+      const auto half_count   = count_result / 2;
+      if (lhs < half_count)
+        second = iterator_index_front(second, half_count - lhs);
+      else if (rhs < half_count)
+        second = iterator_index_back(second, half_count - rhs);
+      if (count_result % 2 == 0 && count_result != 0)
+        second = iterator_index_back(second, 1);
+      
       return {count_result, second - start};
     }
-
 
     template<typename T>
       requires(meta::CppCharType<T> || meta::CharType<T>)
@@ -1142,11 +1219,11 @@ namespace clt
       else if constexpr (std::same_as<T, char16_t>)
         return simdutf::count_utf16(ptr_to<const char16_t*>(start), unit_len);
       else if constexpr (std::same_as<T, char8_t>)
-        return simdutf::count_utf8(start, unit_len);
+        return simdutf::count_utf8(reinterpret_cast<const char*>(start), unit_len);
       else if constexpr (std::same_as<T, Char8>)
         return simdutf::count_utf8(ptr_to<const char*>(start), unit_len);
     }
-    
+
     template<typename T>
       requires(meta::CppCharType<T> || meta::CharType<T>)
     constexpr size_t strlen(const T* start) noexcept
@@ -1197,51 +1274,8 @@ namespace clt
         }
       }
     }
-
-    template<meta::CharType underlying_type>
-    constexpr char32_t index_back(
-        const underlying_type* _ptr, size_t _index) noexcept
-    {
-      // TODO: handle possible overflow when negating index
-      if constexpr (meta::is_any_of<underlying_type, char, Char32BE, Char32LE>)
-        return _ptr[-static_cast<i64>(_index)];
-      if constexpr (meta::is_any_of<underlying_type, Char8>)
-      {
-        auto ptr = _ptr;
-        while (_index != 0)
-        {
-          while (ptr->is_trail())
-            --ptr;
-          --ptr;
-          --_index;
-        }
-        while (ptr->is_trail())
-          --ptr;
-        char32_t result;
-        auto check = uni::unsafe_utf8to32(ptr, result);
-        assert_true("Invalid UTF8!", check != ptr);
-        return result;
-      }
-      if constexpr (meta::is_any_of<underlying_type, Char16BE, Char16LE>)
-      {
-        auto ptr = _ptr;
-        while (_index != 0)
-        {
-          ptr -= 1 + ptr->is_trail_surrogate();
-          --_index;
-        }
-        if (ptr->is_trail_surrogate())
-        {
-          assert_true("Invalid UTF16!", ptr[-1].is_lead_surrogate());
-          return uni::surrogate_to_cp(ptr[-1], ptr[0]);
-        }
-        else
-          return static_cast<char32_t>(ptr[0]);
-      }
-    }
   } // namespace uni
 
-  
   constexpr Char32BE::Char32BE(Char32LE value) noexcept
       : _value((char32_t)bit::byteswap((u32)value.in_endian()))
   {
