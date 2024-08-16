@@ -199,6 +199,7 @@ namespace clt::num
 
     std::strong_ordering operator<=>(const BigRational& b) const noexcept
     {
+      // TODO: make use of mpq_equal for performance
       auto cmp = mpq_cmp(storage, b.storage);
       if (cmp < 0)
         return std::strong_ordering::less;
