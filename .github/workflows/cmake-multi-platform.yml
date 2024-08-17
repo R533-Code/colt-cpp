@@ -87,7 +87,7 @@ jobs:
 
     - name: Test SSE42
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: $SDE_PATH/sde -snb -- colt_test_helper
+      run: ls -R . && echo $SDE_PATH/sde -snb -- colt_test_helper
 
     - name: Test AVX2
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
