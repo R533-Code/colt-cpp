@@ -235,6 +235,11 @@ namespace clt::num
   };
 } // namespace clt::num
 
+#undef COLT_MAKE_OPERATOR
+#undef COLT_MAKE_ASSIGNMENT
+#undef COLT_MAKE_OVERLOAD_OPERATOR_BigRational
+#undef COLT_MAKE_OVERLOAD_ASSIGNMENT
+
 template<>
 /// @brief {fmt} specialization of BigRational
 struct fmt::formatter<clt::num::BigRational>

@@ -255,6 +255,12 @@ namespace clt::num
   };
 } // namespace clt::num
 
+#undef COLT_MAKE_OPERATOR
+#undef COLT_MAKE_ASSIGNMENT
+#undef COLT_MAKE_OVERLOAD_OPERATOR_U32_BIGINT
+#undef COLT_MAKE_OVERLOAD_OPERATOR_U32_I32_BIGINT
+#undef COLT_MAKE_OVERLOAD_ASSIGNMENT
+
 template<>
 /// @brief {fmt} specialization of BigInt
 struct fmt::formatter<clt::num::BigInt>
