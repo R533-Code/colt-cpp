@@ -110,8 +110,14 @@ namespace clt::bit
     const simd_flag ARRAY[]     = {PREFERED...};
     FnPtr ARRAYFN[]             = {first, pack...};
     for (size_t i = 0; i < ARRAY_SIZE - 1; i++)
+    {
       if (support & ARRAY[i])
+      {
+        if constexpr (is_debug_build())
+          fmt::println("Using {} implementation.", ARRAY[i]);
         return ARRAYFN[i];
+      }
+    }
     return ARRAYFN[ARRAY_SIZE - 1];
   }
 } // namespace clt::bit
