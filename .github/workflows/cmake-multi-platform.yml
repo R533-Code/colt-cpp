@@ -54,8 +54,6 @@ jobs:
       with:
         environmentVariableName: SDE_PATH # default value is `SDE_PATH`
         sdeVersion: 9.33.0
-    - name: Test SDE
-      run: $SDE_PATH/sde -help
 
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
@@ -88,14 +86,13 @@ jobs:
       run: ctest --output-on-failure --build-config ${{ matrix.build_type }}
 
     - name: Test SSE42
-      working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: $SDE_PATH/sde -snb -- colt_helper_test
+      run: $SDE_PATH/sde -snb -- '${{ steps.strings.outputs.build-output-dir }}/colt_helper_test'
 
     - name: Test AVX2
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: $SDE_PATH/sde -bdw -- colt_helper_test
+      run: $SDE_PATH/sde -bdw -- '${{ steps.strings.outputs.build-output-dir }}/colt_helper_test'
     
     - name: Test AVX512
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
-      run: $SDE_PATH/sde -skx -- colt_helper_test
+      run: $SDE_PATH/sde -skx -- '${{ steps.strings.outputs.build-output-dir }}/colt_helper_test'
       
