@@ -107,8 +107,8 @@ namespace clt::bit
         "The last item of PREFERED must be DEFAULT.");
     auto support                = detect_supported_architectures();
     constexpr size_t ARRAY_SIZE = sizeof...(PREFERED);
-    const simd_flag ARRAY[]     = {PREFERED...};
-    FnPtr ARRAYFN[]             = {first, pack...};
+    constexpr simd_flag ARRAY[] = {PREFERED...};
+    constexpr FnPtr ARRAYFN[]   = {first, pack...};
     for (size_t i = 0; i < ARRAY_SIZE - 1; i++)
     {
       if (support & ARRAY[i])
