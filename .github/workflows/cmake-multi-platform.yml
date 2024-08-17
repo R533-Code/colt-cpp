@@ -61,6 +61,7 @@ jobs:
       shell: bash
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
+        echo "$SDE_PATH/sde" >> "$SDE_EXE"
 
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
@@ -86,11 +87,11 @@ jobs:
       run: ctest --output-on-failure --build-config ${{ matrix.build_type }}
 
     - name: Test SSE42
-      run: \"$SDE_PATH/sde\" -snb -- '${{ steps.strings.outputs.build-output-dir }}/colt_helper_test'
+      run: $SDE_EXE -snb -- '${{ steps.strings.outputs.build-output-dir }}/colt_helper_test'
 
     - name: Test AVX2
-      run: \"$SDE_PATH/sde\" -bdw -- '${{ steps.strings.outputs.build-output-dir }}/colt_helper_test'
+      run: $SDE_EXE -bdw -- '${{ steps.strings.outputs.build-output-dir }}/colt_helper_test'
     
     - name: Test AVX512
-      run: \"$SDE_PATH/sde\" -skx -- '${{ steps.strings.outputs.build-output-dir }}/colt_helper_test'
+      run: $SDE_EXE -skx -- '${{ steps.strings.outputs.build-output-dir }}/colt_helper_test'
       
