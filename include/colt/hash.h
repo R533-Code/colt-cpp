@@ -154,24 +154,90 @@ namespace clt
             hasher(key, len)
           } -> std::same_as<void>;
         };
+  } // namespace meta
+
+  /// @brief Hash Append function must be overloaded for each hashable type.
+  /// The goal of this function is to expose which data to hash using Algo.
+  /// @tparam Algo The hashing algorithm
+  /// @tparam T The type to hash
+  /// @param algo The hashing algorithm
+  /// @param value The value to hash
+  template<meta::hash_algorithm Algo, typename T>
+  constexpr void hash_append(Algo& algo, const T& value) = delete;
+
+  namespace meta
+  {
+    /// @brief If true, then the type can be hashed by only iterating
+    /// over the contiguous bytes of the object.
+    /// @tparam T The type
+    template<typename T>
+    struct is_contiguously_hashable : public std::false_type
+    {
+    };
+
+    /// @brief All ints are contiguously hashable as C++ mandates two's complement
+    /// signed integers.
+    /// @tparam T The type
+    template<std::integral T>
+    struct is_contiguously_hashable<T> : public std::true_type
+    {
+    };
+
+    /// @brief Shorthand for is_contiguously_hashable<T>::value
+    /// @tparam T The type
+    template<typename T>
+    static constexpr bool is_contiguously_hashable_v =
+        is_contiguously_hashable<T>::value;
+
+    /// @brief Shorthand for is_contiguously_hashable<T>::value
+    template<typename T>
+    concept contiguously_hashable = is_contiguously_hashable_v<T>;
 
     /// @brief Check if a type is can be hashed
     template<typename T>
-    concept hashable = requires(const T& value, fnv1a_h a) {
+    concept hashable = contiguously_hashable<T> ||
+      requires(const T& value, fnv1a_h a)
+    {
       {
-        hash_append(a, value)
+        clt::hash_append(a, value)
       } -> std::same_as<void>;
     };
   } // namespace meta
 
-  /// @brief Universal hasher
-  /// @tparam HashAlgorithm
+  /// @brief Hash Append for types whose hash is computed only by iterating
+  /// over contiguous bytes.
+  /// @tparam T The contiguously_hashable type
+  /// @tparam Algo The hashing algorithm
+  /// @param h The hashing algorithm object
+  /// @param v The value to hash
+  template<meta::hash_algorithm Algo, meta::contiguously_hashable T>
+  constexpr void hash_append(Algo& h, const T& v)
+  {
+    h(std::addressof(v), sizeof(v));
+  }
+
+  /// @brief Hash Append for floating point types.
+  /// This overload is needed as 0.0 and -0.0 must give the same hash.
+  /// @tparam T The floating point type
+  /// @tparam Algo The hashing algorithm
+  /// @param h The hashing algorithm object
+  /// @param v The value to hash
+  template<meta::hash_algorithm Algo, std::floating_point T>
+  constexpr void hash_append(Algo& h, const T& v)
+  {
+    if (v == static_cast<T>(0))
+      v = static_cast<T>(0);
+    h(std::addressof(v), sizeof(v));
+  }
+  
+  /// @brief Universal hasher.
+  /// @tparam HashAlgorithm The hashing algorithm that must be used
   template<meta::hash_algorithm HashAlgorithm>
   struct uhash
   {
     using result_type = typename HashAlgorithm::result_type;
 
-    template<class T>
+    template<meta::hashable T>
     constexpr result_type operator()(const T& t) const noexcept
     {
       HashAlgorithm h;
