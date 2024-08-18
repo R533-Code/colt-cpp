@@ -172,7 +172,7 @@ namespace clt
     using result_type = typename HashAlgorithm::result_type;
 
     template<class T>
-    constexpr result_type operator()(T const& t) const noexcept
+    constexpr result_type operator()(const T& t) const noexcept
     {
       HashAlgorithm h;
       hash_append(h, t);
