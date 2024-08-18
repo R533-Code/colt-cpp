@@ -318,7 +318,7 @@ namespace clt
         }
         else
           return std::memcmp(
-              v1.data(), v2.data(), sizeof(underlying_type) * v1.unit_len());
+              v1.data(), v2.data(), sizeof(underlying_type) * v1.unit_len()) == 0;
       }
       if constexpr (is_variadic_encoding(ENCODING) || is_variadic_encoding(ENCODING2))
       {
