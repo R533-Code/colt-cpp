@@ -59,3 +59,16 @@ TEST_CASE("StringView Indexing", "[StringView operator INDEX]")
     REQUIRE(a[1] == U'\u03BC');
   }
 }
+
+TEST_CASE("StringView serialization", "[serialize]")
+{
+  using namespace clt;
+
+  // Create both a vector of bytes, input and output archives.
+  auto [data, in, out] = zpp::bits::data_in_out();
+  
+  out(StringView{"Hello World!"}).or_throw();
+  StringView value;
+  in(value).or_throw();
+  REQUIRE(value == "Hello World!");
+}
