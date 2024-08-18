@@ -108,6 +108,13 @@ target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/
 ###########################
 
 ###########################
+# Add zpp_bits
+message(STATUS "Adding 'zpp_bits'...")
+target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/zpp_bits")
+target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/zpp_bits")
+###########################
+
+###########################
 # Add uni-algo
 message(STATUS "Adding 'uni-algo'...")
 set(UNI_ALGO_HEADER_ONLY ON CACHE INTERNAL "")
