@@ -2,6 +2,7 @@
 #define HG_DSA_STRING_VIEW
 
 #include "unicode.h"
+#include <zpp_bits.h>
 #include "colt/dsa/iterator.h"
 
 namespace clt
@@ -141,14 +142,11 @@ namespace clt
       else
         return uni::count(_ptr, _size);
     }
-    
+
     /// @brief Returns the unit count over which the view is spanning.
     /// @return The unit count
-    constexpr size_t unit_len() const noexcept
-    {
-      return _size;
-    }
-    
+    constexpr size_t unit_len() const noexcept { return _size; }
+
     /// @brief Check if the size is zero
     /// @return True if size() == 0
     constexpr bool is_empty() const noexcept { return unit_len() == 0; }
@@ -301,8 +299,8 @@ namespace clt
 
     template<StringEncoding ENCODING2, bool ZSTRING2>
     friend constexpr bool operator==(
-      const BasicStringView& v1,
-      const BasicStringView<ENCODING2, ZSTRING2>& v2) noexcept
+        const BasicStringView& v1,
+        const BasicStringView<ENCODING2, ZSTRING2>& v2) noexcept
     {
       if constexpr (ENCODING2 == ENCODING)
       {
@@ -318,14 +316,16 @@ namespace clt
         }
         else
           return std::memcmp(
-              v1.data(), v2.data(), sizeof(underlying_type) * v1.unit_len()) == 0;
+                     v1.data(), v2.data(), sizeof(underlying_type) * v1.unit_len())
+                 == 0;
       }
-      if constexpr (is_variadic_encoding(ENCODING) || is_variadic_encoding(ENCODING2))
+      if constexpr (
+          is_variadic_encoding(ENCODING) || is_variadic_encoding(ENCODING2))
       {
         // If one of the encodings is variadic, then we need to use
         // iterators for performance (rather than calling size)
-        auto v1_iter = v1.begin();
-        auto v2_iter = v2.begin();
+        auto v1_iter      = v1.begin();
+        auto v2_iter      = v2.begin();
         const auto v1_end = v1.end();
         const auto v2_end = v2.end();
 
@@ -361,6 +361,32 @@ namespace clt
     {
       return std::lexicographical_compare_three_way(
           v1.begin(), v1.end(), v2.begin(), v2.end());
+    }
+
+    template<typename Ser>
+    static auto serialize(Ser& archive, BasicStringView& self)
+    {
+      using namespace zpp::bits;
+
+      using _Str  = BasicStringView;
+      using _Char = underlying_type;
+
+      if constexpr (Ser::kind() == kind::out)
+      {
+        std::string_view s = {
+            reinterpret_cast<const char*>(self.data()),
+            self.unit_len() * sizeof(_Char)};
+        return archive(s);
+      }
+      else
+      {
+        std::span<const std::byte> s;
+        auto error = archive(s);
+        self       = _Str{
+            reinterpret_cast<const _Char*>(s.data()),
+            s.size_bytes() / sizeof(_Char)};
+        return error;
+      }
     }
   };
 
@@ -416,7 +442,7 @@ namespace clt
     template<const StringView&... Strs>
     /// @brief Short-hand for join<...>::value
     static constexpr auto join_strv_v = join_strv<Strs...>::value;
-  }
+  } // namespace meta
 } // namespace clt
 
 template<clt::StringEncoding ENCODING, bool ZSTRING>
