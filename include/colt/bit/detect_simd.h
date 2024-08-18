@@ -27,10 +27,10 @@
 #ifndef HG_BIT_DETECT_SIMD
 #define HG_BIT_DETECT_SIMD
 
+#include <fmt/format.h>
 #include "colt/macro/macro.h"
 #include "colt/num/typedefs.h"
 #include "colt/meta/traits.h"
-#include "fmt/base.h"
 
 // We make use of simdutf internal header
 #include <simdutf/internal/isadetection.h>
