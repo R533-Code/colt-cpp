@@ -4,7 +4,7 @@
 struct AB
 {
   int _ab;
-  float _abc;
+  int _abc;
   
   constexpr auto operator<=>(const AB&) const = default;
   
@@ -42,5 +42,9 @@ TEST_CASE("reflect", "[serialize]")
   out(AB{10, 20}).or_throw();
   AB value = {0, 0};
   in(value).or_throw();
+
   REQUIRE(value == AB{10, 20});
+  REQUIRE(clt::meta::hashable<AB> == true);
+  REQUIRE(clt::meta::contiguously_hashable<AB> == true);
+  REQUIRE(clt::uhash<clt::fnv1a_h>{}(value) != 0);
 }
