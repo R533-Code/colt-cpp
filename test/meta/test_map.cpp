@@ -1,4 +1,4 @@
-#include <catch2/catch_all.hpp>
+#include "../includes.h"
 #include <colt/meta/map.h>
 
 TEST_CASE("Map", "[meta_map]")

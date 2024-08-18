@@ -1,4 +1,4 @@
-#include <catch2/catch_all.hpp>
+#include "../includes.h"
 #include <colt/dsa/string_view.h>
 
 TEST_CASE("StringView Indexing", "[StringView operator INDEX]")

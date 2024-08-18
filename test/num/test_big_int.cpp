@@ -1,4 +1,4 @@
-#include <catch2/catch_all.hpp>
+#include "../includes.h"
 #include <colt/num/big_int.h>
 #include <colt/num/big_rational.h>
 

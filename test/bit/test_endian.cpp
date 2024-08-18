@@ -1,4 +1,4 @@
-#include <catch2/catch_all.hpp>
+#include "../includes.h"
 #include <colt/bit/endian.h>
 
 TEST_CASE("Endianness Conversions", "[convert_endian]")

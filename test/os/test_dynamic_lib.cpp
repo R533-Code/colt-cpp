@@ -1,4 +1,4 @@
-#include <catch2/catch_all.hpp>
+#include "../includes.h"
 #include <colt/os/dynamic_lib.h>
 
 extern "C" CLT_EXPORT int CLT_test_export()

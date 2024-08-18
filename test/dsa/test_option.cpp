@@ -1,4 +1,4 @@
-#include <catch2/catch_all.hpp>
+#include "../includes.h"
 #include <colt/dsa/option.h>
 
 TEST_CASE("Option", "[option]")

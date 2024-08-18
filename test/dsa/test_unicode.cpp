@@ -1,4 +1,4 @@
-#include <catch2/catch_all.hpp>
+#include "../includes.h"
 #include <colt/dsa/unicode.h>
 
 // Using COLT_FOR_EACH, we can generate a test for each of the strings below.

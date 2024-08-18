@@ -1,4 +1,4 @@
-#include <catch2/catch_all.hpp>
+#include "../includes.h"
 #include <colt/dsa/string.h>
 
 TEST_CASE("String Indexing", "[String operator INDEX]")

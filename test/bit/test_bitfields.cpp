@@ -1,4 +1,4 @@
-#include <catch2/catch_all.hpp>
+#include "../includes.h"
 #include <colt/bit/bitfields.h>
 
 TEST_CASE("Bitfields", "[bitfields]")
