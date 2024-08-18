@@ -42,7 +42,7 @@
 #include <utility>
 #include <ranges>
 
-#include "colt/num/typedefs.h"
+#include "colt/typedefs.h"
 #include "colt/meta/traits.h"
 #include "colt/macro/assert.h"
 #include "colt/macro/on_scope_exit.h"

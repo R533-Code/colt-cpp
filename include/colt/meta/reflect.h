@@ -4,7 +4,8 @@
 #include <zpp_bits.h>
 #include <fmt/format.h>
 #include <colt/macro/assert.h>
-#include <colt/num/typedefs.h>
+#include <colt/typedefs.h>
+#include <colt/hash.h>
 #include <colt/dsa/option.h>
 #include <colt/dsa/string_view.h>
 
@@ -50,6 +51,9 @@ namespace clt::meta
   /// @brief Short-hand for 'is_reflectable<T>::value'
   template<typename T>
   inline constexpr bool is_reflectable_v = is_reflectable<T>::value;
+
+  template<typename T>
+  concept reflectable = is_reflectable_v<T>;
 
   /// @brief The entity kind on which reflection is applied
   enum class EntityKind : u8
@@ -462,6 +466,18 @@ namespace clt::meta
   }
 } // namespace clt::meta
 
+namespace clt
+{
+  template<meta::hash_algorithm Algo, meta::reflectable T>
+    requires(!meta::hashable<T> && !meta::is_contiguously_hashable_v<T>)
+  static constexpr void hash_append(Algo& algo, const T& self)
+  {
+    using namespace clt::meta;
+    for_each(
+        Members, self, [&]<typename Ty>(Ty& value) { hash_append(algo, value); });
+  }
+} // namespace clt
+
 template<typename T>
   requires(
       !zpp::bits::access::has_serialize<T, void>() && clt::meta::is_reflectable_v<T>)
@@ -529,7 +545,7 @@ DECLARE_BUILTIN_TYPE(double);
 //We no longer need this macro
 #undef DECLARE_BUILTIN_TYPE
 
-#define COLT_DETAILS_MEMBER_TO_MEMBER_PTR(type, name) , decltype(&type::name)
+#define COLT_DETAILS_MEMBER_TO_MEMBER_PTR(type, name) , decltype(type::name)
 #define COLT_DETAILS_IF_CONSTEXPR_IS_MEMBER_CALL_LAMBDA(TYPE, member)     \
   if constexpr (std::is_member_object_pointer_v<decltype(&TYPE::member)>) \
     fn(obj.member);
@@ -577,7 +593,7 @@ DECLARE_BUILTIN_TYPE(double);
       return #TYPE;                                                                 \
     }                                                                               \
     using members_type =                                                            \
-        typename clt::meta::type_list<decltype(&TYPE::member) COLT_FOR_EACH_1ARG(   \
+        typename clt::meta::type_list<decltype(TYPE::member) COLT_FOR_EACH_1ARG(    \
             COLT_DETAILS_MEMBER_TO_MEMBER_PTR, TYPE,                                \
             __VA_ARGS__)>::template remove_if<std::is_member_function_pointer>;     \
     using methods_type =                                                            \
@@ -610,6 +626,13 @@ DECLARE_BUILTIN_TYPE(double);
       COLT_FOR_EACH_1ARG(                                                           \
           COLT_DETAILS_IF_CONSTEXPR_IS_METHOD_CALL_LAMBDA, TYPE, __VA_ARGS__)       \
     }                                                                               \
+  };                                                                                \
+  template<>                                                                        \
+  struct clt::meta::is_contiguously_hashable<TYPE>                                  \
+  {                                                                                 \
+    static constexpr bool value = reflect<TYPE>::members_type::template remove_if<     \
+                                      is_contiguously_hashable>::size               \
+                                  == 0;                                             \
   }
 
 template<typename T>

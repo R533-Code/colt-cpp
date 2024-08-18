@@ -13,7 +13,7 @@
 #include <type_traits>
 #include <compare>
 
-#include "colt/num/typedefs.h"
+#include "colt/typedefs.h"
 #include "colt/meta/traits.h"
 #include "colt/macro/assert.h"
 

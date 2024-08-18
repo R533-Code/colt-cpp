@@ -29,7 +29,7 @@
 
 #include <fmt/format.h>
 #include "colt/macro/macro.h"
-#include "colt/num/typedefs.h"
+#include "colt/typedefs.h"
 #include "colt/meta/traits.h"
 
 // We make use of simdutf internal header

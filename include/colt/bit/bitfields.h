@@ -13,7 +13,7 @@
 #include "colt/bit/operations.h"
 #include "colt/dsa/common.h"
 #include "colt/meta/traits.h"
-#include "colt/num/typedefs.h"
+#include "colt/typedefs.h"
 #include "colt/macro/assert.h"
 
 namespace clt::bit

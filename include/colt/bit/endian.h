@@ -13,7 +13,7 @@
 
 // defines COLT_LITTLE_ENDIAN or COLT_BIG_ENDIAN
 #include "colt/macro/config.h"
-#include "colt/num/typedefs.h"
+#include "colt/typedefs.h"
 #include "colt/macro/assert.h"
 
 namespace clt::bit

@@ -11,7 +11,7 @@
 #include <concepts>
 #include <bit>
 
-#include "colt/num/typedefs.h"
+#include "colt/typedefs.h"
 #include "colt/macro/assert.h"
 
 namespace clt::bit

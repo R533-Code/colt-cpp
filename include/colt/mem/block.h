@@ -10,7 +10,7 @@
 
 #include "fmt/format.h"
 #include "colt/macro/assert.h"
-#include "colt/num/typedefs.h"
+#include "colt/typedefs.h"
 
 namespace clt::mem
 {

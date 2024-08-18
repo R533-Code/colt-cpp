@@ -14,7 +14,7 @@
 
 #include "fmt/format.h"
 #include "colt/dsa/option.h"
-#include "colt/num/typedefs.h"
+#include "colt/typedefs.h"
 #include "colt/macro/assert.h"
 #include "colt/macro/on_scope_exit.h"
 #include "colt/mem/composable_alloc.h"
