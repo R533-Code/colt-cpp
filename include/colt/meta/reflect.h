@@ -2,6 +2,7 @@
 #define HG_META_REFLECT
 
 #include <zpp_bits.h>
+#include <fmt/format.h>
 #include <colt/macro/assert.h>
 #include <colt/num/typedefs.h>
 #include <colt/dsa/option.h>
@@ -157,14 +158,14 @@ namespace clt::meta
     using members_type = members_type_t<T>;
 
     template<typename On, typename F>
-      requires std::same_as<On, std::decay_t<T>>
+      requires std::same_as<On, std::remove_cvref_t<T>>
     static constexpr void apply_on_members(On&& obj, F&& fn)
     {
       meta::apply_on_members<T>{}(std::forward<On>(obj), std::forward<F>(fn));
     }
 
     template<typename On, typename F>
-      requires std::same_as<On, std::decay_t<T>>
+      requires std::same_as<On, std::remove_cvref_t<T>>
     static constexpr void apply_on_methods(On&& obj, F&& fn)
     {
       meta::apply_on_methods<T>{}(std::forward<On>(obj), std::forward<F>(fn));
@@ -193,14 +194,14 @@ namespace clt::meta
         std::remove_pointer_t<T>>::template apply<std::add_pointer>;
 
     template<typename On, typename F>
-      requires std::same_as<On, std::decay_t<T>>
+      requires std::same_as<On, std::remove_cvref_t<T>>
     static constexpr void apply_on_members(On&&, F&&) noexcept
     {
       //Pointers do not have members... Do nothing.
     }
 
     template<typename On, typename F>
-      requires std::same_as<On, std::decay_t<T>>
+      requires std::same_as<On, std::remove_cvref_t<T>>
     static constexpr void apply_on_methods(On&&, F&&) noexcept
     {
       //Pointers do not have methods... Do nothing.
@@ -230,14 +231,14 @@ namespace clt::meta
         std::remove_reference_t<T>>::template apply<std::add_lvalue_reference>;
 
     template<typename On, typename F>
-      requires std::same_as<On, std::decay_t<T>>
+      requires std::same_as<On, std::remove_cvref_t<T>>
     static constexpr void apply_on_members(On&&, F&&) noexcept
     {
       //References do not have members... Do nothing.
     }
 
     template<typename On, typename F>
-      requires std::same_as<On, std::decay_t<T>>
+      requires std::same_as<On, std::remove_cvref_t<T>>
     static constexpr void apply_on_methods(On&&, F&&) noexcept
     {
       //References do not have members... Do nothing.
@@ -267,14 +268,14 @@ namespace clt::meta
         std::remove_reference_t<T>>::template apply<std::add_rvalue_reference>;
 
     template<typename On, typename F>
-      requires std::same_as<On, std::decay_t<T>>
+      requires std::same_as<On, std::remove_cvref_t<T>>
     static constexpr void apply_on_members(On&&, F&&) noexcept
     {
       //References do not have members... Do nothing.
     }
 
     template<typename On, typename F>
-      requires std::same_as<On, std::decay_t<T>>
+      requires std::same_as<On, std::remove_cvref_t<T>>
     static constexpr void apply_on_methods(On&&, F&&) noexcept
     {
       //References do not have members... Do nothing.
@@ -306,7 +307,7 @@ namespace clt::meta
         std::remove_cv_t<T>>::template apply<std::add_const>;
 
     template<typename On, typename F>
-      requires std::same_as<On, std::decay_t<T>>
+      requires std::same_as<On, std::remove_cvref_t<T>>
     static constexpr void apply_on_members(On&& obj, F&& fn)
     {
       reflect<std::remove_reference_t<T>>::apply_on_members(
@@ -314,7 +315,7 @@ namespace clt::meta
     }
 
     template<typename On, typename F>
-      requires std::same_as<On, std::decay_t<T>>
+      requires std::same_as<On, std::remove_cvref_t<T>>
     static constexpr void apply_on_methods(On&& obj, F&& fn)
     {
       reflect<std::remove_reference_t<T>>::apply_on_methods(
@@ -347,7 +348,7 @@ namespace clt::meta
         std::remove_cv_t<T>>::template apply<std::add_volatile>;
 
     template<typename On, typename F>
-      requires std::same_as<On, std::decay_t<T>>
+      requires std::same_as<On, std::remove_cvref_t<T>>
     static constexpr void apply_on_members(On&& obj, F&& fn)
     {
       reflect<std::remove_reference_t<T>>::apply_on_members(
@@ -355,7 +356,7 @@ namespace clt::meta
     }
 
     template<typename On, typename F>
-      requires std::same_as<On, std::decay_t<T>>
+      requires std::same_as<On, std::remove_cvref_t<T>>
     static constexpr void apply_on_methods(On&& obj, F&& fn)
     {
       reflect<std::remove_reference_t<T>>::apply_on_methods(
@@ -388,7 +389,7 @@ namespace clt::meta
         std::remove_cv_t<T>>::template apply<std::add_cv>;
 
     template<typename On, typename F>
-      requires std::same_as<On, std::decay_t<T>>
+      requires std::same_as<On, std::remove_cvref_t<T>>
     static constexpr void apply_on_members(On&& obj, F&& fn)
     {
       reflect<std::remove_reference_t<T>>::apply_on_members(
@@ -396,7 +397,7 @@ namespace clt::meta
     }
 
     template<typename On, typename F>
-      requires std::same_as<On, std::decay_t<T>>
+      requires std::same_as<On, std::remove_cvref_t<T>>
     static constexpr void apply_on_methods(On&& obj, F&& fn)
     {
       reflect<std::remove_reference_t<T>>::apply_on_methods(
@@ -442,7 +443,7 @@ namespace clt::meta
   /// @param f The lambda function
   constexpr void for_each(members_t, T&& of, F&& f) noexcept
   {
-    reflect<std::decay_t<T>>::apply_on_members(
+    reflect<std::remove_cvref_t<T>>::apply_on_members(
         std::forward<T>(of), std::forward<F>(f));
   }
 
@@ -456,10 +457,29 @@ namespace clt::meta
   /// @param f The lambda function
   constexpr void for_each(methods_t, T&& of, F&& f) noexcept
   {
-    reflect<std::decay_t<T>>::apply_on_methods(
+    reflect<std::remove_cvref_t<T>>::apply_on_methods(
         std::forward<T>(of), std::forward<F>(f));
   }
 } // namespace clt::meta
+
+template<typename T>
+  requires(
+      !zpp::bits::access::has_serialize<T, void>() && clt::meta::is_reflectable_v<T>)
+constexpr static auto serialize(auto& archive, T& self)
+{
+  using namespace clt::meta;
+
+  decltype(archive(10)) error;
+  for_each(
+      Members, self,
+      [&]<typename Ty>(Ty& value)
+      {
+        if (zpp::bits::failure(static_cast<std::errc>(error)))
+          return;
+        error = archive(value);
+      });
+  return error;
+}
 
 /// @brief Declares reflection informations for built-in 'TYPE'
 #define DECLARE_BUILTIN_TYPE(TYPE)                 \
@@ -520,7 +540,7 @@ DECLARE_BUILTIN_TYPE(double);
 /// @brief Adds the necessary friends declarations for reflection
 #define COLT_ENABLE_REFLECTION() \
   template<typename T>           \
-  friend struct clt::reflect
+  friend struct clt::meta::reflect
 
 /// @brief Enables reflection on a type.
 /// ~~~~~~~~~~~~~~{.cpp}
@@ -534,62 +554,92 @@ DECLARE_BUILTIN_TYPE(double);
 /// };
 /// COLT_DECLARE_TYPE(Test, a, b);
 /// ~~~~~~~~~~~~~~
-#define COLT_DECLARE_TYPE(TYPE, member, ...)                                      \
-  template<>                                                                      \
-  struct clt::meta::entity_kind<TYPE>                                             \
-  {                                                                               \
-    static constexpr clt::meta::EntityKind value = clt::meta::IS_CLASS;           \
-  };                                                                              \
-  template<>                                                                      \
-  struct clt::meta::is_reflectable<TYPE>                                          \
-  {                                                                               \
-    static constexpr bool value = true;                                           \
-  };                                                                              \
-  template<>                                                                      \
-  struct clt::reflect<TYPE>                                                       \
-  {                                                                               \
-    static constexpr clt::meta::EntityKind kind() noexcept                        \
-    {                                                                             \
-      return clt::meta::IS_CLASS;                                                 \
-    }                                                                             \
-    static constexpr clt::StringView str() noexcept                               \
-    {                                                                             \
-      return #TYPE;                                                               \
-    }                                                                             \
-    using members_type =                                                          \
-        typename clt::meta::type_list<decltype(&TYPE::member) COLT_FOR_EACH_1ARG( \
-            COLT_DETAILS_MEMBER_TO_MEMBER_PTR, TYPE,                              \
-            __VA_ARGS__)>::template remove_if<std::is_member_function_pointer>;   \
-    using methods_type =                                                          \
-        typename clt::meta::type_list<decltype(&TYPE::member) COLT_FOR_EACH_1ARG( \
-            COLT_DETAILS_MEMBER_TO_MEMBER_PTR, TYPE,                              \
-            __VA_ARGS__)>::template remove_if<std::is_member_object_pointer>;     \
-    static constexpr size_t members_count() noexcept                              \
-    {                                                                             \
-      return members_type::size;                                                  \
-    }                                                                             \
-    static constexpr size_t methods_count() noexcept                              \
-    {                                                                             \
-      return members_type::size;                                                  \
-    }                                                                             \
-    template<typename On, typename F>                                             \
-      requires std::same_as<std::decay_t<On>, std::decay_t<TYPE>>                 \
-    static constexpr void apply_on_members(On&& obj, F&& fn)                      \
-    {                                                                             \
-      if constexpr (std::is_member_object_pointer_v<decltype(&TYPE::member)>)     \
-        fn(obj.member);                                                           \
-      COLT_FOR_EACH_1ARG(                                                         \
-          COLT_DETAILS_IF_CONSTEXPR_IS_MEMBER_CALL_LAMBDA, TYPE, __VA_ARGS__)     \
-    }                                                                             \
-    template<typename On, typename F>                                             \
-      requires std::same_as<std::decay_t<On>, std::decay_t<TYPE>>                 \
-    static constexpr void apply_on_methods(On&& obj, F&& fn)                      \
-    {                                                                             \
-      if constexpr (std::is_member_function_pointer_v<decltype(&TYPE::member)>)   \
-        fn(&obj.member);                                                          \
-      COLT_FOR_EACH_1ARG(                                                         \
-          COLT_DETAILS_IF_CONSTEXPR_IS_METHOD_CALL_LAMBDA, TYPE, __VA_ARGS__)     \
-    }                                                                             \
+#define COLT_DECLARE_TYPE(TYPE, member, ...)                                        \
+  template<>                                                                        \
+  struct clt::meta::entity_kind<TYPE>                                               \
+  {                                                                                 \
+    static constexpr clt::meta::EntityKind value = clt::meta::EntityKind::IS_CLASS; \
+  };                                                                                \
+  template<>                                                                        \
+  struct clt::meta::is_reflectable<TYPE>                                            \
+  {                                                                                 \
+    static constexpr bool value = true;                                             \
+  };                                                                                \
+  template<>                                                                        \
+  struct clt::meta::reflect<TYPE>                                                   \
+  {                                                                                 \
+    static constexpr clt::meta::EntityKind kind() noexcept                          \
+    {                                                                               \
+      return clt::meta::EntityKind::IS_CLASS;                                       \
+    }                                                                               \
+    static constexpr clt::StringView str() noexcept                                 \
+    {                                                                               \
+      return #TYPE;                                                                 \
+    }                                                                               \
+    using members_type =                                                            \
+        typename clt::meta::type_list<decltype(&TYPE::member) COLT_FOR_EACH_1ARG(   \
+            COLT_DETAILS_MEMBER_TO_MEMBER_PTR, TYPE,                                \
+            __VA_ARGS__)>::template remove_if<std::is_member_function_pointer>;     \
+    using methods_type =                                                            \
+        typename clt::meta::type_list<decltype(&TYPE::member) COLT_FOR_EACH_1ARG(   \
+            COLT_DETAILS_MEMBER_TO_MEMBER_PTR, TYPE,                                \
+            __VA_ARGS__)>::template remove_if<std::is_member_object_pointer>;       \
+    static constexpr size_t members_count() noexcept                                \
+    {                                                                               \
+      return members_type::size;                                                    \
+    }                                                                               \
+    static constexpr size_t methods_count() noexcept                                \
+    {                                                                               \
+      return members_type::size;                                                    \
+    }                                                                               \
+    template<typename On, typename F>                                               \
+      requires std::same_as<std::remove_cvref_t<On>, std::remove_cvref_t<TYPE>>     \
+    static constexpr void apply_on_members(On&& obj, F&& fn)                        \
+    {                                                                               \
+      if constexpr (std::is_member_object_pointer_v<decltype(&TYPE::member)>)       \
+        fn(obj.member);                                                             \
+      COLT_FOR_EACH_1ARG(                                                           \
+          COLT_DETAILS_IF_CONSTEXPR_IS_MEMBER_CALL_LAMBDA, TYPE, __VA_ARGS__)       \
+    }                                                                               \
+    template<typename On, typename F>                                               \
+      requires std::same_as<std::remove_cvref_t<On>, std::remove_cvref_t<TYPE>>     \
+    static constexpr void apply_on_methods(On&& obj, F&& fn)                        \
+    {                                                                               \
+      if constexpr (std::is_member_function_pointer_v<decltype(&TYPE::member)>)     \
+        fn(&obj.member);                                                            \
+      COLT_FOR_EACH_1ARG(                                                           \
+          COLT_DETAILS_IF_CONSTEXPR_IS_METHOD_CALL_LAMBDA, TYPE, __VA_ARGS__)       \
+    }                                                                               \
   }
+
+template<typename T>
+  requires clt::meta::is_reflectable_v<T>
+           && (clt::meta::reflect<T>::kind() == clt::meta::EntityKind::IS_CLASS)
+struct fmt::formatter<T>
+{
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template<typename FormatContext>
+  auto format(const T& obj, FormatContext& ctx) const
+  {
+    using namespace clt;
+    using namespace clt::meta;
+    auto it = fmt::format_to(ctx.out(), "{}: {{ ", reflect<T>::str());
+
+    u64 i = 0;
+    for_each(
+        Members, obj,
+        [&]<typename Ti>(const Ti& o)
+        {
+          it = fmt::format_to(
+              it, "{}{}", o, ++i == reflect<T>::members_count() ? " }" : ", ");
+        });
+    return it;
+  }
+};
 
 #endif // !HG_META_REFLECT
