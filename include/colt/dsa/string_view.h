@@ -299,6 +299,57 @@ namespace clt
       return *this;
     }
 
+    template<StringEncoding ENCODING2, bool ZSTRING2>
+    friend constexpr bool operator==(
+      const BasicStringView& v1,
+      const BasicStringView<ENCODING2, ZSTRING2>& v2) noexcept
+    {
+      if constexpr (ENCODING2 == ENCODING)
+      {
+        // For the same encodings, we can just memcmp
+        if (v1.unit_len() != v2.unit_len())
+          return false;
+        if (std::is_constant_evaluated())
+        {
+          for (size_t i = 0; i < v1.size(); i++)
+            if (v1[i] != v2[i])
+              return false;
+          return true;
+        }
+        else
+          return std::memcmp(
+              v1.data(), v2.data(), sizeof(underlying_type) * v1.unit_len());
+      }
+      if constexpr (is_variadic_encoding(ENCODING) || is_variadic_encoding(ENCODING2))
+      {
+        // If one of the encodings is variadic, then we need to use
+        // iterators for performance (rather than calling size)
+        auto v1_iter = v1.begin();
+        auto v2_iter = v2.begin();
+        const auto v1_end = v1.end();
+        const auto v2_end = v2.end();
+
+        while (v1_iter != v1_end && v2_iter != v2_end)
+        {
+          if (*v1_iter != *v2_iter)
+            return false;
+          ++v1_iter;
+          ++v2_iter;
+        }
+        return (v1_iter != v1_end) == (v2_iter != v2_end);
+      }
+      else
+      {
+        // ASCII and UTF32
+        if (v1.size() != v2.size())
+          return false;
+        for (size_t i = 0; i < v1.size(); i++)
+          if (v1[i] != v2[i])
+            return false;
+        return true;
+      }
+    }
+
     /// @brief Lexicographically compare two views
     /// @param v1 The first view
     /// @param v2 The second view
@@ -334,6 +385,38 @@ namespace clt
   using u16ZStringView = BasicZStringView<StringEncoding::UTF16>;
   /// @brief UTF32 Nul-terminated StringView
   using u32ZStringView = BasicZStringView<StringEncoding::UTF32>;
+
+  namespace meta
+  {
+    template<const StringView&... Strs>
+    /// @brief Concatenates StringView at compile time
+    struct join_strv
+    {
+      /// @brief Concatenate all the StringView and returns an array storing the result
+      static constexpr auto impl() noexcept
+      {
+        constexpr std::size_t len = (Strs.size() + ... + 0);
+        std::array<char, len + 1> arr{};
+        auto append = [i = 0, &arr](const auto& s) mutable
+        {
+          for (size_t j = 0; j < s.size(); j++)
+            arr[i++] = s.data()[j];
+        };
+        (append(Strs), ...);
+        arr[len] = '\0';
+        return arr;
+      }
+
+      /// @brief Array of characters representing concatenated string
+      static constexpr auto arr = impl();
+      /// @brief Concatenation result
+      static constexpr const char* value{arr.data()};
+    };
+
+    template<const StringView&... Strs>
+    /// @brief Short-hand for join<...>::value
+    static constexpr auto join_strv_v = join_strv<Strs...>::value;
+  }
 } // namespace clt
 
 template<clt::StringEncoding ENCODING, bool ZSTRING>
