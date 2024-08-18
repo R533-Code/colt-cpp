@@ -126,6 +126,9 @@ target_link_libraries(colt_helper_test PRIVATE uni-algo::uni-algo)
 ###########################
 # Add simdutf
 message(STATUS "Adding 'simdutf'...")
+set(SIMDUTF_ICONV OFF CACHE BOOL "simdutf use iconv." FORCE)
+set(SIMDUTF_TESTS OFF CACHE BOOL "simdutf generate tests." FORCE)
+set(SIMDUTF_TOOLS OFF CACHE BOOL "simdutf generate tool." FORCE)
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/simdutf")
 target_link_libraries(colt_helper PRIVATE simdutf)
 target_link_libraries(colt_helper_test PRIVATE simdutf)
