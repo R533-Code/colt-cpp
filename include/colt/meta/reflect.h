@@ -479,7 +479,6 @@ namespace clt
 } // namespace clt
 
 template<clt::meta::reflectable T>
-  requires(!clt::meta::serializable<T>)
 constexpr static auto serialize(auto& archive, T& self)
 {
   using namespace clt::meta;
