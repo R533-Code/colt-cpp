@@ -454,7 +454,48 @@ namespace clt
         return true;
       return *lhs == *rhs;
     }
+
+    template<typename Ser> requires meta::serializable<T>
+    static constexpr auto serialize(Ser& archive, Option& self) noexcept
+    {
+      using namespace zpp::bits;
+      if constexpr (Ser::kind() == kind::out)
+      {
+        u8 value = self.is_value();
+        if (value)
+        {
+          auto error = archive(value);
+          if (!failure(static_cast<std::errc>(error)))
+            error = archive(*self);
+          return error;
+        }
+        return archive(value);
+      }
+      else
+      {
+        u8 value   = false;
+        auto error = archive(value);
+        if (failure(static_cast<std::errc>(error)))
+          return error;
+        if (value)
+        {
+          T to_move;
+          error = archive(to_move);
+          if (failure(static_cast<std::errc>(error)))
+            return error;
+          self = std::move(to_move);
+          return error;
+        }
+        else
+        {
+          self = clt::None;
+          return error;
+        }
+      }
+    }
   };
+
+
 } // namespace clt
 
 template<typename T>
