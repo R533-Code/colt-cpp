@@ -1,7 +1,7 @@
 #include "../includes.h"
 #include <colt/dsa/option.h>
 
-TEST_CASE("Option", "[option]")
+TEST_CASE("Option")
 {
   using namespace clt;
 

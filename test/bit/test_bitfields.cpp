@@ -1,7 +1,7 @@
 #include "../includes.h"
 #include <colt/bit/bitfields.h>
 
-TEST_CASE("Bitfields", "[bitfields]")
+TEST_CASE("Bitfields")
 {
   using namespace clt::bit;
   using namespace clt;

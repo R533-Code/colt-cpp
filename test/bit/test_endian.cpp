@@ -1,7 +1,7 @@
 #include "../includes.h"
 #include <colt/bit/endian.h>
 
-TEST_CASE("Endianness Conversions", "[convert_endian]")
+TEST_CASE("Endianness Conversions")
 {
   using namespace clt::bit;
   if constexpr (TargetEndian::native == TargetEndian::little)

@@ -6,7 +6,7 @@ extern "C" CLT_EXPORT int CLT_test_export()
   return 1029384756;
 }
 
-TEST_CASE("DynamicLib", "[dynamic_lib]")
+TEST_CASE("DynamicLib")
 {
   using namespace clt;
   using namespace clt::os;

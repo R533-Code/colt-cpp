@@ -2,7 +2,7 @@
 #include <colt/num/big_int.h>
 #include <colt/num/big_rational.h>
 
-TEST_CASE("BigInt", "[big_int]")
+TEST_CASE("BigInt")
 {
   using namespace clt;
   using namespace clt::num;
@@ -10,7 +10,7 @@ TEST_CASE("BigInt", "[big_int]")
   auto a = BigInt{1000000};
 }
 
-TEST_CASE("BigRational", "[big_rational]")
+TEST_CASE("BigRational")
 {
   using namespace clt;
   using namespace clt::num;

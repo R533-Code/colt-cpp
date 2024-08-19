@@ -45,7 +45,7 @@
 #define TEST_STRING16 TEST_STRING(u)
 #define TEST_STRING32 TEST_STRING(U)
 
-TEST_CASE("Unicode Length", "[strlen]")
+TEST_CASE("Unicode Length")
 {
   using namespace clt;
   using namespace clt::uni;
@@ -83,7 +83,7 @@ TEST_CASE("Unicode Length", "[strlen]")
 #undef TEST_STRLEN32
 }
 
-TEST_CASE("Unicode Count and Middle", "[count_and_middle]")
+TEST_CASE("Unicode Count and Middle")
 {
   using namespace clt;
   using namespace clt::uni;
@@ -125,7 +125,7 @@ TEST_CASE("Unicode Count and Middle", "[count_and_middle]")
 #undef TEST_COUNT
 }
 
-TEST_CASE("Unicode Size", "[unitlen]")
+TEST_CASE("Unicode Size")
 {
   using namespace clt;
   using namespace clt::uni;
@@ -149,7 +149,7 @@ TEST_CASE("Unicode Size", "[unitlen]")
 #undef TEST_UNITLEN
 }
 
-TEST_CASE("Unicode SIMD unitlen", "[unitlen16,unitlen32]")
+TEST_CASE("Unicode SIMD unitlen")
 {
   using namespace clt;
   using namespace clt::uni;
@@ -171,7 +171,7 @@ TEST_CASE("Unicode SIMD unitlen", "[unitlen16,unitlen32]")
 #undef TEST_UNITLEN32
 }
 
-TEST_CASE("Unicode SIMD strlen8", "[strlen8]")
+TEST_CASE("Unicode SIMD strlen")
 {
   using namespace clt;
   using namespace clt::uni;
@@ -199,7 +199,7 @@ TEST_CASE("Unicode SIMD strlen8", "[strlen8]")
 #undef TEST_STRLEN16
 }
 
-TEST_CASE("Unicode UTF32 to UTF8", "[utf32_to_utf8]")
+TEST_CASE("Unicode UTF32 to UTF8")
 {
   using namespace clt;
   using namespace clt::uni;
@@ -270,7 +270,7 @@ TEST_CASE("Unicode UTF32 to UTF8", "[utf32_to_utf8]")
   }
 }
 
-TEST_CASE("Unicode Indexing", "[index_back index_front]")
+TEST_CASE("Unicode Indexing")
 {
   using namespace clt;
   using namespace clt::uni;

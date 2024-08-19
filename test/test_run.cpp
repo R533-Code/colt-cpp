@@ -1,8 +1,19 @@
+/*****************************************************************//**
+ * @file   test_run.cpp
+ * @brief  Contains the `main` function responsible for running Catch2.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #include <catch2/catch_session.hpp>
 #include <colt/macro/config.h>
 #include <colt/bit/detect_simd.h>
 #include <colt/io/print.h>
 
+/// @brief Catch2 starting point
+/// @param argc The number of arguments
+/// @param argv The command line arguments
+/// @return 0 if no errors were encountered
 int main(int argc, char* argv[])
 {
   using namespace clt;
