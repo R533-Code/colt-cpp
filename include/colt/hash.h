@@ -25,9 +25,13 @@ namespace clt
     size_t state_ = 14695981039346656037u;
 
   public:
+    /// @brief The result type of hashing
     using result_type = size_t;
 
-    constexpr void operator()(const void* key, std::size_t len) noexcept
+    /// @brief Hashes bytes
+    /// @param key The key to hash
+    /// @param len The length in bytes
+    constexpr void operator()(const void* key, size_t len) noexcept
     {
       auto p = static_cast<const u8*>(key);
       auto e = p + len;
@@ -35,6 +39,7 @@ namespace clt
         state_ = (state_ ^ *p) * 1099511628211u;
     }
 
+    /// @brief Returns the result of hashing
     explicit operator result_type() const noexcept { return state_; }
   };
 
@@ -50,7 +55,9 @@ namespace clt
     /// @brief State v3
     u64 v3 = 0x7465646279746573;
 
-    // Round function
+    HEDLEY_ALWAYS_INLINE
+    /// @brief Applies a round of rotations to the state
+    /// @param state The state on which to apply the round
     static constexpr void apply_round(siphash24_h& state) noexcept
     {
       state.v0 += state.v1;
@@ -73,16 +80,51 @@ namespace clt
       state.v2 = std::rotl(state.v2, 32);
     }
 
+    HEDLEY_ALWAYS_INLINE
+    /// @brief Unaligned read and or
+    /// @param ptr The pointer from which to read
+    /// @param read_count The number of bytes to read [0-7]
+    /// @param b The value to which to or the result
+    static constexpr void unaligned_or(
+        const u8* ptr, size_t read_count, u64& b) noexcept
+    {
+      switch (read_count)
+      {
+      case 7:
+        b |= ((u64)ptr[6]) << 48;
+      [[fallthrough]] case 6:
+        b |= ((u64)ptr[5]) << 40;
+      [[fallthrough]] case 5:
+        b |= ((u64)ptr[4]) << 32;
+      [[fallthrough]] case 4:
+        b |= ((u64)ptr[3]) << 24;
+      [[fallthrough]] case 3:
+        b |= ((u64)ptr[2]) << 16;
+      [[fallthrough]] case 2:
+        b |= ((u64)ptr[1]) << 8;
+      [[fallthrough]] case 1:
+        b |= ((u64)ptr[0]);
+        break;
+      case 0:
+        break;
+      }
+    }
+
   public:
+    /// @brief The result type of hashing
     using result_type = size_t;
 
+    /// @brief The default key used by SipHash-2-4
     static constexpr std::array<u8, 16> DEFAULT_KEY = {
         172, 151, 141, 193, 144, 166, 78, 27, 255, 223, 59, 66, 231, 234, 20, 152};
 
+    /// @brief The numbers of rounds performed for each 8 byte read
     static constexpr u64 cROUNDS = 2;
-
+    /// @brief The number of final rounds performed after all the reads
     static constexpr u64 dROUNDS = 4;
 
+    /// @brief Constructor
+    /// @param key The key used to initialize the state of the hasher
     constexpr siphash24_h(const std::array<u8, 16>& key = DEFAULT_KEY) noexcept
     {
       v0 ^= u64(key[0]) << 56 | u64(key[1]) << 48 | u64(key[2]) << 40
@@ -93,44 +135,32 @@ namespace clt
             | u64(key[14]) << 8 | u64(key[15]);
     }
 
+    /// @brief Hashes bytes
+    /// @param key The key to hash
+    /// @param len The length in bytes of the key
     constexpr void operator()(const void* key, size_t len) noexcept
     {
       auto ptr = static_cast<const u8*>(key);
 
-      const int left = len & 7;
-      size_t i       = 0;
-      auto b         = (u64)len << 56;
+      const u64 left  = len % 8;
+      const u64 right = (len - left) % 8;
+      size_t i        = 0;
+      auto b          = (u64)len << 56;
+
+      unaligned_or(ptr, left, b);
+      v3 ^= b;
+      i += left;
+
       for (; i < len; i += 8)
       {
-        u64 m = 0;
-        std::memcpy(&m, ptr + i, sizeof(m));
+        u64 m = *reinterpret_cast<const u64*>(ptr + i);
         v3 ^= m;
         for (u64 r = 0; r < cROUNDS; ++r)
           apply_round(*this);
         v0 ^= m;
       }
 
-      switch (left)
-      {
-      case 7:
-        b |= ((u64)ptr[i + 6]) << 48;
-      case 6:
-        b |= ((u64)ptr[i + 5]) << 40;
-      case 5:
-        b |= ((u64)ptr[i + 4]) << 32;
-      case 4:
-        b |= ((u64)ptr[i + 3]) << 24;
-      case 3:
-        b |= ((u64)ptr[i + 2]) << 16;
-      case 2:
-        b |= ((u64)ptr[i + 1]) << 8;
-      case 1:
-        b |= ((u64)ptr[i + 0]);
-        break;
-      case 0:
-        break;
-      }
-
+      unaligned_or(ptr + i, right, b);
       v3 ^= b;
       for (u64 r = 0; r < dROUNDS; ++r)
         apply_round(*this);
@@ -138,6 +168,7 @@ namespace clt
       v2 ^= 0xff;
     }
 
+    /// @brief Returns the result of hashing
     explicit operator result_type() const noexcept { return v0 ^ v1 ^ v2 ^ v3; }
   };
 
@@ -195,13 +226,12 @@ namespace clt
 
     /// @brief Check if a type is can be hashed
     template<typename T>
-    concept hashable = contiguously_hashable<T> ||
-      requires(const T& value, fnv1a_h a)
-    {
-      {
-        clt::hash_append(a, value)
-      } -> std::same_as<void>;
-    };
+    concept hashable =
+        contiguously_hashable<T> || requires(const T& value, fnv1a_h a) {
+          {
+            clt::hash_append(a, value)
+          } -> std::same_as<void>;
+        };
   } // namespace meta
 
   /// @brief Hash Append for types whose hash is computed only by iterating
@@ -229,14 +259,20 @@ namespace clt
       v = static_cast<T>(0);
     h(std::addressof(v), sizeof(v));
   }
-  
+
   /// @brief Universal hasher.
   /// @tparam HashAlgorithm The hashing algorithm that must be used
   template<meta::hash_algorithm HashAlgorithm>
   struct uhash
   {
+    /// @brief The result type of the universal hasher (which is the same as the
+    /// algorithm result type)
     using result_type = typename HashAlgorithm::result_type;
 
+    /// @brief Hashes a type
+    /// @tparam T The type to hash
+    /// @param t The value to hash
+    /// @return The hash of the value
     template<meta::hashable T>
     constexpr result_type operator()(const T& t) const noexcept
     {
