@@ -14,3 +14,5 @@ This section will be updated when the code becomes less subject to changes.
 ## Reporting a Vulnerability
 Open an issue explaining the vulnerability. I will try to fix it as fast as possible.
 Pull requests are also welcome!
+## Privately Reporting Vulnerability:
+This repo also supports [privately reporting vulnerabilities](https://docs.github.com/en/code-security/security-advisories/guidance-on-reporting-and-writing/privately-reporting-a-security-vulnerability).
