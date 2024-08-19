@@ -232,6 +232,27 @@ namespace clt::num
 
     /// @brief Destructor, frees any resource used
     ~BigRational() noexcept { mpq_clear(storage); }
+
+    /// @brief Creates a BigRational from a string (integer or fraction separated by '/')
+    /// Set the value of rop from str, a null-terminated C string in base base.
+    /// White space is allowed in the string, and is simply ignored.
+    /// The base may vary from 2 to 62, or if base is 0, then the leading characters are used:
+    /// 0[xX] for hexadecimal, 0[bB] for binary, 0 for octal, or decimal otherwise.
+    /// For bases up to 36, case is ignored, upper-case and lower-case letters have the same
+    /// value. For bases 37 to 62, upper-case letter represent the usual 10..35 while lower-case
+    /// letter represent 36..61.
+    /// @param str The string to convert from
+    /// @param base The base
+    /// @return None if 'str' is not a valid string
+    static Option<BigRational> from(const char* str, int base = 0) noexcept
+    {
+      if (BigRational value; mpq_set_str(value.storage, str, base) == 0)
+      {
+        mpq_canonicalize(value.storage);
+        return std::move(value);
+      }
+      return None;
+    }
   };
 } // namespace clt::num
 

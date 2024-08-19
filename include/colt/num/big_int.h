@@ -63,6 +63,8 @@ namespace clt::num
   {
     mpz_t storage{};
 
+    BigInt(mpz_t storage) noexcept { this->storage[0] = storage[0]; }
+
   public:
     /// @brief Constructor, sets the value to 0
     BigInt() noexcept { mpz_init(storage); }
@@ -125,11 +127,19 @@ namespace clt::num
       return *this *= value;
     }
 
-    COLT_MAKE_OVERLOAD_OPERATOR_U32_BIGINT(/, mpz_div);
+    COLT_MAKE_OVERLOAD_OPERATOR_U32_BIGINT(/, mpz_tdiv_q);
     template<typename T>
     BigInt& div(const T& value) noexcept
     {
       return *this /= value;
+    }
+
+    COLT_MAKE_OPERATOR(%, mpz_mod, const BigInt&, rhs.storage)
+    COLT_MAKE_OPERATOR(%, mpz_mod_ui, u32, rhs)
+    template<typename T>
+    BigInt& mod(const T& value) noexcept
+    {
+      return *this %= value;
     }
 
     COLT_MAKE_OVERLOAD_ASSIGNMENT(mpz_set);
@@ -184,7 +194,7 @@ namespace clt::num
       BigInt copy = *this;
       copy.neg();
       return copy;
-    }
+    }    
 
     std::strong_ordering operator<=>(const BigInt& b) const noexcept
     {
@@ -195,6 +205,11 @@ namespace clt::num
         return std::strong_ordering::equivalent;
       else
         return std::strong_ordering::greater;
+    }
+
+    bool operator==(const BigInt& b) const noexcept
+    {
+      return (*this <=> b) == std::strong_ordering::equivalent;
     }
 
     std::strong_ordering operator<=>(double b) const noexcept
@@ -208,6 +223,11 @@ namespace clt::num
         return std::strong_ordering::greater;
     }
 
+    bool operator==(double b) const noexcept
+    {
+      return (*this <=> b) == std::strong_ordering::equivalent;
+    }
+
     std::strong_ordering operator<=>(u32 b) const noexcept
     {
       auto cmp = mpz_cmp_ui(storage, b);
@@ -219,6 +239,11 @@ namespace clt::num
         return std::strong_ordering::greater;
     }
 
+    bool operator==(u32 b) const noexcept
+    {
+      return (*this <=> b) == std::strong_ordering::equivalent;
+    }
+
     std::strong_ordering operator<=>(i32 b) const noexcept
     {
       auto cmp = mpz_cmp_si(storage, b);
@@ -228,6 +253,11 @@ namespace clt::num
         return std::strong_ordering::equivalent;
       else
         return std::strong_ordering::greater;
+    }
+
+    bool operator==(i32 b) const noexcept
+    {
+      return (*this <=> b) == std::strong_ordering::equivalent;
     }
 
     /// @brief Returns the number of characters needed to represent
@@ -252,6 +282,24 @@ namespace clt::num
 
     /// @brief Destructor, frees any resource used
     ~BigInt() noexcept { mpz_clear(storage); }
+
+    /// @brief Creates a BigInt from a string
+    /// Set the value of rop from str, a null-terminated C string in base base.
+    /// White space is allowed in the string, and is simply ignored.
+    /// The base may vary from 2 to 62, or if base is 0, then the leading characters are used:
+    /// 0[xX] for hexadecimal, 0[bB] for binary, 0 for octal, or decimal otherwise.
+    /// For bases up to 36, case is ignored, upper-case and lower-case letters have the same
+    /// value. For bases 37 to 62, upper-case letter represent the usual 10..35 while lower-case
+    /// letter represent 36..61.
+    /// @param str The string to convert from
+    /// @param base The base
+    /// @return None if 'str' is not a valid string
+    static Option<BigInt> from(const char* str, int base = 0) noexcept
+    {
+      if (BigInt value; mpz_set_str(value.storage, str, base) == 0)
+        return std::move(value);
+      return None;
+    }
   };
 } // namespace clt::num
 
