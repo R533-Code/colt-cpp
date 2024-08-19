@@ -463,7 +463,7 @@ namespace clt::meta
   {
     reflect<std::remove_cvref_t<T>>::apply_on_methods(
         std::forward<T>(of), std::forward<F>(f));
-  }
+  }  
 } // namespace clt::meta
 
 namespace clt
@@ -630,11 +630,13 @@ DECLARE_BUILTIN_TYPE(double);
   {                                                                                 \
     static constexpr bool value = reflect<TYPE>::members_type::template remove_if<  \
                                       is_contiguously_hashable>::size               \
-                                  == 0;                                             \
+                                      == 0                                          \
+                                  && !has_padding_v<TYPE>;                          \
   }
 
 template<clt::meta::reflectable T>
-  requires(!clt::meta::formattable<T>) && (clt::meta::reflect<T>::kind() == clt::meta::EntityKind::IS_CLASS)
+  requires(!clt::meta::formattable<T>)
+          && (clt::meta::reflect<T>::kind() == clt::meta::EntityKind::IS_CLASS)
 struct fmt::formatter<T>
 {
   template<typename ParseContext>
