@@ -63,17 +63,23 @@ namespace clt
       {
       case 7:
         b ^= ((u64)ptr[6]) << 48;
-      [[fallthrough]] case 6:
+        [[fallthrough]];
+      case 6:
         b ^= ((u64)ptr[5]) << 40;
-      [[fallthrough]] case 5:
+        [[fallthrough]];
+      case 5:
         b ^= ((u64)ptr[4]) << 32;
-      [[fallthrough]] case 4:
+        [[fallthrough]];
+      case 4:
         b ^= ((u64)ptr[3]) << 24;
-      [[fallthrough]] case 3:
+        [[fallthrough]];
+      case 3:
         b ^= ((u64)ptr[2]) << 16;
-      [[fallthrough]] case 2:
+        [[fallthrough]];
+      case 2:
         b ^= ((u64)ptr[1]) << 8;
-      [[fallthrough]] case 1:
+        [[fallthrough]];
+      case 1:
         b ^= ((u64)ptr[0]);
         b *= m;
       }
@@ -98,7 +104,7 @@ namespace clt
     /// @brief Hashes bytes
     /// @param key The key to hash
     /// @param len The length in bytes
-    constexpr void operator()(const void* key, size_t len) noexcept
+    void operator()(const void* key, size_t len) noexcept
     {
       h               = seed ^ (len * m);
       auto ptr        = (const u8*)key;
@@ -184,17 +190,23 @@ namespace clt
       {
       case 7:
         b |= ((u64)ptr[6]) << 48;
-      [[fallthrough]] case 6:
+        [[fallthrough]];
+      case 6:
         b |= ((u64)ptr[5]) << 40;
-      [[fallthrough]] case 5:
+        [[fallthrough]];
+      case 5:
         b |= ((u64)ptr[4]) << 32;
-      [[fallthrough]] case 4:
+        [[fallthrough]];
+      case 4:
         b |= ((u64)ptr[3]) << 24;
-      [[fallthrough]] case 3:
+        [[fallthrough]];
+      case 3:
         b |= ((u64)ptr[2]) << 16;
-      [[fallthrough]] case 2:
+        [[fallthrough]];
+      case 2:
         b |= ((u64)ptr[1]) << 8;
-      [[fallthrough]] case 1:
+        [[fallthrough]];
+      case 1:
         b |= ((u64)ptr[0]);
         break;
       case 0:
@@ -230,7 +242,7 @@ namespace clt
     /// @brief Hashes bytes
     /// @param key The key to hash
     /// @param len The length in bytes of the key
-    constexpr void operator()(const void* key, size_t len) noexcept
+    void operator()(const void* key, size_t len) noexcept
     {
       auto ptr = static_cast<const u8*>(key);
 
