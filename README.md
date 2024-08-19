@@ -4,7 +4,7 @@ These include portable bit-fields, endianness utilities, io, argument parsing an
 
 ![Build and Test on Linux](https://github.com/R533-Code/colt-cpp/actions/workflows/cmake-multi-platform.yml/badge.svg)
 ![Build and Test on Windows](https://github.com/R533-Code/colt-cpp/actions/workflows/cmake-windows-platform.yml/badge.svg)
-![Scorecard](https://github.com/R533-Code/colt-cpp/actions/workflows/scorecard.yml/badge.svg)
+![Scorecard](https://securityscorecards.dev/viewer/?uri=github.com/R533-Code/colt-cpp)
 ![CodeQL](https://github.com/R533-Code/colt-cpp/actions/workflows/codeql.yml/badge.svg)
 
 
