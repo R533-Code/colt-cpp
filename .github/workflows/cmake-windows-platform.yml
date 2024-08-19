@@ -3,8 +3,14 @@ name: "Windows: cl"
 on:
   push:
     branches: [ "main" ]
+    paths:
+     - '**/*.cpp'
+     - '**/*.h'
   pull_request:
     branches: [ "main" ]
+    paths:
+     - '**/*.cpp'
+     - '**/*.h'
 
 env:
   BUILD_TYPE: Debug

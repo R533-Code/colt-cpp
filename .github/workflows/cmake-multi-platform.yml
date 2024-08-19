@@ -3,8 +3,14 @@ name: "Linux: Clang and GCC"
 on:
   push:
     branches: [ "main" ]
+    paths:
+     - '**/*.cpp'
+     - '**/*.h'
   pull_request:
     branches: [ "main" ]
+    paths:
+     - '**/*.cpp'
+     - '**/*.h'
 
 jobs:
   build:
