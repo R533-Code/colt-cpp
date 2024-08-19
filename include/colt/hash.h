@@ -43,6 +43,98 @@ namespace clt
     explicit operator result_type() const noexcept { return state_; }
   };
 
+  /// @brief Hash Algorithm that makes use of MurmurHash64a
+  class murmur64a_h
+  {
+    /// @brief The state
+    u64 h = 0;
+    /// @brief The seed
+    u64 seed;
+
+    HEDLEY_ALWAYS_INLINE
+    /// @brief Unaligned read and or
+    /// @param ptr The pointer from which to read
+    /// @param read_count The number of bytes to read [0-7]
+    /// @param b The value to which to or the result
+    static constexpr void unaligned_xor(
+        const u8* ptr, size_t read_count, u64& b) noexcept
+    {
+      switch (read_count)
+      {
+      case 7:
+        b ^= ((u64)ptr[6]) << 48;
+      [[fallthrough]] case 6:
+        b ^= ((u64)ptr[5]) << 40;
+      [[fallthrough]] case 5:
+        b ^= ((u64)ptr[4]) << 32;
+      [[fallthrough]] case 4:
+        b ^= ((u64)ptr[3]) << 24;
+      [[fallthrough]] case 3:
+        b ^= ((u64)ptr[2]) << 16;
+      [[fallthrough]] case 2:
+        b ^= ((u64)ptr[1]) << 8;
+      [[fallthrough]] case 1:
+        b ^= ((u64)ptr[0]);
+        b *= m;
+      }
+    }
+
+  public:
+    /// @brief The result type of hashing
+    using result_type = size_t;
+
+    /// @brief Constant m
+    static constexpr u64 m = 0xc6a4a7935bd1e995ULL;
+    /// @brief Constant r
+    static constexpr u64 r = 47;
+
+    /// @brief Constructor
+    /// @param seed The starting seed
+    constexpr murmur64a_h(u64 seed = 14695981039346656037ULL) noexcept
+        : seed(seed)
+    {
+    }
+
+    /// @brief Hashes bytes
+    /// @param key The key to hash
+    /// @param len The length in bytes
+    constexpr void operator()(const void* key, size_t len) noexcept
+    {
+      h               = seed ^ (len * m);
+      auto ptr        = (const u8*)key;
+      const u64 left  = uintptr_t(ptr) % 8;
+      const u64 right = (len - left) % 8;
+      size_t i        = 0;
+
+      unaligned_xor(ptr, left, h);
+      i += left;
+
+      h ^= h >> r;
+      h *= m;
+      h ^= h >> r;
+
+      for (; i < len; i += sizeof(u64))
+      {
+        uint64_t k = *reinterpret_cast<const u64*>(ptr + i);
+        k *= m;
+        k ^= k >> r;
+        k *= m;
+
+        h ^= k;
+        h *= m;
+      }
+
+      unaligned_xor(ptr + i, right, h);
+
+      h ^= h >> r;
+      h *= m;
+      h ^= h >> r;
+    }
+
+    /// @brief Returns the result of hashing
+    explicit operator result_type() const noexcept { return h; }
+  };
+
   /// @brief Hash Algorithm that makes use of SipHash-2-4
   class siphash24_h
   {
@@ -142,16 +234,19 @@ namespace clt
     {
       auto ptr = static_cast<const u8*>(key);
 
-      const u64 left  = len % 8;
+      const u64 left  = uintptr_t(ptr) % 8;
       const u64 right = (len - left) % 8;
       size_t i        = 0;
-      auto b          = (u64)len << 56;
+      auto b          = len << 56;
 
       unaligned_or(ptr, left, b);
       v3 ^= b;
+      for (u64 r = 0; r < dROUNDS; ++r)
+        apply_round(*this);
+      v0 ^= b;
       i += left;
 
-      for (; i < len; i += 8)
+      for (; i < len; i += sizeof(u64))
       {
         u64 m = *reinterpret_cast<const u64*>(ptr + i);
         v3 ^= m;
