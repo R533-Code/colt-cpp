@@ -33,6 +33,21 @@ namespace clt::meta
     }->std::same_as<std::string>;
   };
 
+  /// @brief Check if a type has padding bits or not
+  /// @tparam T The type
+  template<typename T>
+  struct has_padding
+      : std::conditional_t<
+            std::has_unique_object_representations_v<T> || std::floating_point<T>,
+            std::false_type, std::true_type>
+  {
+  };
+
+  /// @brief Shorthand for has_padding<T>::value
+  /// @tparam T The type
+  template<typename T>
+  static constexpr bool has_padding_v = has_padding<T>::value;
+
   /// @brief Helpers to inherit from built-in types
   /// @tparam T The built-in type to inherit from
   template<typename T, u64 LINE>
