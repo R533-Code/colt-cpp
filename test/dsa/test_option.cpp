@@ -53,4 +53,14 @@ TEST_CASE("Option", "[option]")
         a.and_then([](u32 a) { return a > 10 ? Option{'a'} : None; }).is_none());
     a.reset();
   }
+  SECTION("serialize")
+  {
+    a = 12;
+    // Create both a vector of bytes, input and output archives.
+    auto [data, in, out] = zpp::bits::data_in_out();
+    out(a).or_throw();
+    Option<u32> value = 0;
+    in(value).or_throw();
+    REQUIRE(value.value_or(0) == 12);
+  }
 }
