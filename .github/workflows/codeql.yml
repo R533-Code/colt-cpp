@@ -14,7 +14,7 @@ on:
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
-    runs-on: ${{ 'ubuntu-latest' }}
+    runs-on: ${{ 'ubuntu-24.04' }}
     timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
     permissions:
       # required for all workflows
@@ -47,7 +47,7 @@ jobs:
 
     - name: Perform Build
       run: |
-        cmake .
+        cmake -DCMAKE_CXX_COMPILER=g++-14 -DCMAKE_C_COMPILER=gcc-14 -DCMAKE_BUILD_TYPE=Release .
         make
 
     - name: Perform CodeQL Analysis
