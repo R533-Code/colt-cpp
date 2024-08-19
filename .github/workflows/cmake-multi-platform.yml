@@ -33,13 +33,13 @@ jobs:
 
     # clone --recursive
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       with:
         submodules: recursive
 
     # Used to simulate SIMD instructions
     - name: Setup SDE
-      uses: petarpetrovt/setup-sde@v2.4
+      uses: petarpetrovt/setup-sde@f0fa5971dc275704531e94264dd23250c442aa41 # v2.4
       with:
         environmentVariableName: SDE_PATH
         sdeVersion: 9.33.0
