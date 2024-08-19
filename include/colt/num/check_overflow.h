@@ -11,8 +11,8 @@
 #include <concepts>
 #include <limits>
 
-#include "typedefs.h"
 #include "hedley.h"
+#include "colt/typedefs.h"
 #include "colt/macro/config.h"
 
 #ifdef COLT_MSVC
