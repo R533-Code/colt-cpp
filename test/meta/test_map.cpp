@@ -1,3 +1,10 @@
+/*****************************************************************/ /**
+ * @file   test_map.cpp
+ * @brief  Unit tests for `Map` and `BiMap`.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #include "../includes.h"
 #include <colt/meta/map.h>
 

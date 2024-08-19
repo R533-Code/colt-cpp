@@ -1,3 +1,10 @@
+/*****************************************************************/ /**
+ * @file   test_dynamic_lib.cpp
+ * @brief  Unit tests for `DynamicLib`
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #include "../includes.h"
 #include <colt/os/dynamic_lib.h>
 
@@ -10,7 +17,7 @@ TEST_CASE("DynamicLib")
 {
   using namespace clt;
   using namespace clt::os;
-  
+
   auto current = DynamicLib::open();
   auto invalid = DynamicLib::open("1234567890qwertyuiopasdfghjklzxcvbnm");
   REQUIRE(invalid.is_none());

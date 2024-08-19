@@ -1,32 +1,33 @@
+/*****************************************************************/ /**
+ * @file   test_math.cpp
+ * @brief  Unit tests for `math` functions.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #include "../includes.h"
 #include <colt/num/math.h>
 
-TEST_CASE("Absolute Values", "[absolute_value]")
+TEST_CASE("Mathematical Functions")
 {
   REQUIRE(clt::math::abs(0) == 0);
   REQUIRE(clt::math::abs(-0) == 0);
-  
+
   REQUIRE(clt::math::abs(-1) == 1);
   REQUIRE(clt::math::abs(1) == 1);
-  
+
   REQUIRE(clt::math::abs(1.0) == 1.0);
   REQUIRE(clt::math::abs(-1.0) == 1.0);
-}
 
-TEST_CASE("Square Root", "[square_root]")
-{
   REQUIRE(clt::math::sqrt(1) == 1);
   REQUIRE(clt::math::sqrt(1.0) == 1.0);
 
   REQUIRE(clt::math::sqrt(0) == 0);
   REQUIRE(clt::math::sqrt(4) == 2);
-  
+
   REQUIRE(clt::math::sqrt(0.0) == 0.0);
   REQUIRE(clt::math::sqrt(16.0) == 4.0);
-}
 
-TEST_CASE("Power", "[power]")
-{
   REQUIRE(clt::math::pow(1, 1) == 1);
   REQUIRE(clt::math::pow(9, 0) == 1);
 

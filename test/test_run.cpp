@@ -1,4 +1,4 @@
-/*****************************************************************//**
+/*****************************************************************/ /**
  * @file   test_run.cpp
  * @brief  Contains the `main` function responsible for running Catch2.
  * 
@@ -17,10 +17,11 @@
 int main(int argc, char* argv[])
 {
   using namespace clt;
-  using namespace clt::io;  
-  
+  using namespace clt::io;
+
   auto result = Catch::Session().run(argc, argv);
-  fmt::println(stderr,
+  fmt::println(
+      stderr,
       "Running tests on {}{} {}{}{} ({}).\nThis is a {}-endian system.\nSupported "
       "SIMD instructions: {}{}{}.\n",
       CyanF, COLT_OS_STRING, MagentaF, COLT_ARCH_STRING, Reset, COLT_CONFIG_STRING,

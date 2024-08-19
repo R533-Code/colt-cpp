@@ -1,3 +1,10 @@
+/*****************************************************************/ /**
+ * @file   test_option.cpp
+ * @brief  Unit tests for `Option`.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #include "../includes.h"
 #include <colt/dsa/option.h>
 
@@ -47,10 +54,10 @@ TEST_CASE("Option")
   {
     a = 12;
     REQUIRE(
-        a.and_then([](u32 a) { return a > 10 ? Option{'a'} : None; }).value() == 'a');
+        a.and_then([](u32 a) { return a > 10 ? Option{'a'} : None; }).value()
+        == 'a');
     a = None;
-    REQUIRE(
-        a.and_then([](u32 a) { return a > 10 ? Option{'a'} : None; }).is_none());
+    REQUIRE(a.and_then([](u32 a) { return a > 10 ? Option{'a'} : None; }).is_none());
     a.reset();
   }
   SECTION("serialize")

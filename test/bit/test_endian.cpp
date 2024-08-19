@@ -1,3 +1,10 @@
+/*****************************************************************/ /**
+ * @file   test_endian.cpp
+ * @brief  Unit tests for `byteswap` and other endianness related functions.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #include "../includes.h"
 #include <colt/bit/endian.h>
 

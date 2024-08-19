@@ -1,3 +1,10 @@
+/*****************************************************************/ /**
+ * @file   string.cpp
+ * @brief  Contains the implementation of `maybe_in_const_segment`.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #include "string.h"
 
 #if defined(COLT_LINUX)

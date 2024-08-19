@@ -1,3 +1,10 @@
+/*****************************************************************/ /**
+ * @file   test_bitfields.cpp
+ * @brief  Unit tests for `Bitfields`.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #include "../includes.h"
 #include <colt/bit/bitfields.h>
 
@@ -10,7 +17,7 @@ TEST_CASE("Bitfields")
 
   auto a = Type(InPlace, 0b10100, 0b11, 0b1);
   REQUIRE(a.value() == 0b10100'11'1);
-  
+
   a.set<0>(0);
   REQUIRE(a.value() == 0b00000'11'1);
   REQUIRE(a.get<0>() == 0);

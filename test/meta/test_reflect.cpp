@@ -1,3 +1,10 @@
+/*****************************************************************/ /**
+ * @file   test_reflect.cpp
+ * @brief  Unit tests for `reflect`.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #include "../includes.h"
 #include <colt/meta/reflect.h>
 
@@ -5,9 +12,9 @@ struct AB
 {
   int _ab;
   int _abc;
-  
+
   constexpr auto operator<=>(const AB&) const = default;
-  
+
   COLT_ENABLE_REFLECTION();
 };
 
@@ -34,7 +41,7 @@ TEST_CASE("reflect")
     REQUIRE(reflect<const volatile i32>::str() == "const volatile i32");
     REQUIRE(reflect<const volatile i32*>::str() == "const volatile i32*");
     REQUIRE(reflect<const volatile i32&>::str() == "const volatile i32&");
-    REQUIRE(reflect<const volatile i32&&>::str() == "const volatile i32&&");  
+    REQUIRE(reflect<const volatile i32&&>::str() == "const volatile i32&&");
   }
 
   SECTION("serialize custom")

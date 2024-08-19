@@ -1,3 +1,10 @@
+/*****************************************************************/ /**
+ * @file   unicode.cpp
+ * @brief  Contains SIMD implementations of Unicode helpers.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #include "unicode.h"
 #include "colt/bit/operations.h"
 #include "colt/bit/detect_simd.h"
@@ -74,16 +81,16 @@ COLT_FORCE_SSE2 size_t strlen8SSE2(const char8_t* ptr) noexcept
     ++ptr;
   }
 
-  const __m128i zero = _mm_setzero_si128();
+  const __m128i zero        = _mm_setzero_si128();
   const __m128i trail_mask  = _mm_set1_epi8((u8)0b1100'0000);
   const __m128i trail_value = _mm_set1_epi8((u8)0b1000'0000);
   constexpr auto PACK_COUNT = sizeof(__m128i) / sizeof(u8);
   unsigned int mask;
   while (true)
   {
-    __m128i values   = _mm_load_si128(reinterpret_cast<const __m128i*>(ptr));
-    __m128i cmp      = _mm_cmpeq_epi8(values, zero);
-    mask             = _mm_movemask_epi8(cmp);
+    __m128i values = _mm_load_si128(reinterpret_cast<const __m128i*>(ptr));
+    __m128i cmp    = _mm_cmpeq_epi8(values, zero);
+    mask           = _mm_movemask_epi8(cmp);
     // If we found NUL-terminator break.
     if (mask != 0)
       break;
@@ -166,7 +173,7 @@ COLT_FORCE_AVX512BW size_t strlen8AXV512BW(const char8_t* ptr) noexcept
   while (true)
   {
     __m512i values = _mm512_load_si512(reinterpret_cast<const __m512i*>(ptr));
-    mask = _mm512_cmpeq_epi8_mask(values, zero);
+    mask           = _mm512_cmpeq_epi8_mask(values, zero);
     // If we found NUL-terminator break.
     if (mask != 0)
       break;

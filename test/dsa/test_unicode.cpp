@@ -1,3 +1,10 @@
+/*****************************************************************/ /**
+ * @file   test_unicode.cpp
+ * @brief  Unit tests for Unicode related functions.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #include "../includes.h"
 #include <colt/dsa/unicode.h>
 
