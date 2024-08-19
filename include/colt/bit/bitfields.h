@@ -1,4 +1,4 @@
-/*****************************************************************//**
+/*****************************************************************/ /**
  * @file   bitfields.h
  * @brief  Contains portable bitfield helpers.
  * 
@@ -14,6 +14,7 @@
 #include "colt/dsa/common.h"
 #include "colt/meta/traits.h"
 #include "colt/typedefs.h"
+#include "colt/hash.h"
 #include "colt/macro/assert.h"
 
 namespace clt::bit
@@ -76,7 +77,7 @@ namespace clt::bit
     static constexpr size_t field_count = 1 + sizeof...(Fields);
 
     /// @brief The underlying storage
-    Ty storage;
+    Ty storage = {0};
 
     /// @brief Returns the informations about the field of name 'index'
     /// @tparam index The field name
@@ -147,7 +148,7 @@ namespace clt::bit
     /// @param value The value to initialize to
     constexpr Bitfields(Ty value) noexcept
         : storage(value)
-    {      
+    {
     }
 
     /// @brief Constuctor
@@ -157,7 +158,7 @@ namespace clt::bit
     template<std::convertible_to<Ty>... Ints>
       requires(sizeof...(Ints) == sizeof...(Fields))
     constexpr Bitfields(in_place_t, Ty field0, Ints... fields) noexcept
-      : storage(0)
+        : storage(0)
     {
       set_field<0>(field0);
       set_fields(std::make_index_sequence<sizeof...(Ints)>{}, fields...);
@@ -201,7 +202,24 @@ namespace clt::bit
     /// @brief Returns the underlying value
     /// @return The underlying value
     constexpr Ty value() const noexcept { return storage; }
+
+    template<typename Ser>
+      requires meta::serializable<T>
+    static constexpr auto serialize(Ser& archive, Bitfields& self) noexcept
+    {
+      using namespace zpp::bits;
+      return archive(self.storage);
+    }
   };
-}
+} // namespace clt::bit
+
+namespace clt::meta
+{
+  template<std::unsigned_integral Ty, typename Field0, typename... Fields>
+  struct is_contiguously_hashable<clt::bit::Bitfields<Ty, Field0, Fields...>>
+      : public std::true_type
+  {
+  };
+} // namespace clt::meta
 
 #endif // !HG_BIT_BITFIELDS
