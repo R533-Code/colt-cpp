@@ -204,7 +204,6 @@ namespace clt::bit
     constexpr Ty value() const noexcept { return storage; }
 
     template<typename Ser>
-      requires meta::serializable<T>
     static constexpr auto serialize(Ser& archive, Bitfields& self) noexcept
     {
       using namespace zpp::bits;
