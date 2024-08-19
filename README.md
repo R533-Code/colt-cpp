@@ -11,33 +11,37 @@ These include portable bit-fields, endianness utilities, io, argument parsing an
 - ❌ Feature is not ready for use.
 
 
-|Name|Status|Note|
-|----|------|----|
-|Portable Bitfields|✅| |
-|Detect SIMD Support|✅|If needed, detecting more instructions sets could be added.|
-|Endian Detection|✅|Through macro or enum.|
-|Endian Conversions|✅|Implemented using intrinsic.|
+|Name|Description|Status|Note|
+|----|-----------|------|----|
+|`Bitfields`| Zero-overhead bitfields whose layout is guarenteed to be portable (except for endianness).|✅|Supports hashing and serialization. |
+|`choose_simd_function`| Used to choose a different function at runtime depending on `CPUID`|✅|If needed, detecting more instructions sets could be added.|
+|`TargetEndian` Endian Detection| Represents the target endianness. |✅|There is also the `COLT_LITTLE_ENDIAN` and `COLT_BIG_ENDIAN` macros.|
+|Endian Conversions|Functions such as `[hlb]to[hlb]` to go from host endianness to another endianness or vice-versa.|✅|Implemented using intrinsics.|
 | | |
-|`Option`|⚠️| |
-|`Expect`|⚠️| |
+| `uhash` and `hash_append` |Implements universal hashing as described in [`N3980`](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3980.html).|⚠️| The current implemented `hash_algorithm`s are `fnv1a` and `SipHash-2-4`.
 | | |
-|Unicode Counting and Indexing|⚠️| API still needs some refactoring.|
-|Unicode SIMD Utilities|⚠️| |
-|Unicode Aware `StringView`|✅| |
-|Unicode Aware `String`|❌| |
+|`Option`| Optional vocabulary type with monadic operations. |⚠️| More unit tests could be added. |
+|`Expect`| Expected vocabulary type with monadic operations |⚠️| More unit tests could be added. |
 | | |
-|Memory Allocators|⚠️| |
-|Memory Allocators Reference|❌| |
+|Unicode Counting and Indexing|Provides `countlen`, `unitlen`, `strlen`, `index_front`, `index_back` Unicode aware functions.|✅|More unit tests could be added.|
+|Unicode SIMD Utilities| Provides SIMD functions to optimize `strlen` and `unitlen`.|⚠️|For now, `x86_64` versions are provided with little to no `ARM NEON` support. |
+|Unicode Aware `StringView`| View over Unicode data in any of `UTF8`, `UTF16-[BL]E`,`UTF32-[BL]E`.|✅| A type-erased `StringView` could also be added, whose encoding is determined at runtime.|
+|Unicode Aware `String`|Contiguous Unicode aware `String` with `SSO`, `count` and `middle` caching, and const segment optimization.|❌| The implementation is a work in progress.|
 | | |
-|`BigInteger`|⚠️| Some API improvements could be done. |
-|`BigRational`|⚠️| Some API improvements could be done. |
+|Memory Allocators| Provides a framework of composable allocators that allocates and deallocates `MemBlock` |⚠️| More allocators could be added. |
+|Memory Allocators Reference| Reference to a local or global allocator, used by all data structures.|❌| Not implemented yet. |
 | | |
-|Compile-time Map and BiMap|✅| |
-|Compile-time Math Functions|✅| |
-|Overflow checks|⚠️| |
+|`BigInteger`| Arbitrary precision big integer.|✅| More unit tests could be added. * |
+|`BigRational`|Arbitrary precision big rational (`x/y`).|⚠️| Some API improvements could be done. * |
 | | |
-|Macro `FOR_EACH`|✅| |
-|Macro `assert_true`|✅| Works at compile time.|
-|Macro `switch_no_default`|✅| |
+|Compile-time `Map` and `BiMap`|Hash (bi)map created at compile-time.|✅| |
+|Compile-time Math Functions|`constexpr` mathematical functions.|✅| |
+|Overflow checks|Provides `checked_(add\|sub\|mul\|div\|mod)` to detect overflow/underflow.|⚠️|More unit tests are needed. |
 | | |
-|OS `DynamicLib`|✅| |
+|Macro `FOR_EACH`|Macro that expands another macro for each of its arguments.|✅| For `MSVC`, this macro needs `/Zc:preprocessor`. |
+|Macro `assert_true`|Assert that all conditions are true.|✅| Works at compile time.|
+|Macro `switch_no_default`|Provides an unreachable default branch for a switch statement.|✅| |
+| | |
+|OS `DynamicLib`| Represents a dynamically loaded library in a platform agnostic way.|✅| For Linux, `-Wl,-export-dynamic` must be specified for self-introspection. |
+
+\* These classes are wrappers over [`GMP`](https://gmplib.org/), which makes them already well-tested.
