@@ -10,11 +10,29 @@
 
 #include <cstdint>
 #include <tuple>
+#include <zpp_bits.h>
+#include <fmt/format.h>
 #include <type_traits>
 #include "colt/macro/config.h"
 
 namespace clt::meta
 {
+  /// @brief Check if a type is serializable using zpp-bits
+  template<typename T>
+  concept serializable = requires(zpp::bits::basic_out<std::span<std::byte>> out, T obj) {
+        {
+          static_cast<std::errc>(out(obj))
+        } -> std::same_as<std::errc>;
+  };
+
+  /// @brief Check if a type is formattable using fmt
+  template<typename T>
+  concept formattable = requires(T obj) {
+    {
+      fmt::format_to("{}", obj)
+    }->std::same_as<std::string>;
+  };
+
   /// @brief Helpers to inherit from built-in types
   /// @tparam T The built-in type to inherit from
   template<typename T, u64 LINE>

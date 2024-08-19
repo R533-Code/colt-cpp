@@ -478,9 +478,8 @@ namespace clt
   }
 } // namespace clt
 
-template<typename T>
-  requires(
-      !zpp::bits::access::has_serialize<T, void>() && clt::meta::is_reflectable_v<T>)
+template<clt::meta::reflectable T>
+  requires(!clt::meta::serializable<T>)
 constexpr static auto serialize(auto& archive, T& self)
 {
   using namespace clt::meta;
@@ -554,8 +553,8 @@ DECLARE_BUILTIN_TYPE(double);
     fn(&obj.member);
 
 /// @brief Adds the necessary friends declarations for reflection
-#define COLT_ENABLE_REFLECTION() \
-  template<typename T>           \
+#define COLT_ENABLE_REFLECTION()   \
+  template<typename _TMeTaReflect> \
   friend struct clt::meta::reflect
 
 /// @brief Enables reflection on a type.
@@ -630,14 +629,13 @@ DECLARE_BUILTIN_TYPE(double);
   template<>                                                                        \
   struct clt::meta::is_contiguously_hashable<TYPE>                                  \
   {                                                                                 \
-    static constexpr bool value = reflect<TYPE>::members_type::template remove_if<     \
+    static constexpr bool value = reflect<TYPE>::members_type::template remove_if<  \
                                       is_contiguously_hashable>::size               \
                                   == 0;                                             \
   }
 
-template<typename T>
-  requires clt::meta::is_reflectable_v<T>
-           && (clt::meta::reflect<T>::kind() == clt::meta::EntityKind::IS_CLASS)
+template<clt::meta::reflectable T>
+  requires(!clt::meta::formattable<T>) && (clt::meta::reflect<T>::kind() == clt::meta::EntityKind::IS_CLASS)
 struct fmt::formatter<T>
 {
   template<typename ParseContext>
