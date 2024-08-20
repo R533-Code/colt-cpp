@@ -117,16 +117,25 @@ namespace clt
     /// @brief The maximum code point that can be stored (inclusive)
     static constexpr char32_t CODE_POINT_MAX = 0x0010ffffu;
 
+    /// @brief Check if value represents a lead surrogate
+    /// @param value The value
+    /// @return True if lead surrogate
     constexpr bool is_lead_surrogate(char16_t value) noexcept
     {
       return value >= LEAD_SURROGATE_MIN && value <= LEAD_SURROGATE_MAX;
     }
 
+    /// @brief Check if value represents a trail surrogate
+    /// @param value The value
+    /// @return True if trail surrogate
     constexpr bool is_trail_surrogate(char16_t value) noexcept
     {
       return value >= TRAIL_SURROGATE_MIN && value <= TRAIL_SURROGATE_MAX;
     }
-
+    
+    /// @brief Check if a value represents a trail byte in UTF8
+    /// @param value The value
+    /// @return True if trail byte
     constexpr bool is_trail(char8_t value) noexcept
     {
       return (value >> 6) == 0b10;
