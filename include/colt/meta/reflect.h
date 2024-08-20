@@ -1,3 +1,14 @@
+/*****************************************************************//**
+ * @file   reflect.h
+ * @brief  Contains utilities to reflect over a type at compile-time.
+ * To add reflection to a type, add `COLT_ENABLE_REFLECTION` inside
+ * of the class/struct, then use `COLT_DECLARE_TYPE` to add informations
+ * about the members and methods of the type.
+ * See `COLT_DECLARE_TYPE` for example usage.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_META_REFLECT
 #define HG_META_REFLECT
 

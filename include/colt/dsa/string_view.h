@@ -1,3 +1,11 @@
+/*****************************************************************//**
+ * @file   string_view.h
+ * @brief  Contains a Unicode aware view of characters.
+ * A ZStringView is always guaranteed to be NUL-terminated.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_DSA_STRING_VIEW
 #define HG_DSA_STRING_VIEW
 
@@ -42,6 +50,9 @@ namespace clt
     {
     }
 
+    /// @brief Constructs a StringView from a string literal
+    /// @tparam N The size of the literal
+    /// @param str The array
     template<size_t N>
     constexpr BasicStringView(const underlying_type (&str)[N]) noexcept
         : _ptr(str)
@@ -297,6 +308,12 @@ namespace clt
       return *this;
     }
 
+    /// @brief Compares code points of two views
+    /// @tparam ENCODING2 The encoding of the second view
+    /// @tparam ZSTRING2 True if the second view is NUL-terminated
+    /// @param v1 The first view
+    /// @param v2 The second view
+    /// @return True if all the code points of both views are the same
     template<StringEncoding ENCODING2, bool ZSTRING2>
     friend constexpr bool operator==(
         const BasicStringView& v1,
@@ -363,6 +380,11 @@ namespace clt
           v1.begin(), v1.end(), v2.begin(), v2.end());
     }
 
+    /// @brief Serializes a view
+    /// @tparam Ser The archive type
+    /// @param archive The archive
+    /// @param self The view to serialize
+    /// @return Result of serialization
     template<typename Ser>
     static auto serialize(Ser& archive, BasicStringView& self)
     {
