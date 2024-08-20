@@ -23,7 +23,6 @@ namespace clt
           const char* error,
           clt::source_location src = clt::source_location::current())
   {
-    HEDLEY_UNREACHABLE();
     if constexpr (is_debug_build())
     {
       io::print_fatal(
@@ -31,6 +30,7 @@ namespace clt
           src.function_name(), src.line(), src.file_name(), error);
     }
     debug_break();
+    HEDLEY_UNREACHABLE();
   }
 } // namespace clt
 
