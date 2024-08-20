@@ -2,6 +2,13 @@
  * @file   unicode.h
  * @brief  Contains unicode utilities used throughout the library.
  * 
+ * `unitlen` returns the number of char[8|16|32]_t that makes up a
+ * NUL-terminated string.
+ * `strlen` returns the number of CODE POINTS that makes up a
+ * NUL-terminated string.
+ * `countlen` returns the number of CODE POINTS that makes up
+ * a string of 'n' units.
+ * 
  * A Primer On Unicode:
  * Unicode defines a mapping between symbols and positive integers.
  * In a simplified way, Unicode defines that the character A is
@@ -29,6 +36,7 @@
  * This is perceived as a single character by the user.
  * But, it is represented by 3 code points:
  * {Construction Worker}{ZWJ}{Female Sign}.
+ * 
  * 
  * @author RPC
  * @date   August 2024
