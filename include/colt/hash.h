@@ -1,6 +1,6 @@
 /*****************************************************************/ /**
  * @file   hash.h
- * @brief  
+ * @brief  Contains all hashing related utilities.
  * 
  * This file implements helpers as described in:
  * https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3980.html
