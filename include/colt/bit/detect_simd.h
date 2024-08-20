@@ -74,7 +74,7 @@
   // store and concatenation with shift.
   #define COLT_FORCE_AVX512VBMI2 COLT_ATTRIBUTE_TARGET("avx512vbmi2")
   // +simd for ARM NEON
-  #define COLT_FORCE_NEON        COLT_ATTRIBUTE_TARGET("+simd")
+  #define COLT_FORCE_NEON COLT_ATTRIBUTE_TARGET("+simd")
 #endif // COLT_x86_64
 
 namespace clt::bit
@@ -89,46 +89,58 @@ namespace clt::bit
     return static_cast<simd_flag>(value);
   }
 
-  /// @brief Chooses a function depending on supported features of the CPU.
-  /// The result of this function must be cached for performance.
-  /// @tparam ...FnPtrs Function pointer type pack
-  /// @tparam FnPtr Function pointer type
-  /// @tparam ...PREFERED The pack of simd_flag starting with most performant
-  ///                     to least (the last MUST be simd_flag::DEFAULT).
-  /// @param first The first function pointer
-  /// @param ...pack The pack of function pointers
-  /// @return The first supported function (from left to right) or the last function
-  ///         if none are supported.
-  template<simd_flag... PREFERED, typename FnPtr, typename... FnPtrs>
-    requires(sizeof...(PREFERED) == sizeof...(FnPtrs) + 1)
-            && meta::are_all_same<FnPtr, FnPtr, FnPtrs...>
-  auto choose_simd_function(FnPtr first, FnPtrs... pack) noexcept
+  template<simd_flag... PREFERED>
+  class choose_simd_function
   {
     static_assert(
         (PREFERED, ...) == simd_flag::DEFAULT,
         "The last item of PREFERED must be DEFAULT.");
-    if constexpr (sizeof...(pack) == 0)
+
+#ifdef COLT_DEBUG
+    clt::source_location src;
+
+  public:
+    constexpr choose_simd_function(
+        clt::source_location src = clt::source_location::current()) noexcept
+        : src(src)
     {
-      return first;
     }
-    else
+#endif // COLT_DEBUG
+
+    template<typename FnPtr, typename... FnPtrs>
+    FnPtr operator()(FnPtr first, FnPtrs... ts)
     {
-      auto support                = detect_supported_architectures();
-      constexpr size_t ARRAY_SIZE = sizeof...(PREFERED);
-      constexpr simd_flag ARRAY[] = {PREFERED...};
-      const FnPtr ARRAYFN[]       = {first, pack...};
-      for (size_t i = 0; i < ARRAY_SIZE - 1; i++)
+      static_assert(
+          sizeof...(PREFERED) == sizeof...(FnPtrs) + 1,
+          "Number of simd_flag and function pointers must be equal!");
+      static_assert(
+          meta::are_all_same<FnPtr, FnPtr, FnPtrs...>,
+          "All function pointers must be of the same type!");
+      if constexpr (sizeof...(ts) == 0)
       {
-        if (support & ARRAY[i])
-        {
-          if constexpr (is_debug_build())
-            fmt::println("Using {} implementation.", ARRAY[i]);
-          return ARRAYFN[i];
-        }
+        return first;
       }
-      return ARRAYFN[ARRAY_SIZE - 1];
+      else
+      {
+        auto support                = detect_supported_architectures();
+        constexpr size_t ARRAY_SIZE = sizeof...(PREFERED);
+        constexpr simd_flag ARRAY[] = {PREFERED...};
+        const FnPtr ARRAYFN[]       = {first, ts...};
+        for (size_t i = 0; i < ARRAY_SIZE - 1; i++)
+        {
+          if (support & ARRAY[i])
+          {
+            if constexpr (is_debug_build())
+              fmt::println(
+                  "Using {} implementation for '{}'.", ARRAY[i],
+                  src.function_name());
+            return ARRAYFN[i];
+          }
+        }
+        return ARRAYFN[ARRAY_SIZE - 1];
+      }
     }
-  }
+  };
 } // namespace clt::bit
 
 template<>

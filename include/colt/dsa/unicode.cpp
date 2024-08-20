@@ -342,8 +342,8 @@ static COLT_FORCE_AVX512BW size_t strlen16AVX512BW(const char16_t* ptr) noexcept
     if (mask != 0)
       break;
     __m512i is_trail = _mm512_and_si512(values, trail_mask);
-    len += PACK_COUNT
-           - std::popcount(_mm512_cmpeq_epi16_mask(is_trail, trail_value));
+    len +=
+        PACK_COUNT - std::popcount(_mm512_cmpeq_epi16_mask(is_trail, trail_value));
     ptr += PACK_COUNT;
   }
   // We might have ended on trailing byte
@@ -589,9 +589,10 @@ size_t clt::uni::details::strlen8(const char8_t* ptr) noexcept
 {
   using namespace clt::bit;
 #ifdef COLT_x86_64
-  static const auto FN =
-      choose_simd_function<simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>(
-          &strlen8AXV512BW, &strlen8AVX2, &strlen8SSE2);
+  static const auto FN = choose_simd_function<
+      simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>{}(
+      &strlen8AXV512BW, &strlen8AVX2, &strlen8SSE2);
+  
   return (*FN)(ptr);
 #else
   return strlen8default(ptr);
@@ -603,8 +604,10 @@ size_t clt::uni::details::strlen16LE(const char16_t* ptr) noexcept
   using namespace clt::bit;
 #ifdef COLT_x86_64
   static constexpr bool SWAP = (TargetEndian::native == TargetEndian::big);
-  static const auto FN = choose_simd_function<simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>(
-          &strlen16AVX512BW<SWAP>, &strlen16AVX2<SWAP>, &strlen16SSE2<SWAP>);
+  static const auto FN       = choose_simd_function<
+      simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>{}(
+      &strlen16AVX512BW<SWAP>, &strlen16AVX2<SWAP>, &strlen16SSE2<SWAP>);
+  
   return (*FN)(ptr);
 #else
   return strlen16LEdefault(ptr);
@@ -616,9 +619,10 @@ size_t clt::uni::details::strlen16BE(const char16_t* ptr) noexcept
   using namespace clt::bit;
 #ifdef COLT_x86_64
   static constexpr bool SWAP = (TargetEndian::native == TargetEndian::little);
-  static const auto FN =
-      choose_simd_function<simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>(
-          &strlen16AVX512BW<SWAP>, &strlen16AVX2<SWAP>, &strlen16SSE2<SWAP>);
+  static const auto FN       = choose_simd_function<
+      simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>{}(
+      &strlen16AVX512BW<SWAP>, &strlen16AVX2<SWAP>, &strlen16SSE2<SWAP>);
+  
   return (*FN)(ptr);
 #else
   return strlen16BEdefault(ptr);
@@ -637,12 +641,13 @@ size_t clt::uni::details::unitlen16(const char16_t* ptr) noexcept
 {
   using namespace clt::bit;
 #ifdef COLT_x86_64
-  static const auto FN =
-      choose_simd_function<simd_flag::AVX512F, simd_flag::AVX2, simd_flag::DEFAULT>(
-          &unitlen16AVX512F, &unitlen16AVX2, &unitlen16SSE2);
+  static const auto FN = choose_simd_function<
+      simd_flag::AVX512F, simd_flag::AVX2, simd_flag::DEFAULT>{}(
+      &unitlen16AVX512F, &unitlen16AVX2, &unitlen16SSE2);
+  
   return (*FN)(ptr);
 #elif defined(COLT_ARM_7or8)
-  static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>(
+  static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
       &unitlen16NEON, &unitlen16default);
   return (*FN)(ptr);
 #else
@@ -654,13 +659,15 @@ size_t clt::uni::details::unitlen32(const char32_t* ptr) noexcept
 {
   using namespace clt::bit;
 #ifdef COLT_x86_64
-  static const auto FN =
-      choose_simd_function<simd_flag::AVX512F, simd_flag::AVX2, simd_flag::DEFAULT>(
-          &unitlen32AVX512F, &unitlen32AVX2, &unitlen32SSE2);
+  static const auto FN = choose_simd_function<
+      simd_flag::AVX512F, simd_flag::AVX2, simd_flag::DEFAULT>{}(
+      &unitlen32AVX512F, &unitlen32AVX2, &unitlen32SSE2);
+  
   return (*FN)(ptr);
 #elif defined(COLT_ARM_7or8)
-  static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>(
+  static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
       &unitlen32NEON, &unitlen32default);
+  
   return (*FN)(ptr);
 #else
   return unitlen32default(ptr);
