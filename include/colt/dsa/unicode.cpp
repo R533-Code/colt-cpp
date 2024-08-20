@@ -422,7 +422,7 @@ static COLT_FORCE_AVX2 size_t unitlen16AVX2(const char16_t* ptr) noexcept
 }
 
 // unitlen using AVX512 SIMD instructions
-static COLT_FORCE_AVX512F size_t unitlen16AVX512F(const char16_t* ptr) noexcept
+static COLT_FORCE_AVX512BW size_t unitlen16AVX512BW(const char16_t* ptr) noexcept
 {
   const auto copy = ptr;
   // Align pointer to 64 byte boundary to use aligned load
@@ -642,8 +642,8 @@ size_t clt::uni::details::unitlen16(const char16_t* ptr) noexcept
   using namespace clt::bit;
 #ifdef COLT_x86_64
   static const auto FN = choose_simd_function<
-      simd_flag::AVX512F, simd_flag::AVX2, simd_flag::DEFAULT>{}(
-      &unitlen16AVX512F, &unitlen16AVX2, &unitlen16SSE2);
+      simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>{}(
+      &unitlen16AVX512BW, &unitlen16AVX2, &unitlen16SSE2);
   
   return (*FN)(ptr);
 #elif defined(COLT_ARM_7or8)
