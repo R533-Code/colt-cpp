@@ -90,7 +90,7 @@ namespace clt::bit
   }
 
   template<simd_flag... PREFERED>
-  class choose_simd_function
+  struct choose_simd_function
   {
     static_assert(
         (PREFERED, ...) == simd_flag::DEFAULT,
@@ -99,7 +99,6 @@ namespace clt::bit
 #ifdef COLT_DEBUG
     clt::source_location src;
 
-  public:
     constexpr choose_simd_function(
         clt::source_location src = clt::source_location::current()) noexcept
         : src(src)
@@ -130,10 +129,11 @@ namespace clt::bit
         {
           if (support & ARRAY[i])
           {
-            if constexpr (is_debug_build())
-              fmt::println(
-                  "Using {} implementation for '{}'.", ARRAY[i],
-                  src.function_name());
+#ifdef COLT_DEBUG
+            fmt::println(
+                "Using {} implementation for '{}'.", ARRAY[i],
+                src.function_name());
+#endif // COLT_DEBUG
             return ARRAYFN[i];
           }
         }
