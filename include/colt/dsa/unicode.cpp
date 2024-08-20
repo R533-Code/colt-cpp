@@ -207,7 +207,58 @@ static COLT_FORCE_AVX512BW size_t strlen8AXV512BW(const char8_t* ptr) noexcept
 
 #pragma region // strlen16 SSE2, AVX2, AVX512BW
 
+template<bool SWAP>
+static COLT_FORCE_SSE2 size_t strlen16SSE2(const char16_t* ptr) noexcept
+{
+  size_t len = 0;
+  // Align pointer to 16 byte boundary to use aligned load
+  // and avoid page faults.
+  // We can't use sequence_length here as the goal is to align
+  // and most likely adding sequence_length will not align the pointer.
+  while (uintptr_t(ptr) % 16 != 0)
+  {
+    if (*ptr == '\0')
+      return len;
+    if constexpr (SWAP)
+      len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
+    else
+      len += (size_t)(!clt::uni::is_trail_surrogate(*ptr));
+    ++ptr;
+  }
 
+  const __m128i zero        = _mm_setzero_si128();
+  const __m128i trail_mask  = _mm_set1_epi16(SWAP ? (u16)0x00FC : (u16)0xFC00);
+  const __m128i trail_value = _mm_set1_epi16(SWAP ? (u16)0x00DC : (u16)0xDC00);
+  constexpr auto PACK_COUNT = sizeof(__m128i) / sizeof(u16);
+  unsigned int mask;
+  while (true)
+  {
+    __m128i values = _mm_load_si128(reinterpret_cast<const __m128i*>(ptr));
+    __m128i cmp    = _mm_cmpeq_epi16(values, zero);
+    mask           = _mm_movemask_epi8(cmp);
+    // If we found NUL-terminator break.
+    if (mask != 0)
+      break;
+    __m128i is_trail = _mm_and_si128(values, trail_mask);
+    is_trail         = _mm_cmpeq_epi16(is_trail, trail_value);
+    len += PACK_COUNT - std::popcount((unsigned int)_mm_movemask_epi8(is_trail)) / 2;
+    ptr += PACK_COUNT;
+  }
+  // We might have ended on trailing byte
+  // so we can't really use sequence_length here.
+  // In any cases, there are at most 16 byte to check.
+  while (true)
+  {
+    if (*ptr == '\0')
+      return len;
+    if constexpr (SWAP)
+      len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
+    else
+      len += (size_t)(!clt::uni::is_trail_surrogate(*ptr));
+    ++ptr;
+  }
+  clt::unreachable("programming error");
+}
 
 #pragma endregion
 
@@ -447,8 +498,11 @@ size_t clt::uni::details::strlen8(const char8_t* ptr) noexcept
 
 size_t clt::uni::details::strlen16LE(const char16_t* ptr) noexcept
 {
+  using namespace clt::bit;
 #ifdef COLT_x86_64
-  return strlen16LEdefault(ptr);
+  static const auto FN = choose_simd_function<simd_flag::DEFAULT>(
+      &strlen16SSE2<(TargetEndian::native == TargetEndian::big)>);
+  return (*FN)(ptr);
 #else
   return strlen16LEdefault(ptr);
 #endif // COLT_x86_64
@@ -456,8 +510,11 @@ size_t clt::uni::details::strlen16LE(const char16_t* ptr) noexcept
 
 size_t clt::uni::details::strlen16BE(const char16_t* ptr) noexcept
 {
+  using namespace clt::bit;
 #ifdef COLT_x86_64
-  return strlen16BEdefault(ptr);
+  static const auto FN = choose_simd_function<simd_flag::DEFAULT>(
+      &strlen16SSE2<(TargetEndian::native == TargetEndian::little)>);
+  return (*FN)(ptr);
 #else
   return strlen16BEdefault(ptr);
 #endif // COLT_x86_64
