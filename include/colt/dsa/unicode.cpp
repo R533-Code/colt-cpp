@@ -318,7 +318,7 @@ static COLT_FORCE_AVX512BW size_t strlen16AVX512BW(const char16_t* ptr) noexcept
   size_t len = 0;
   // We can't use sequence_length here as the goal is to align
   // and most likely adding sequence_length will not align the pointer.
-  while (uintptr_t(ptr) % 32 != 0)
+  while (uintptr_t(ptr) % 64 != 0)
   {
     if (*ptr == 0)
       return len;
