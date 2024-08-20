@@ -1,3 +1,11 @@
+/*****************************************************************//**
+ * @file   dynamic_lib.h
+ * @brief  Contains `DynamicLib`, which represents a dynamic library
+ *         in an OS agnostic way.
+ * 
+ * @author RPC
+ * @date   August 2024
+ *********************************************************************/
 #ifndef HG_OS_DYNAMIC_LIB
 #define HG_OS_DYNAMIC_LIB
 
@@ -27,10 +35,15 @@ namespace clt::os
     DynamicLib(const DynamicLib&)            = delete;
     DynamicLib& operator=(const DynamicLib&) = delete;
     
+    /// @brief Move constructor
+    /// @param other The library whose handle to steal
     DynamicLib(DynamicLib&& other) noexcept
         : _handle(std::exchange(other._handle, nullptr))
     {
     }
+    /// @brief Move assignment operator
+    /// @param other The library to move from
+    /// @return Self
     DynamicLib& operator=(DynamicLib&& other) noexcept
     {
       assert_true("Self assignment is prohibited!", &other != this);
@@ -67,7 +80,7 @@ namespace clt::os
     /// If `is_closed()`, always returns None.
     /// @tparam Ty The type of the symbol
     /// @param name The name of the symbol
-    /// @return 
+    /// @return None if the symbol was not found, else pointer to the symbol
     template<typename Ty> requires std::is_pointer_v<Ty>
     Option<Ty> find(ZStringView name)
     {
