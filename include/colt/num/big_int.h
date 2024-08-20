@@ -1,6 +1,6 @@
 /*****************************************************************/ /**
  * @file   big_int.h
- * @brief  Contains BigInt and BigRational, wrappers around MPIR.
+ * @brief  Contains BigInt, wrappers around GMP.
  * 
  * @author RPC
  * @date   August 2024
@@ -194,8 +194,11 @@ namespace clt::num
       BigInt copy = *this;
       copy.neg();
       return copy;
-    }    
+    }
 
+    /// @brief Comparison operator
+    /// @param b The other value to compare against
+    /// @return The result of the comparison
     std::strong_ordering operator<=>(const BigInt& b) const noexcept
     {
       auto cmp = mpz_cmp(storage, b.storage);
@@ -207,11 +210,17 @@ namespace clt::num
         return std::strong_ordering::greater;
     }
 
+    /// @brief Compare equal
+    /// @param b The other value to compare against
+    /// @return The result of the comparison
     bool operator==(const BigInt& b) const noexcept
     {
       return (*this <=> b) == std::strong_ordering::equivalent;
     }
 
+    /// @brief Comparison operator
+    /// @param b The other value to compare against
+    /// @return The result of the comparison
     std::strong_ordering operator<=>(double b) const noexcept
     {
       auto cmp = mpz_cmp_d(storage, b);
@@ -223,11 +232,17 @@ namespace clt::num
         return std::strong_ordering::greater;
     }
 
+    /// @brief Compare equal
+    /// @param b The other value to compare against
+    /// @return The result of the comparison
     bool operator==(double b) const noexcept
     {
       return (*this <=> b) == std::strong_ordering::equivalent;
     }
 
+    /// @brief Comparison operator
+    /// @param b The other value to compare against
+    /// @return The result of the comparison
     std::strong_ordering operator<=>(u32 b) const noexcept
     {
       auto cmp = mpz_cmp_ui(storage, b);
@@ -239,11 +254,17 @@ namespace clt::num
         return std::strong_ordering::greater;
     }
 
+    /// @brief Compare equal
+    /// @param b The other value to compare against
+    /// @return The result of the comparison
     bool operator==(u32 b) const noexcept
     {
       return (*this <=> b) == std::strong_ordering::equivalent;
     }
 
+    /// @brief Comparison operator
+    /// @param b The other value to compare against
+    /// @return The result of the comparison
     std::strong_ordering operator<=>(i32 b) const noexcept
     {
       auto cmp = mpz_cmp_si(storage, b);
@@ -255,6 +276,9 @@ namespace clt::num
         return std::strong_ordering::greater;
     }
 
+    /// @brief Compare equal
+    /// @param b The other value to compare against
+    /// @return The result of the comparison
     bool operator==(i32 b) const noexcept
     {
       return (*this <=> b) == std::strong_ordering::equivalent;
