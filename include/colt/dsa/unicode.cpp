@@ -9,7 +9,7 @@
 #include "colt/bit/operations.h"
 #include "colt/bit/detect_simd.h"
 
-size_t strlen8default(const char8_t* ptr) noexcept
+static size_t strlen8default(const char8_t* ptr) noexcept
 {
   size_t len = 0;
   auto end   = ptr;
@@ -22,7 +22,7 @@ size_t strlen8default(const char8_t* ptr) noexcept
   return len;
 }
 
-size_t strlen16LEdefault(const char16_t* ptr) noexcept
+static size_t strlen16LEdefault(const char16_t* ptr) noexcept
 {
   size_t len = 0;
   auto end   = ptr;
@@ -35,7 +35,7 @@ size_t strlen16LEdefault(const char16_t* ptr) noexcept
   return len;
 }
 
-size_t strlen16BEdefault(const char16_t* ptr) noexcept
+static size_t strlen16BEdefault(const char16_t* ptr) noexcept
 {
   size_t len = 0;
   auto end   = ptr;
@@ -48,7 +48,7 @@ size_t strlen16BEdefault(const char16_t* ptr) noexcept
   return len;
 }
 
-size_t unitlen16default(const char16_t* ptr) noexcept
+static size_t unitlen16default(const char16_t* ptr) noexcept
 {
   const auto copy = ptr;
   while (*ptr != 0)
@@ -56,7 +56,7 @@ size_t unitlen16default(const char16_t* ptr) noexcept
   return copy - ptr;
 }
 
-size_t unitlen32default(const char32_t* ptr) noexcept
+static size_t unitlen32default(const char32_t* ptr) noexcept
 {
   const auto copy = ptr;
   while (*ptr != 0)
@@ -66,7 +66,7 @@ size_t unitlen32default(const char32_t* ptr) noexcept
 
 #if defined(COLT_x86_64)
 
-COLT_FORCE_SSE2 size_t strlen8SSE2(const char8_t* ptr) noexcept
+static COLT_FORCE_SSE2 size_t strlen8SSE2(const char8_t* ptr) noexcept
 {
   size_t len = 0;
   // Align pointer to 16 byte boundary to use aligned load
@@ -112,7 +112,7 @@ COLT_FORCE_SSE2 size_t strlen8SSE2(const char8_t* ptr) noexcept
   clt::unreachable("programming error");
 }
 
-COLT_FORCE_AVX2 size_t strlen8AVX2(const char8_t* ptr) noexcept
+static COLT_FORCE_AVX2 size_t strlen8AVX2(const char8_t* ptr) noexcept
 {
   size_t len = 0;
   while (uintptr_t(ptr) % 32 != 0)
@@ -154,7 +154,7 @@ COLT_FORCE_AVX2 size_t strlen8AVX2(const char8_t* ptr) noexcept
   clt::unreachable("programming error");
 }
 
-COLT_FORCE_AVX512BW size_t strlen8AXV512BW(const char8_t* ptr) noexcept
+static COLT_FORCE_AVX512BW size_t strlen8AXV512BW(const char8_t* ptr) noexcept
 {
   size_t len = 0;
   while (uintptr_t(ptr) % 64 != 0)
@@ -194,7 +194,7 @@ COLT_FORCE_AVX512BW size_t strlen8AXV512BW(const char8_t* ptr) noexcept
   clt::unreachable("programming error");
 }
 
-COLT_FORCE_SSE2 size_t unitlen16SSE2(const char16_t* ptr) noexcept
+static COLT_FORCE_SSE2 size_t unitlen16SSE2(const char16_t* ptr) noexcept
 {
   const auto copy = ptr;
   // Align pointer to 16 byte boundary to use aligned load
@@ -222,7 +222,7 @@ COLT_FORCE_SSE2 size_t unitlen16SSE2(const char16_t* ptr) noexcept
 }
 
 // unitlen using AVX2 SIMD instructions
-COLT_FORCE_AVX2 size_t unitlen16AVX2(const char16_t* ptr) noexcept
+static COLT_FORCE_AVX2 size_t unitlen16AVX2(const char16_t* ptr) noexcept
 {
   const auto copy = ptr;
   // Align pointer to 32 byte boundary to use aligned load
@@ -250,7 +250,7 @@ COLT_FORCE_AVX2 size_t unitlen16AVX2(const char16_t* ptr) noexcept
 }
 
 // unitlen using AVX512 SIMD instructions
-COLT_FORCE_AVX512BW size_t unitlen16AVX512F(const char16_t* ptr) noexcept
+static COLT_FORCE_AVX512BW size_t unitlen16AVX512F(const char16_t* ptr) noexcept
 {
   const auto copy = ptr;
   // Align pointer to 64 byte boundary to use aligned load
@@ -278,7 +278,7 @@ COLT_FORCE_AVX512BW size_t unitlen16AVX512F(const char16_t* ptr) noexcept
 // ^^^ unitlen16
 // vvv unitlen32
 
-COLT_FORCE_SSE2 size_t unitlen32SSE2(const char32_t* ptr) noexcept
+static COLT_FORCE_SSE2 size_t unitlen32SSE2(const char32_t* ptr) noexcept
 {
   const auto copy = ptr;
   // Align pointer to 16 byte boundary to use aligned load
@@ -306,7 +306,7 @@ COLT_FORCE_SSE2 size_t unitlen32SSE2(const char32_t* ptr) noexcept
 }
 
 // unitlen using AVX2 SIMD instructions
-COLT_FORCE_AVX2 size_t unitlen32AVX2(const char32_t* ptr) noexcept
+static COLT_FORCE_AVX2 size_t unitlen32AVX2(const char32_t* ptr) noexcept
 {
   const auto copy = ptr;
   // Align pointer to 32 byte boundary to use aligned load
@@ -333,7 +333,7 @@ COLT_FORCE_AVX2 size_t unitlen32AVX2(const char32_t* ptr) noexcept
 }
 
 // unitlen using AVX512 SIMD instructions
-COLT_FORCE_AVX512F size_t unitlen32AVX512F(const char32_t* ptr) noexcept
+static COLT_FORCE_AVX512F size_t unitlen32AVX512F(const char32_t* ptr) noexcept
 {
   const auto copy = ptr;
   // Align pointer to 64 byte boundary to use aligned load
@@ -359,7 +359,7 @@ COLT_FORCE_AVX512F size_t unitlen32AVX512F(const char32_t* ptr) noexcept
 }
 #elif defined(COLT_ARM_7or8)
 
-size_t unitlen16NEON(const char16_t* ptr) noexcept
+static COLT_FORCE_NEON size_t unitlen16NEON(const char16_t* ptr) noexcept
 {
   const auto copy = ptr;
 
@@ -382,7 +382,7 @@ size_t unitlen16NEON(const char16_t* ptr) noexcept
   return (ptr - copy) + std::countr_zero(mask) / 2;
 }
 
-size_t unitlen32NEON(const char32_t* ptr) noexcept
+static COLT_FORCE_NEON size_t unitlen32NEON(const char32_t* ptr) noexcept
 {
   const auto copy = ptr;
 
