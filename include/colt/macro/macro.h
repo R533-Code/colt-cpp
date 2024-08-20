@@ -51,12 +51,26 @@
 /// @brief p => q
 #define COLT_IMPLIES(p, q) !(bool)(p) || (q)
 
+/// @brief Expands to default copy/move constructor/assignment operator
+#define MAKE_DEFAULT_COPY_AND_MOVE_FOR(type)                 \
+  constexpr type(type&&) noexcept                 = default; \
+  constexpr type(const type&) noexcept            = default; \
+  constexpr type& operator=(type&&) noexcept      = default; \
+  constexpr type& operator=(const type&) noexcept = default;
+
+/// @brief Expands to delete copy/move constructor/assignment operator
+#define MAKE_DELETE_COPY_AND_MOVE_FOR(type) \
+  type(type&&)                 = delete;    \
+  type(const type&)            = delete;    \
+  type& operator=(type&&)      = delete;    \
+  type& operator=(const type&) = delete;
+
 namespace clt
 {
   HEDLEY_ALWAYS_INLINE
-    constexpr bool implies(bool p, bool q) noexcept
+  constexpr bool implies(bool p, bool q) noexcept
   {
-      return !p || q;
+    return !p || q;
   }
 
   [[noreturn]]
@@ -68,50 +82,77 @@ namespace clt
     std::abort();
   }
 
+  /// @brief Represents a location in source code.
+  /// Used to support older compilers.
   class source_location
   {
+    /// @brief The file name
     const char* file = "";
+    /// @brief The function name
     const char* function = "";
+    /// @brief The line number
     std::uint_least32_t line_;
+    /// @brief The column number
     std::uint_least32_t column_;
 
   public:
-    constexpr source_location(const char* file, const char* fn, std::uint_least32_t line, std::uint_least32_t column) noexcept
-      : file(file), function(fn), line_(line), column_(column) {}
-    
+    /// @brief Default constructor
     constexpr source_location() noexcept = default;
 
-    constexpr const char* file_name() const noexcept
+    /// @brief Constructor
+    /// @param file The file name
+    /// @param fn The function name
+    /// @param line The line number
+    /// @param column The column number
+    constexpr source_location(
+        const char* file, const char* fn, std::uint_least32_t line,
+        std::uint_least32_t column) noexcept
+        : file(file)
+        , function(fn)
+        , line_(line)
+        , column_(column)
     {
-      return file;
     }
 
-    constexpr const char* function_name() const noexcept
-    {
-      return function;
-    }
+    MAKE_DEFAULT_COPY_AND_MOVE_FOR(source_location);
 
-    constexpr auto line() const noexcept
-    {
-      return line_;
-    }
-
-    constexpr auto column() const noexcept
-    {
-      return column_;
-    }
+    /// @brief Returns the file name
+    /// @return File name
+    constexpr const char* file_name() const noexcept { return file; }
+    /// @brief Returns the function name
+    /// @return Function name
+    constexpr const char* function_name() const noexcept { return function; }
+    /// @brief Returns the line number
+    /// @return The line number
+    constexpr auto line() const noexcept { return line_; }
+    /// @brief Returns the column
+    /// @return The column
+    constexpr auto column() const noexcept { return column_; }
 
 #if defined(COLT_MSVC) || defined(COLT_CLANG) || defined(COLT_GNU)
-    static constexpr source_location current(const char* file = __builtin_FILE(),
-      const char* fn = __builtin_FUNCTION(),
-      std::uint_least32_t line = __builtin_LINE(),
-      // TODO: clang and msvc support builtin column
-      std::uint_least32_t column = 0) noexcept
+    /// @brief Constructs a source_location using the current location
+    /// @param file The file name
+    /// @param fn The function name
+    /// @param line The line number
+    /// @param column The column number
+    static constexpr source_location current(
+        const char* file = __builtin_FILE(), const char* fn = __builtin_FUNCTION(),
+        std::uint_least32_t line = __builtin_LINE(),
+  #if defined(COLT_MSVC) || defined(COLT_CLANG)
+        std::uint_least32_t column = __builtin_COLUMN()
+  #else
+        std::uint_least32_t column = 0
+  #endif // COLT_MSVC || COLT_CLANG
+            ) noexcept
 #else
-    static constexpr source_location current(const char* file = "unknown",
-      const char* fn = "unknown",
-      std::uint_least32_t line = 0,
-      std::uint_least32_t column = 0) noexcept
+    /// @brief Constructs a source_location using the current location
+    /// @param file The file name
+    /// @param fn The function name
+    /// @param line The line number
+    /// @param column The column number
+    static constexpr source_location current(
+        const char* file = "unknown", const char* fn = "unknown",
+        std::uint_least32_t line = 0, std::uint_least32_t column = 0) noexcept
 #endif
     {
       return source_location(file, fn, line, column);
@@ -233,19 +274,5 @@ namespace clt
 
 /// @brief Helper for COLT_FOR_EACH_*
 #define __DETAILS__COLT_FOR_EACH_AGAIN_4ARG() __DETAILS__COLT_FOR_EACH_HELPER_4ARG
-
-/// @brief Expands to default copy/move constructor/assignment operator
-#define MAKE_DEFAULT_COPY_AND_MOVE_FOR(type)                 \
-  constexpr type(type&&) noexcept                 = default; \
-  constexpr type(const type&) noexcept            = default; \
-  constexpr type& operator=(type&&) noexcept      = default; \
-  constexpr type& operator=(const type&) noexcept = default;
-
-/// @brief Expands to delete copy/move constructor/assignment operator
-#define MAKE_DELETE_COPY_AND_MOVE_FOR(type) \
-  type(type&&)                 = delete;    \
-  type(const type&)            = delete;    \
-  type& operator=(type&&)      = delete;    \
-  type& operator=(const type&) = delete;
 
 #endif // !HG_MACRO_MACRO
