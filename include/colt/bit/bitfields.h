@@ -1,6 +1,8 @@
 /*****************************************************************/ /**
  * @file   bitfields.h
  * @brief  Contains portable bitfield helpers.
+ * The bitfield has zero-overhead and compiles to the same code
+ * as using a normal bitfield.
  * 
  * @author RPC
  * @date   August 2024
@@ -46,7 +48,7 @@ namespace clt::bit
   /// // Example usage:
   /// enum class FieldName
   /// {
-  ///   Opcode, Payload, Padding
+  ///   OpCode, Payload, Padding
   /// };
   /// using Type = Bitfields<u16,
   ///   Bitfield<FieldName::OpCode, 4>, // ID, bit size
@@ -99,6 +101,9 @@ namespace clt::bit
       assert_true("Invalid field name!", false);
     }
 
+    /// @brief Returns the field information of field 'index'
+    /// @param index The index
+    /// @return Pair containing the offset to the field, and size of the field
     static consteval std::pair<u64, u64> field_info(u64 index) noexcept
     {
       std::array<std::pair<index_t, size_t>, field_count> array = {
@@ -164,10 +169,7 @@ namespace clt::bit
       set_fields(std::make_index_sequence<sizeof...(Ints)>{}, fields...);
     }
 
-    constexpr Bitfields(Bitfields&&) noexcept                 = default;
-    constexpr Bitfields(const Bitfields&) noexcept            = default;
-    constexpr Bitfields& operator=(Bitfields&&) noexcept      = default;
-    constexpr Bitfields& operator=(const Bitfields&) noexcept = default;
+    MAKE_DEFAULT_COPY_AND_MOVE_FOR(Bitfields);
 
     /// @brief Returns the bit field of ID 'index'.
     /// If this method produces an 'expression cannot be constant evaluated'
