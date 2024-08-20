@@ -1,6 +1,6 @@
 /*****************************************************************/ /**
  * @file   big_int.h
- * @brief  Contains BigRational and BigRational, wrappers around MPIR.
+ * @brief  Contains BigRational, wrappers around MPIR.
  * 
  * @author RPC
  * @date   August 2024
@@ -197,9 +197,19 @@ namespace clt::num
       return copy;
     }
 
+    /// @brief Compare equal
+    /// @param b The other value to compare against
+    /// @return The result of the comparison
+    bool operator==(const BigRational& b) const noexcept
+    {
+      return mpq_equal(storage, b.storage);
+    }
+
+    /// @brief Comparison operator
+    /// @param b The other value to compare against
+    /// @return The result of the comparison
     std::strong_ordering operator<=>(const BigRational& b) const noexcept
     {
-      // TODO: make use of mpq_equal for performance
       auto cmp = mpq_cmp(storage, b.storage);
       if (cmp < 0)
         return std::strong_ordering::less;
