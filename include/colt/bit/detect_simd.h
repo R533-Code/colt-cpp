@@ -101,26 +101,33 @@ namespace clt::bit
   ///         if none are supported.
   template<simd_flag... PREFERED, typename FnPtr, typename... FnPtrs>
     requires(sizeof...(PREFERED) == sizeof...(FnPtrs) + 1)
-            && meta::are_all_same<FnPtr, FnPtrs...>
+            && meta::are_all_same<FnPtr, FnPtr, FnPtrs...>
   auto choose_simd_function(FnPtr first, FnPtrs... pack) noexcept
   {
     static_assert(
         (PREFERED, ...) == simd_flag::DEFAULT,
         "The last item of PREFERED must be DEFAULT.");
-    auto support                = detect_supported_architectures();
-    constexpr size_t ARRAY_SIZE = sizeof...(PREFERED);
-    constexpr simd_flag ARRAY[] = {PREFERED...};
-    const FnPtr ARRAYFN[]       = {first, pack...};
-    for (size_t i = 0; i < ARRAY_SIZE - 1; i++)
+    if constexpr (sizeof...(pack) == 0)
     {
-      if (support & ARRAY[i])
-      {
-        if constexpr (is_debug_build())
-          fmt::println("Using {} implementation.", ARRAY[i]);
-        return ARRAYFN[i];
-      }
+      return first;
     }
-    return ARRAYFN[ARRAY_SIZE - 1];
+    else
+    {
+      auto support                = detect_supported_architectures();
+      constexpr size_t ARRAY_SIZE = sizeof...(PREFERED);
+      constexpr simd_flag ARRAY[] = {PREFERED...};
+      const FnPtr ARRAYFN[]       = {first, pack...};
+      for (size_t i = 0; i < ARRAY_SIZE - 1; i++)
+      {
+        if (support & ARRAY[i])
+        {
+          if constexpr (is_debug_build())
+            fmt::println("Using {} implementation.", ARRAY[i]);
+          return ARRAYFN[i];
+        }
+      }
+      return ARRAYFN[ARRAY_SIZE - 1];
+    }
   }
 } // namespace clt::bit
 
