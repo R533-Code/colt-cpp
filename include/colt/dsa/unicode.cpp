@@ -9,6 +9,8 @@
 #include "colt/bit/operations.h"
 #include "colt/bit/detect_simd.h"
 
+#pragma region // DEFAULT: strlen8 strlen16[BL]E
+
 static size_t strlen8default(const char8_t* ptr) noexcept
 {
   size_t len = 0;
@@ -48,6 +50,10 @@ static size_t strlen16BEdefault(const char16_t* ptr) noexcept
   return len;
 }
 
+#pragma endregion
+
+#pragma region // DEFAULT: unitlen16  unitlen32
+
 static size_t unitlen16default(const char16_t* ptr) noexcept
 {
   const auto copy = ptr;
@@ -64,8 +70,11 @@ static size_t unitlen32default(const char32_t* ptr) noexcept
   return copy - ptr;
 }
 
+#pragma endregion
+
 #if defined(COLT_x86_64)
 
+#pragma region // strlen8 SSE2, AVX2, AXV512BW
 static COLT_FORCE_SSE2 size_t strlen8SSE2(const char8_t* ptr) noexcept
 {
   size_t len = 0;
@@ -194,6 +203,16 @@ static COLT_FORCE_AVX512BW size_t strlen8AXV512BW(const char8_t* ptr) noexcept
   clt::unreachable("programming error");
 }
 
+#pragma endregion
+
+#pragma region // strlen16 SSE2, AVX2, AVX512BW
+
+
+
+#pragma endregion
+
+#pragma region // unitlen16 SSE2, AVX2, AVX512F
+
 static COLT_FORCE_SSE2 size_t unitlen16SSE2(const char16_t* ptr) noexcept
 {
   const auto copy = ptr;
@@ -250,7 +269,7 @@ static COLT_FORCE_AVX2 size_t unitlen16AVX2(const char16_t* ptr) noexcept
 }
 
 // unitlen using AVX512 SIMD instructions
-static COLT_FORCE_AVX512BW size_t unitlen16AVX512F(const char16_t* ptr) noexcept
+static COLT_FORCE_AVX512F size_t unitlen16AVX512F(const char16_t* ptr) noexcept
 {
   const auto copy = ptr;
   // Align pointer to 64 byte boundary to use aligned load
@@ -275,9 +294,9 @@ static COLT_FORCE_AVX512BW size_t unitlen16AVX512F(const char16_t* ptr) noexcept
   return (ptr - copy) + std::countr_zero(mask);
 }
 
-// ^^^ unitlen16
-// vvv unitlen32
+#pragma endregion
 
+#pragma region // unitlen32 SSE2, AVX2, AVX512F
 static COLT_FORCE_SSE2 size_t unitlen32SSE2(const char32_t* ptr) noexcept
 {
   const auto copy = ptr;
@@ -357,8 +376,11 @@ static COLT_FORCE_AVX512F size_t unitlen32AVX512F(const char32_t* ptr) noexcept
   }
   return (ptr - copy) + std::countr_zero(mask);
 }
+#pragma endregion
+
 #elif defined(COLT_ARM_7or8)
 
+#pragma region // unitlen16 NEON
 static COLT_FORCE_NEON size_t unitlen16NEON(const char16_t* ptr) noexcept
 {
   const auto copy = ptr;
@@ -381,7 +403,9 @@ static COLT_FORCE_NEON size_t unitlen16NEON(const char16_t* ptr) noexcept
   }
   return (ptr - copy) + std::countr_zero(mask) / 2;
 }
+#pragma endregion
 
+#pragma region // unitlen32 NEON
 static COLT_FORCE_NEON size_t unitlen32NEON(const char32_t* ptr) noexcept
 {
   const auto copy = ptr;
@@ -404,6 +428,7 @@ static COLT_FORCE_NEON size_t unitlen32NEON(const char32_t* ptr) noexcept
   }
   return (ptr - copy) + std::countr_zero(mask) / 2;
 }
+#pragma endregion
 
 #endif // COLT_x86_64
 
