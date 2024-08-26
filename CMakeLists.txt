@@ -188,7 +188,7 @@ set_target_properties(${SIMDUTF_TO_EXCLUDE} PROPERTIES EXCLUDE_FROM_ALL True)
 set_target_properties(${ALL_TARGETS} PROPERTIES FOLDER HiddenTargets)
 
 # Used to avoid dependencies from adding their own tests.
-configure_file(${CMAKE_SOURCE_DIR}/resources/CTestCustom.cmake ${CMAKE_BINARY_DIR} @ONLY)
+configure_file(${PROJECT_SOURCE_DIR}/resources/CTestCustom.cmake ${CMAKE_BINARY_DIR} @ONLY)
 
 #########################################
 # COLT CONFIG
@@ -232,7 +232,7 @@ else()
   set(IMPL_COLT_OS_STRING "UNKNOWN")
 endif()
 
-configure_file("${CMAKE_SOURCE_DIR}/resources/cmake_colt_config.in"
-  "${CMAKE_SOURCE_DIR}/include/colt/macro/config.h")
+configure_file("${PROJECT_SOURCE_DIR}/resources/cmake_colt_config.in"
+  "${PROJECT_SOURCE_DIR}/include/colt/macro/config.h")
 
 message(STATUS "Finished configuring 'config.h'!")
