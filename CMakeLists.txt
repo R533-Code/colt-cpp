@@ -22,28 +22,28 @@ add_library(colt_helper STATIC ${ColtHeaders} ${ColtUnits})
 
 # Define COLT_DEBUG_BUILD for debug config
 target_compile_definitions(
-  colt_helper PRIVATE $<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
+  colt_helper INTERFACE $<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
 )
 target_compile_definitions(
-  colt_helper_test PRIVATE $<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
+  colt_helper_test INTERFACE $<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
 )
 
 target_compile_options(
-  colt_helper PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>
-  PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
+  colt_helper INTERFACE $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>
+  INTERFACE $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
 )
 
 target_compile_options(
-  colt_helper_test PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>
-  PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
+  colt_helper_test INTERFACE $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>
+  INTERFACE $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
 )
 
 if (NOT MSVC)
     set_target_properties(colt_helper_test PROPERTIES LINK_FLAGS "-Wl,-export-dynamic")
 endif()
 
-target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/include/")
-target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/include")
+target_include_directories(colt_helper_test INTERFACE "${PROJECT_SOURCE_DIR}/include/")
+target_include_directories(colt_helper INTERFACE "${PROJECT_SOURCE_DIR}/include")
 
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT colt_helper_test)
 message(STATUS "Setting up libraries...")
@@ -74,44 +74,44 @@ ExternalProject_Add(mpir
 )
 
 # Specify the directories where header files are located
-target_include_directories(colt_helper PRIVATE ${MPIR_INCLUDE_DIR})
-target_include_directories(colt_helper_test PRIVATE ${MPIR_INCLUDE_DIR})
+target_include_directories(colt_helper INTERFACE ${MPIR_INCLUDE_DIR})
+target_include_directories(colt_helper_test INTERFACE ${MPIR_INCLUDE_DIR})
 
 # Link MPIR library
 add_dependencies(colt_helper mpir)
 add_dependencies(colt_helper_test mpir)
-target_link_libraries(colt_helper PRIVATE ${MPIR_LIBRARY})
-target_link_libraries(colt_helper_test PRIVATE ${MPIR_LIBRARY})
+target_link_libraries(colt_helper INTERFACE ${MPIR_LIBRARY})
+target_link_libraries(colt_helper_test INTERFACE ${MPIR_LIBRARY})
 ###########################
 
 ###########################
 # Add {fmt}
 message(STATUS "Adding 'fmt'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/fmt")
-target_link_libraries(colt_helper PUBLIC fmt::fmt)
-target_link_libraries(colt_helper_test PUBLIC fmt::fmt)
+target_link_libraries(colt_helper INTERFACE fmt::fmt)
+target_link_libraries(colt_helper_test INTERFACE fmt::fmt)
 ###########################
 
 ###########################
 # Add scnlib
 message(STATUS "Adding 'scnlib'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/scnlib")
-target_link_libraries(colt_helper PUBLIC scn::scn)
-target_link_libraries(colt_helper_test PUBLIC scn::scn)
+target_link_libraries(colt_helper INTERFACE scn::scn)
+target_link_libraries(colt_helper_test INTERFACE scn::scn)
 ###########################
 
 ###########################
 # Add gcem
 message(STATUS "Adding 'gcem'...")
-target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/gcem/include")
-target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/gcem/include")
+target_include_directories(colt_helper_test INTERFACE "${PROJECT_SOURCE_DIR}/libraries/gcem/include")
+target_include_directories(colt_helper INTERFACE "${PROJECT_SOURCE_DIR}/libraries/gcem/include")
 ###########################
 
 ###########################
 # Add zpp_bits
 message(STATUS "Adding 'zpp_bits'...")
-target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/zpp_bits")
-target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/zpp_bits")
+target_include_directories(colt_helper_test INTERFACE "${PROJECT_SOURCE_DIR}/libraries/zpp_bits")
+target_include_directories(colt_helper INTERFACE "${PROJECT_SOURCE_DIR}/libraries/zpp_bits")
 ###########################
 
 ###########################
@@ -119,8 +119,8 @@ target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/
 message(STATUS "Adding 'uni-algo'...")
 set(UNI_ALGO_HEADER_ONLY ON CACHE INTERNAL "")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/uni-algo")
-target_link_libraries(colt_helper PRIVATE uni-algo::uni-algo)
-target_link_libraries(colt_helper_test PRIVATE uni-algo::uni-algo)
+target_link_libraries(colt_helper INTERFACE uni-algo::uni-algo)
+target_link_libraries(colt_helper_test INTERFACE uni-algo::uni-algo)
 ###########################
 
 ###########################
@@ -130,30 +130,30 @@ set(SIMDUTF_ICONV OFF CACHE BOOL "simdutf use iconv." FORCE)
 set(SIMDUTF_TESTS OFF CACHE BOOL "simdutf generate tests." FORCE)
 set(SIMDUTF_TOOLS OFF CACHE BOOL "simdutf generate tool." FORCE)
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/simdutf")
-target_link_libraries(colt_helper PRIVATE simdutf)
-target_link_libraries(colt_helper_test PRIVATE simdutf)
+target_link_libraries(colt_helper INTERFACE simdutf)
+target_link_libraries(colt_helper_test INTERFACE simdutf)
 ###########################
 
 ###########################
 # Add hedley
 message(STATUS "Adding 'hedley'...")
-target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/hedley")
-target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/hedley")
+target_include_directories(colt_helper_test INTERFACE "${PROJECT_SOURCE_DIR}/libraries/hedley")
+target_include_directories(colt_helper INTERFACE "${PROJECT_SOURCE_DIR}/libraries/hedley")
 ###########################
 
 ###########################
 # Add date
 message(STATUS "Adding 'date'...")
-target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/date/include")
-target_include_directories(colt_helper PRIVATE "${PROJECT_SOURCE_DIR}/libraries/date/include")
+target_include_directories(colt_helper_test INTERFACE "${PROJECT_SOURCE_DIR}/libraries/date/include")
+target_include_directories(colt_helper INTERFACE "${PROJECT_SOURCE_DIR}/libraries/date/include")
 ###########################
 
 ###########################
 # Catch2
 message(STATUS "Adding 'Catch2'...")
-target_include_directories(colt_helper_test PRIVATE "${PROJECT_SOURCE_DIR}/libraries/Catch2")
+target_include_directories(colt_helper_test INTERFACE "${PROJECT_SOURCE_DIR}/libraries/Catch2")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/Catch2")
-target_link_libraries(colt_helper_test PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(colt_helper_test INTERFACE Catch2::Catch2WithMain)
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(CTest)
