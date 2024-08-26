@@ -364,7 +364,8 @@ namespace clt
                && std::convertible_to<std::invoke_result_t<Fn>, ExpectedTy>
     constexpr ExpectedTy value_or(Fn&& default_value) const&
     {
-      return is_error_v ? static_cast<T>(std::forward<Fn>(default_value)()) : **this;
+      return is_error_v ? static_cast<ExpectedTy>(std::forward<Fn>(default_value)())
+                        : **this;
     }
 
     template<typename Fn>
@@ -372,7 +373,7 @@ namespace clt
                && std::convertible_to<std::invoke_result_t<Fn>, ExpectedTy>
     constexpr ExpectedTy value_or(Fn&& default_value) &&
     {
-      return is_error_v ? static_cast<T>(std::forward<Fn>(default_value)())
+      return is_error_v ? static_cast<ExpectedTy>(std::forward<Fn>(default_value)())
                         : std::move(**this);
     }
 

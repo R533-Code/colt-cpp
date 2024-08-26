@@ -155,8 +155,8 @@ namespace clt::num
       *result = (T)a * (T)b;
       return (a == -1 && b == std::numeric_limits<T>::min())
              || (b == -1 && a == std::numeric_limits<T>::min())
-             || (b != 0 && a > std::numeric_limits<T>::max() / x)
-             || (b != 0 && a < std::numeric_limits<T>::min() / x);
+             || (b != 0 && a > std::numeric_limits<T>::max() / b)
+             || (b != 0 && a < std::numeric_limits<T>::min() / b);
     }
     else // u64
     {

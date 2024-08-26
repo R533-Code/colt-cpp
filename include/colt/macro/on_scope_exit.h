@@ -8,6 +8,8 @@
 #ifndef HG_MACRO_ON_SCOPE_EXIT
 #define HG_MACRO_ON_SCOPE_EXIT
 
+#include <colt/macro/macro.h>
+
 namespace clt::details
 {
   template<typename Fun>
