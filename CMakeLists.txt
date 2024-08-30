@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.21)
 
 # C++20 is required
 set(CMAKE_CXX_STANDARD 20)
@@ -36,6 +36,12 @@ target_compile_options(
 target_compile_options(
   colt_helper_test PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>
   PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
+)
+
+add_custom_command(TARGET colt_helper_test POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:colt_helper_test> 
+        $<TARGET_FILE_DIR:colt_helper_test>
+    COMMAND_EXPAND_LISTS
 )
 
 if (NOT MSVC)
