@@ -76,11 +76,11 @@ jobs:
 
       # Test functions that use `choose_simd_function`
     - name: Test SSE42
-      run: $SDE_PATH/sde -snb -- '${{ steps.strings.outputs.build-output-dir }}/colt_helper_test'
+      run: $SDE_PATH/sde -snb -- '${{ steps.strings.outputs.build-output-dir }}/coltcpp_tests'
 
     - name: Test AVX2
-      run: $SDE_PATH/sde -bdw -- '${{ steps.strings.outputs.build-output-dir }}/colt_helper_test'
+      run: $SDE_PATH/sde -bdw -- '${{ steps.strings.outputs.build-output-dir }}/coltcpp_tests'
     
     - name: Test AVX512
-      run: $SDE_PATH/sde -skx -- '${{ steps.strings.outputs.build-output-dir }}/colt_helper_test'
+      run: $SDE_PATH/sde -skx -- '${{ steps.strings.outputs.build-output-dir }}/coltcpp_tests'
       
