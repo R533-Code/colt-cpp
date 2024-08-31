@@ -178,7 +178,7 @@ target_include_directories(coltcpp PUBLIC "${PROJECT_SOURCE_DIR}/libraries/date/
 message(STATUS "Adding 'Catch2'...")
 target_include_directories(coltcpp_tests PUBLIC "${PROJECT_SOURCE_DIR}/libraries/Catch2")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/Catch2")
-target_link_libraries(coltcpp_tests PUBLIC Catch2::Catch2WithMain)
+target_link_libraries(coltcpp_tests PUBLIC Catch2::Catch2)
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(CTest)
