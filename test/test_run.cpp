@@ -19,7 +19,6 @@ int main(int argc, char* argv[])
   using namespace clt;
   using namespace clt::io;
 
-  auto result = Catch::Session().run(argc, argv);
   fmt::println(
       stderr,
       "Running tests on {}{} {}{}{} ({}).\nThis is a {}-endian system.\nSupported "
@@ -31,5 +30,5 @@ int main(int argc, char* argv[])
       "big",
 #endif // COLT_LITTLE_ENDIAN
       BrightBlueF, bit::detect_supported_architectures(), Reset);
-  return result;
+  return Catch::Session().run(argc, argv);
 }
