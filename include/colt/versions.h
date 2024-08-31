@@ -30,7 +30,7 @@ namespace clt::vers
     assert_true("Invalid format!", '0' <= *ptr && *ptr <= '9');
     while (*ptr && *ptr != '.')
       ++ptr;
-    assert_true("Invalid format!", '.');
+    assert_true("Invalid format!", *ptr == '.');
     ++ptr;
     assert_true("Invalid format!", '0' <= *ptr && *ptr <= '9');
     u16 result = 0;
@@ -48,7 +48,7 @@ namespace clt::vers
       result = 0;
       while (*ptr && *ptr != '.')
         ++ptr;
-      assert_true("Invalid format!", '.');
+      assert_true("Invalid format!", *ptr == '.');
       ++ptr;
       assert_true("Invalid format!", '0' <= *ptr && *ptr <= '9');
       while ('0' <= *ptr && *ptr <= '9')
@@ -109,12 +109,12 @@ struct fmt::formatter<clt::vers::Version>
   template<typename FormatContext>
   auto format(const clt::vers::Version& version, FormatContext& ctx) const
   {
-    if (version.patch == 0)
+    if (version.tweak == 0)
       return fmt::format_to(
-          ctx.out(), "{}.{}.{}", version.major, version.minor, version.tweak);
+          ctx.out(), "{}.{}.{}", version.major, version.minor, version.patch);
     return fmt::format_to(
-        ctx.out(), "{}.{}.{}.{}", version.major, version.minor, version.tweak,
-        version.patch);
+        ctx.out(), "{}.{}.{}.{}", version.major, version.minor, version.patch,
+        version.tweak);
   }
 };
 
