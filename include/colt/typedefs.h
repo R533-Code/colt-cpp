@@ -173,7 +173,7 @@ namespace clt::details
 } // namespace clt::details
 
 /// @brief Boolean that represents a success/failure state that must be checked.
-using ErrorFlag =
-    std::conditional_t<clt::is_debug_build(), clt::details::ErrorDebug, clt::details::ErrorRelease>;
+using ErrorFlag = std::conditional_t<
+    clt::is_debug_build(), clt::details::ErrorDebug, clt::details::ErrorRelease>;
 
 #endif // !HG_NUM_TYPEDEFS
