@@ -45,6 +45,8 @@ add_executable(coltcpp_tests
 
 # The library that can be linked with
 add_library(coltcpp ${ColtHeaders} ${ColtUnits})
+set_target_properties(coltcpp PROPERTIES OUTPUT_NAME libcoltcpp)
+
 
 # Define COLT_DEBUG_BUILD for debug config
 target_compile_definitions(
@@ -116,6 +118,7 @@ message(STATUS "Adding 'fmt'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/fmt")
 target_link_libraries(coltcpp PUBLIC fmt::fmt)
 target_link_libraries(coltcpp_tests PUBLIC fmt::fmt)
+set_target_properties(fmt PROPERTIES OUTPUT_NAME libfmt)
 ###########################
 
 ###########################
@@ -124,6 +127,7 @@ message(STATUS "Adding 'scnlib'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/scnlib")
 target_link_libraries(coltcpp PUBLIC scn::scn)
 target_link_libraries(coltcpp_tests PUBLIC scn::scn)
+set_target_properties(scn PROPERTIES OUTPUT_NAME libscn)
 ###########################
 
 ###########################
@@ -146,6 +150,7 @@ message(STATUS "Adding 'uni-algo'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/uni-algo")
 target_link_libraries(coltcpp PUBLIC uni-algo::uni-algo)
 target_link_libraries(coltcpp_tests PUBLIC uni-algo::uni-algo)
+set_target_properties(uni-algo PROPERTIES OUTPUT_NAME libunialgo)
 ###########################
 
 ###########################
@@ -157,6 +162,7 @@ set(SIMDUTF_TOOLS OFF CACHE BOOL "simdutf generate tool." FORCE)
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/simdutf")
 target_link_libraries(coltcpp PUBLIC simdutf)
 target_link_libraries(coltcpp_tests PUBLIC simdutf)
+set_target_properties(simdutf PROPERTIES OUTPUT_NAME libsimdutf)
 ###########################
 
 ###########################
