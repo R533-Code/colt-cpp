@@ -7,51 +7,46 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 project(Colt-Cpp VERSION 0.0.4.1 LANGUAGES CXX C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 # Save all the files to compile
 file(GLOB_RECURSE ColtHeaders "include/*.h")
 file(GLOB_RECURSE ColtUnits "include/*.cpp")
 file(GLOB_RECURSE ColtUnitTests "test/*.cpp")
 
-add_executable(colt_helper_test
+add_executable(coltcpp_tests
   ${ColtHeaders} ${ColtUnits} ${ColtUnitTests}
 )
 
 # The library that can be linked with
-add_library(colt_helper STATIC ${ColtHeaders} ${ColtUnits})
+add_library(coltcpp ${ColtHeaders} ${ColtUnits})
 
 # Define COLT_DEBUG_BUILD for debug config
 target_compile_definitions(
-  colt_helper PUBLIC $<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
+  coltcpp PUBLIC $<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
 )
 target_compile_definitions(
-  colt_helper_test PUBLIC $<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
+  coltcpp_tests PUBLIC $<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
 )
 
 target_compile_options(
-  colt_helper PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>
+  coltcpp PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>
   PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
 )
 
 target_compile_options(
-  colt_helper_test PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>
+  coltcpp_tests PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/Zc:preprocessor>
   PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/utf-8>
-)
-
-add_custom_command(TARGET colt_helper_test POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:colt_helper_test> 
-        $<TARGET_FILE_DIR:colt_helper_test>
-    COMMAND_EXPAND_LISTS
 )
 
 if (NOT MSVC)
-    set_target_properties(colt_helper_test PROPERTIES LINK_FLAGS "-Wl,-export-dynamic")
+    set_target_properties(coltcpp_tests PROPERTIES LINK_FLAGS "-Wl,-export-dynamic")
 endif()
 
-target_include_directories(colt_helper_test PUBLIC "${PROJECT_SOURCE_DIR}/include/")
-target_include_directories(colt_helper PUBLIC "${PROJECT_SOURCE_DIR}/include")
+target_include_directories(coltcpp_tests PUBLIC "${PROJECT_SOURCE_DIR}/include/")
+target_include_directories(coltcpp PUBLIC "${PROJECT_SOURCE_DIR}/include")
 
-set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT colt_helper_test)
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT coltcpp_tests)
 message(STATUS "Setting up libraries...")
 
 ###########################
@@ -80,53 +75,52 @@ ExternalProject_Add(mpir
 )
 
 # Specify the directories where header files are located
-target_include_directories(colt_helper PUBLIC ${MPIR_INCLUDE_DIR})
-target_include_directories(colt_helper_test PUBLIC ${MPIR_INCLUDE_DIR})
+target_include_directories(coltcpp PUBLIC ${MPIR_INCLUDE_DIR})
+target_include_directories(coltcpp_tests PUBLIC ${MPIR_INCLUDE_DIR})
 
 # Link MPIR library
-add_dependencies(colt_helper mpir)
-add_dependencies(colt_helper_test mpir)
-target_link_libraries(colt_helper PUBLIC ${MPIR_LIBRARY})
-target_link_libraries(colt_helper_test PUBLIC ${MPIR_LIBRARY})
+add_dependencies(coltcpp mpir)
+add_dependencies(coltcpp_tests mpir)
+target_link_libraries(coltcpp PUBLIC ${MPIR_LIBRARY})
+target_link_libraries(coltcpp_tests PUBLIC ${MPIR_LIBRARY})
 ###########################
 
 ###########################
 # Add {fmt}
 message(STATUS "Adding 'fmt'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/fmt")
-target_link_libraries(colt_helper PUBLIC fmt::fmt)
-target_link_libraries(colt_helper_test PUBLIC fmt::fmt)
+target_link_libraries(coltcpp PUBLIC fmt::fmt)
+target_link_libraries(coltcpp_tests PUBLIC fmt::fmt)
 ###########################
 
 ###########################
 # Add scnlib
 message(STATUS "Adding 'scnlib'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/scnlib")
-target_link_libraries(colt_helper PUBLIC scn::scn)
-target_link_libraries(colt_helper_test PUBLIC scn::scn)
+target_link_libraries(coltcpp PUBLIC scn::scn)
+target_link_libraries(coltcpp_tests PUBLIC scn::scn)
 ###########################
 
 ###########################
 # Add gcem
 message(STATUS "Adding 'gcem'...")
-target_include_directories(colt_helper_test PUBLIC "${PROJECT_SOURCE_DIR}/libraries/gcem/include")
-target_include_directories(colt_helper PUBLIC "${PROJECT_SOURCE_DIR}/libraries/gcem/include")
+target_include_directories(coltcpp_tests PUBLIC "${PROJECT_SOURCE_DIR}/libraries/gcem/include")
+target_include_directories(coltcpp PUBLIC "${PROJECT_SOURCE_DIR}/libraries/gcem/include")
 ###########################
 
 ###########################
 # Add zpp_bits
 message(STATUS "Adding 'zpp_bits'...")
-target_include_directories(colt_helper_test PUBLIC "${PROJECT_SOURCE_DIR}/libraries/zpp_bits")
-target_include_directories(colt_helper PUBLIC "${PROJECT_SOURCE_DIR}/libraries/zpp_bits")
+target_include_directories(coltcpp_tests PUBLIC "${PROJECT_SOURCE_DIR}/libraries/zpp_bits")
+target_include_directories(coltcpp PUBLIC "${PROJECT_SOURCE_DIR}/libraries/zpp_bits")
 ###########################
 
 ###########################
 # Add uni-algo
 message(STATUS "Adding 'uni-algo'...")
-set(UNI_ALGO_HEADER_ONLY ON CACHE INTERNAL "")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/uni-algo")
-target_link_libraries(colt_helper PUBLIC uni-algo::uni-algo)
-target_link_libraries(colt_helper_test PUBLIC uni-algo::uni-algo)
+target_link_libraries(coltcpp PUBLIC uni-algo::uni-algo)
+target_link_libraries(coltcpp_tests PUBLIC uni-algo::uni-algo)
 ###########################
 
 ###########################
@@ -136,35 +130,37 @@ set(SIMDUTF_ICONV OFF CACHE BOOL "simdutf use iconv." FORCE)
 set(SIMDUTF_TESTS OFF CACHE BOOL "simdutf generate tests." FORCE)
 set(SIMDUTF_TOOLS OFF CACHE BOOL "simdutf generate tool." FORCE)
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/simdutf")
-target_link_libraries(colt_helper PUBLIC simdutf)
-target_link_libraries(colt_helper_test PUBLIC simdutf)
+target_link_libraries(coltcpp PUBLIC simdutf)
+target_link_libraries(coltcpp_tests PUBLIC simdutf)
 ###########################
 
 ###########################
 # Add hedley
 message(STATUS "Adding 'hedley'...")
-target_include_directories(colt_helper_test PUBLIC "${PROJECT_SOURCE_DIR}/libraries/hedley")
-target_include_directories(colt_helper PUBLIC "${PROJECT_SOURCE_DIR}/libraries/hedley")
+target_include_directories(coltcpp_tests PUBLIC "${PROJECT_SOURCE_DIR}/libraries/hedley")
+target_include_directories(coltcpp PUBLIC "${PROJECT_SOURCE_DIR}/libraries/hedley")
 ###########################
 
 ###########################
 # Add date
 message(STATUS "Adding 'date'...")
-target_include_directories(colt_helper_test PUBLIC "${PROJECT_SOURCE_DIR}/libraries/date/include")
-target_include_directories(colt_helper PUBLIC "${PROJECT_SOURCE_DIR}/libraries/date/include")
+target_include_directories(coltcpp_tests PUBLIC "${PROJECT_SOURCE_DIR}/libraries/date/include")
+target_include_directories(coltcpp PUBLIC "${PROJECT_SOURCE_DIR}/libraries/date/include")
 ###########################
 
 ###########################
 # Catch2
 message(STATUS "Adding 'Catch2'...")
-target_include_directories(colt_helper_test PUBLIC "${PROJECT_SOURCE_DIR}/libraries/Catch2")
+target_include_directories(coltcpp_tests PUBLIC "${PROJECT_SOURCE_DIR}/libraries/Catch2")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/Catch2")
-target_link_libraries(colt_helper_test PUBLIC Catch2::Catch2WithMain)
+target_link_libraries(coltcpp_tests PUBLIC Catch2::Catch2WithMain)
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(CTest)
 include(Catch)
-catch_discover_tests(colt_helper_test)
+catch_discover_tests(coltcpp_tests
+  DISCOVERY_MODE PRE_TEST
+)
 ###########################
 
 # The code below hides the projects generated by the dependencies
@@ -187,7 +183,7 @@ macro(get_all_targets_recursive targets dir)
 endmacro()
 
 get_all_targets(ALL_TARGETS)
-set(KEEP_TARGETS colt_helper colt_helper_test simdutf fmt scn)
+set(KEEP_TARGETS coltcpp coltcpp_tests simdutf fmt scn)
 list(REMOVE_ITEM ALL_TARGETS  ${KEEP_TARGETS})
 # Put these targets in the 'HiddenTargets' folder in the IDE.
 set_target_properties(${SIMDUTF_TO_EXCLUDE} PROPERTIES EXCLUDE_FROM_ALL True)
@@ -195,6 +191,13 @@ set_target_properties(${ALL_TARGETS} PROPERTIES FOLDER HiddenTargets)
 
 # Used to avoid dependencies from adding their own tests.
 configure_file(${PROJECT_SOURCE_DIR}/resources/CTestCustom.cmake ${CMAKE_BINARY_DIR} @ONLY)
+
+add_custom_command(TARGET coltcpp_tests PRE_LINK
+    COMMAND ${CMAKE_COMMAND} -E copy
+        "$<TARGET_FILE_DIR:coltcpp_tests>;$<TARGET_RUNTIME_DLLS:coltcpp_tests>"
+        "$<TARGET_FILE_DIR:coltcpp_tests>;$<TARGET_FILE_DIR:coltcpp_tests>"
+    COMMAND_EXPAND_LISTS
+)
 
 #########################################
 # COLT CONFIG
@@ -242,3 +245,6 @@ configure_file("${PROJECT_SOURCE_DIR}/resources/cmake_colt_config.in"
   "${PROJECT_SOURCE_DIR}/include/colt/macro/config.h")
 
 message(STATUS "Finished configuring 'config.h'!")
+
+# Add ALIAS
+add_library(colt::coltcpp ALIAS coltcpp)
