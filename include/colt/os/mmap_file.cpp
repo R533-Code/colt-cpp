@@ -6,6 +6,7 @@
   #include <Windows.h>
 #elif defined(COLT_LINUX) || defined(COLT_APPLE)
   #include <sys/mman.h>
+  #include <sys/stat.h>
   #include <fcntl.h>
   #include <unistd.h>
 #endif // COLT_WINDOWS
