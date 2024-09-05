@@ -76,24 +76,24 @@ namespace clt::os
 
   Option<ViewOfFile> ViewOfFile::open(const char* ptr)
   {
-    int fd = open(ptr, O_RDWR);
+    int fd = ::open(ptr, O_RDWR);
     if (fd == -1)
       return None;
 
     struct stat sb;
     if (fstat(fd, &sb) != 0)
     {
-      close(fd);
+      ::close(fd);
       return None;
     }
     off_t file_size = sb.st_size;
     void* addr      = mmap(nullptr, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
     if (addr == MAP_FAILED)
     {
-      close(fd);
+      ::close(fd);
       return None;
     }
-    close(fd);
+    ::close(fd);
     return ViewOfFile{addr, (size_t)file_size};
   }
 #endif // COLT_WINDOWS
