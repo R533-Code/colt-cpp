@@ -92,7 +92,7 @@ namespace clt::os
       return None;
     }
     close(fd);
-    return ViewOfFile{(const u8*)addr, (size_t)file_size};
+    return ViewOfFile{addr, (size_t)file_size};
   }
 #endif // COLT_WINDOWS
 } // namespace clt::os
