@@ -9,6 +9,8 @@
 #define HG_NUM_TYPEDEFS
 
 #include <cstdint>
+#include <span>
+#include <type_traits>
 #include "colt/macro/config.h"
 #include "colt/macro/assert.h"
 
@@ -175,5 +177,17 @@ namespace clt::details
 /// @brief Boolean that represents a success/failure state that must be checked.
 using ErrorFlag = std::conditional_t<
     clt::is_debug_build(), clt::details::ErrorDebug, clt::details::ErrorRelease>;
+
+namespace clt
+{
+  /// @brief Represents a span of dynamic extent
+  /// @tparam T The type
+  template<typename T>
+  using Span = std::span<T, std::dynamic_extent>;
+  /// @brief Represents a const span of dynamic extent
+  /// @tparam T The type
+  template<typename T>
+  using View = std::span<std::add_const_t<T>, std::dynamic_extent>;
+}
 
 #endif // !HG_NUM_TYPEDEFS
