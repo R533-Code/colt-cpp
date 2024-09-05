@@ -5,7 +5,9 @@
   #define WIN32_LEAN_AND_MEAN
   #include <Windows.h>
 #elif defined(COLT_LINUX) || defined(COLT_APPLE)
+  #include <sys/mman.h>
   #include <fcntl.h>
+  #include <unistd.h>
 #endif // COLT_WINDOWS
 
 namespace clt::os
@@ -39,14 +41,14 @@ namespace clt::os
         FILE_ATTRIBUTE_NORMAL, nullptr);
     if (handle == INVALID_HANDLE_VALUE)
       return None;
-    
+
     auto map = CreateFileMapping(handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
     if (map == nullptr)
     {
       CloseHandle(handle);
       return None;
     }
-    
+
     auto view = MapViewOfFile(map, FILE_MAP_READ, 0, 0, 0);
     if (view == nullptr)
     {
@@ -85,7 +87,7 @@ namespace clt::os
       return None;
     }
     off_t file_size = sb.st_size;
-    void* addr = mmap(nullptr, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    void* addr      = mmap(nullptr, file_size, PROT_READ, MAP_PRIVATE, fd, 0);
     if (addr == MAP_FAILED)
     {
       close(fd);
