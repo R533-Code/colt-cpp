@@ -53,7 +53,7 @@ namespace clt::os
     /// @brief Destructor, calls close if not already closed.
     ~DynamicLib()
     {
-      if (_handle)
+      if (is_open())
         close();
     }
 
