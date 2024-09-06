@@ -15,7 +15,7 @@
 /// @param argc The number of arguments
 /// @param argv The command line arguments
 /// @return 0 if no errors were encountered
-int main(int argc, char* argv[])
+int main(int argc, const char** argv)
 {
   using namespace clt;
   using namespace clt::io;
