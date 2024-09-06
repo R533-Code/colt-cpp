@@ -1,3 +1,14 @@
+/*****************************************************************//**
+ * @file   mmap_file.cpp
+ * @brief  Contains the implementation of `mmap_file.h`.
+ * As with all OS related helpers, no include is done in the header file
+ * to avoid cluttering the global namespace.
+ * This does mean storing storing void pointers rather than actual
+ * handles in ViewOfFile.
+ * 
+ * @author RPC
+ * @date   September 2024
+ *********************************************************************/
 #include "mmap_file.h"
 
 #ifdef COLT_WINDOWS
@@ -23,12 +34,14 @@ namespace clt::os
   void ViewOfFile::close()
   {
     UnmapViewOfFile(view_map);
-    CloseHandle(mapping_handle);
-    CloseHandle(file_handle);
+    CloseHandle((HANDLE)mapping_handle);
+    CloseHandle((HANDLE)file_handle);
   }
 
   Option<View<u8>> ViewOfFile::view() const noexcept
   {
+    if (file_handle == nullptr)
+      return View<u8>{(const u8*)nullptr, (size_t)0};
     LARGE_INTEGER value;
     if (GetFileSizeEx(file_handle, &value) == 0)
       return None;

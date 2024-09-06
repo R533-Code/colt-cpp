@@ -1,3 +1,10 @@
+/*****************************************************************/ /**
+ * @file   mmap_file.h
+ * @brief  Contains ViewOfFile, a read-only memory mapped file.
+ * 
+ * @author RPC
+ * @date   September 2024
+ *********************************************************************/
 #ifndef HG_OS_MEMORY_MAPPED_FILE
 #define HG_OS_MEMORY_MAPPED_FILE
 
@@ -8,6 +15,7 @@
 
 namespace clt::os
 {
+  /// @brief Represents a view over a read-only memory mapped file.
   class ViewOfFile
   {
 #ifdef COLT_WINDOWS
@@ -21,6 +29,7 @@ namespace clt::os
         , view_map(view)
     {
     }
+
   public:
     ViewOfFile(ViewOfFile&& other) noexcept
         : file_handle(std::exchange(other.file_handle, nullptr))
@@ -28,7 +37,7 @@ namespace clt::os
         , view_map(std::exchange(other.view_map, nullptr))
     {
     }
-    
+
     ViewOfFile& operator=(ViewOfFile&& other) noexcept
     {
       assert_true("Self assignment is prohibited!", &other != this);
@@ -36,7 +45,7 @@ namespace clt::os
       std::swap(file_handle, other.file_handle);
       std::swap(mapping_handle, other.mapping_handle);
       std::swap(view_map, other.view_map);
-      
+
       return *this;
     }
 #else
@@ -64,12 +73,13 @@ namespace clt::os
       return *this;
     }
 #endif // COLT_WINDOWS
-    
+
     /// @brief Default constructor. Returns a library that is not open
     ViewOfFile()                             = default;
     ViewOfFile(const ViewOfFile&)            = delete;
     ViewOfFile& operator=(const ViewOfFile&) = delete;
 
+    /// @brief Destructor, automatically closes associated resources
     ~ViewOfFile()
     {
       if (is_open())
@@ -87,9 +97,19 @@ namespace clt::os
     /// This is done automatically by the destructor.
     void close();
 
+    /// @brief Returns a view of bytes over the file.
+    /// If the file is not opened, returns an empty view.
+    /// None is only returned on OS failures.
+    /// @return None on OS failures, else view over the file.
     Option<View<u8>> view() const noexcept;
 
+    /// @brief Opens a view of a file
+    /// @param ptr The file path
+    /// @return None on errors or opened ViewOfFile
     static Option<ViewOfFile> open(const char* ptr);
+    /// @brief Opens a view of a file
+    /// @param ptr The file path
+    /// @return None on errors or opened ViewOfFile
     static Option<ViewOfFile> open(ZStringView ptr) { return open(ptr.c_str()); }
   };
 } // namespace clt::os
