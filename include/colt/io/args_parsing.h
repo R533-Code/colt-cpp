@@ -1,7 +1,28 @@
 /*****************************************************************/ /**
  * @file   args_parsing.h
  * @brief  A command line argument parser.
- *
+ * The parser is generated at compile-time.
+ * Opt represents an option (that starts with '-')
+ * Pos represents a positional argument
+ * OptPos represents an optional positional argument
+ * 
+ * callback<> will be called when the argument is hit.
+ * location<> is the location where to write the result of parsing.
+ * desc<> is the description of the option.
+ * value_desc<> is the description of the value to receive by the option.
+ * alias<> is an alias name for the option.
+ * 
+ * @code{.cpp}
+ * using Args = meta::type_list<
+ *   Opt<"test", callback<[](){ ... }>>,
+ *   Opt<"test2", location<VAR_LOCATION>>
+ * >;
+ * 
+ * int main(int argc, const char** argv)
+ * {
+ *   clt::cl::parse_command_line_options<Args>(argc, argv);
+ * }
+ * @endcode
  * @author RPC
  * @date   January 2024
  *********************************************************************/
@@ -168,9 +189,7 @@ namespace clt::cl
   using alias = details::Alias<T>;
 
   template<auto& REF>
-    requires std::is_reference_v<decltype(REF)>
-                 && (!std::is_const_v<
-                     decltype(REF)>)
+    requires std::is_reference_v<decltype(REF)> && (!std::is_const_v<decltype(REF)>)
   /// @brief Adds the location in which to store the result for an Opt
   using location = details::Location<&REF>;
 
@@ -209,7 +228,7 @@ namespace clt::cl
   };
 
   template<meta::StringLiteral Name, typename T, typename... Ts>
-  /// @brief Represents an command line option
+  /// @brief Represents a positional argument
   struct Pos
   {
     /// @brief Concept helper
@@ -232,7 +251,7 @@ namespace clt::cl
   };
 
   template<meta::StringLiteral Name, typename T, typename... Ts>
-  /// @brief Represents an command line option
+  /// @brief Represents an optional positional argument
   struct OptPos
   {
     /// @brief Concept helper
@@ -509,6 +528,8 @@ namespace clt::cl
       {
         if ((*opt).first == true)
         {
+          if (equal_index != std::string_view::npos)
+            io::print_warn("'{}' does not expect an argument ('{}')!", to_parse, arg.substr(equal_index));
           (*(*opt).second)({});
           return;
         }
@@ -571,8 +592,7 @@ namespace clt::cl
 
     //Positional argument table, contains pointers to the function to call
     //when a non-positional argument is detected.
-    static constexpr meta::Map CONST_MAP =
-        details::generate_opt_table(OptList{});
+    static constexpr meta::Map CONST_MAP = details::generate_opt_table(OptList{});
     //Positional argument table, contains pointers to the function to call
     //when a positional argument is detected.
     static constexpr auto POS_TABLE =
