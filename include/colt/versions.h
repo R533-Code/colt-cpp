@@ -16,6 +16,10 @@
 
 namespace clt::vers
 {
+  /// @brief Parses the major version of '{}.{}.{}.{}'.
+  /// This should only used to parse from string macros at compile-time.
+  /// @param ptr The string from which to parse
+  /// @return The parsed version
   consteval u16 parse_major(const char* ptr)
   {
     assert_true("Invalid format!", '0' <= *ptr && *ptr <= '9');
@@ -25,6 +29,10 @@ namespace clt::vers
     return result;
   }
 
+  /// @brief Parses the minor version of '{}.{}.{}.{}'.
+  /// This should only used to parse from string macros at compile-time.
+  /// @param ptr The string from which to parse
+  /// @return The parsed version
   consteval u16 parse_minor(const char* ptr)
   {
     assert_true("Invalid format!", '0' <= *ptr && *ptr <= '9');
@@ -39,10 +47,37 @@ namespace clt::vers
     return result;
   }
 
+  /// @brief Parses the patch version of '{}.{}.{}.{}'.
+  /// This should only used to parse from string macros at compile-time.
+  /// @param ptr The string from which to parse
+  /// @return The parsed version
   consteval u16 parse_patch(const char* ptr)
   {
     u16 result;
     size_t count = 2;
+    while (count != 0)
+    {
+      result = 0;
+      while (*ptr && *ptr != '.')
+        ++ptr;
+      assert_true("Invalid format!", *ptr == '.');
+      ++ptr;
+      assert_true("Invalid format!", '0' <= *ptr && *ptr <= '9');
+      while ('0' <= *ptr && *ptr <= '9')
+        result = result * (u16)10 + (u16)(*ptr++ - '0');
+      --count;
+    }
+    return result;
+  }
+  
+  /// @brief Parses the tweak version of '{}.{}.{}.{}'.
+  /// This should only used to parse from string macros at compile-time.
+  /// @param ptr The string from which to parse
+  /// @return The parsed version
+  consteval u16 parse_tweak(const char* ptr)
+  {
+    u16 result;
+    size_t count = 3;
     while (count != 0)
     {
       result = 0;
