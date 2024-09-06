@@ -170,7 +170,7 @@ namespace clt::cl
   template<auto& REF>
     requires std::is_reference_v<decltype(REF)>
                  && (!std::is_const_v<
-                     decltype(REF)>) //&& meta::Parsable<std::remove_reference_t<decltype(REF)>>
+                     decltype(REF)>)
   /// @brief Adds the location in which to store the result for an Opt
   using location = details::Location<&REF>;
 
