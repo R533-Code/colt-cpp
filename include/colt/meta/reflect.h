@@ -1,4 +1,4 @@
-/*****************************************************************//**
+/*****************************************************************/ /**
  * @file   reflect.h
  * @brief  Contains utilities to reflect over a type at compile-time.
  * To add reflection to a type, add `COLT_ENABLE_REFLECTION` inside
@@ -17,8 +17,10 @@
 #include <colt/macro/assert.h>
 #include <colt/typedefs.h>
 #include <colt/hash.h>
+#include <colt/dsa/iterator.h>
 #include <colt/dsa/option.h>
 #include <colt/dsa/string_view.h>
+#include <colt/meta/map.h>
 
 namespace clt::meta
 {
@@ -474,7 +476,7 @@ namespace clt::meta
   {
     reflect<std::remove_cvref_t<T>>::apply_on_methods(
         std::forward<T>(of), std::forward<F>(f));
-  }  
+  }
 } // namespace clt::meta
 
 namespace clt
@@ -644,6 +646,159 @@ DECLARE_BUILTIN_TYPE(double);
                                       == 0                                          \
                                   && !has_padding_v<TYPE>;                          \
   }
+
+#define COLT_DETAILS_EXPAND_ENUM(en) , en
+#define COLT_DETAILS_STRINGIZE_ENUM(en) \
+  , std::string_view                    \
+  {                                     \
+    #en                                 \
+  }
+#define COLT_DETAILS_MAP_PAIR_ENUM(en) \
+  , std::pair                          \
+  {                                    \
+    std::string_view{#en}, en          \
+  }
+
+#define ADD_REFLECTION_FOR_CONSECUTIVE_ENUM(namespace_name, name, first, ...)                           \
+  template<>                                                                                            \
+  struct clt::meta::entity_kind<namespace_name::name>                                                   \
+  {                                                                                                     \
+    static constexpr clt::meta::EntityKind value = clt::meta::EntityKind::IS_ENUM;                      \
+  };                                                                                                    \
+  template<>                                                                                            \
+  struct clt::meta::reflect<namespace_name::name>                                                       \
+  {                                                                                                     \
+    using enum_type = std::underlying_type_t<namespace_name::name>;                                     \
+    static constexpr std::string_view str() noexcept                                                    \
+    {                                                                                                   \
+      return #name;                                                                                     \
+    }                                                                                                   \
+    static constexpr bool is_consecutive() noexcept                                                     \
+    {                                                                                                   \
+      return true;                                                                                      \
+    }                                                                                                   \
+    static constexpr std::array name##_str = {std::string_view{                                         \
+        #first} COLT_FOR_EACH(COLT_DETAILS_STRINGIZE_ENUM, __VA_ARGS__)};                               \
+    static constexpr size_t min() noexcept                                                              \
+    {                                                                                                   \
+      return 0;                                                                                         \
+    }                                                                                                   \
+    static constexpr size_t max() noexcept                                                              \
+    {                                                                                                   \
+      return name##_str.size() - 1;                                                                     \
+    }                                                                                                   \
+    static constexpr size_t count() noexcept                                                            \
+    {                                                                                                   \
+      return name##_str.size();                                                                         \
+    }                                                                                                   \
+    static constexpr std::string_view to_str(namespace_name::name value)                                \
+    {                                                                                                   \
+      assert_true("Enum out of range!", static_cast<enum_type>(value) <= max());                        \
+      return name##_str[static_cast<enum_type>(value)];                                                 \
+    }                                                                                                   \
+    static constexpr clt::Option<namespace_name::name> from(enum_type value)                            \
+    {                                                                                                   \
+      if (value > max())                                                                                \
+        return clt::None;                                                                               \
+      return static_cast<namespace_name::name>(value);                                                  \
+    }                                                                                                   \
+                                                                                                        \
+  private:                                                                                              \
+    using ArrayTable_t = std::array<                                                                    \
+        std::pair<std::string_view, namespace_name::name>, name##_str.size()>;                          \
+    using Map_t =                                                                                       \
+        clt::meta::Map<std::string_view, namespace_name::name, name##_str.size()>;                      \
+    static constexpr ArrayTable_t get_array()                                                           \
+    {                                                                                                   \
+      using enum namespace_name::name;                                                                  \
+      ArrayTable_t ret = {std::pair{std::string_view{#first}, first} COLT_FOR_EACH(                     \
+          COLT_DETAILS_MAP_PAIR_ENUM, __VA_ARGS__)};                                                    \
+      return ret;                                                                                       \
+    }                                                                                                   \
+    static const ArrayTable_t internal_map;                                                             \
+    static const Map_t map;                                                                             \
+                                                                                                        \
+  public:                                                                                               \
+    static constexpr clt::Option<namespace_name::name> from(std::string_view str)                       \
+    {                                                                                                   \
+      return map.find(str);                                                                             \
+    }                                                                                                   \
+    static constexpr clt::enum_iterator<namespace_name::name, 0, name##_str.size() - 1> iter() noexcept \
+    {                                                                                                   \
+      return {};                                                                                        \
+    }                                                                                                   \
+  };                                                                                                    \
+  inline constexpr clt::meta::reflect<namespace_name::name>::ArrayTable_t                               \
+      clt::meta::reflect<namespace_name::name>::internal_map =                                          \
+          clt::meta::reflect<namespace_name::name>::get_array();                                        \
+  inline constexpr clt::meta::reflect<namespace_name::name>::Map_t                                      \
+      clt::meta::reflect<namespace_name::name>::map = {                                                 \
+          {clt::meta::reflect<namespace_name::name>::internal_map}};                                    \
+  template<>                                                                                            \
+  struct clt::meta::is_reflectable<namespace_name::name>                                                \
+  {                                                                                                     \
+    static constexpr bool value = true;                                                                 \
+  }
+
+/// @brief Declares an enumeration with reflection support
+#define DECLARE_ENUM_WITH_TYPE(type, namespace_name, name, first, ...) \
+  namespace namespace_name                                             \
+  {                                                                    \
+    enum class name : type                                             \
+    {                                                                  \
+      first COLT_FOR_EACH(COLT_DETAILS_EXPAND_ENUM, __VA_ARGS__)       \
+    };                                                                 \
+  }                                                                    \
+  ADD_REFLECTION_FOR_CONSECUTIVE_ENUM(namespace_name, name, first, __VA_ARGS__)
+
+#define DECLARE_ENUM(namespace_name, name, first, ...)           \
+  namespace namespace_name                                       \
+  {                                                              \
+    enum class name                                              \
+    {                                                            \
+      first COLT_FOR_EACH(COLT_DETAILS_EXPAND_ENUM, __VA_ARGS__) \
+    };                                                           \
+  }                                                              \
+  ADD_REFLECTION_FOR_CONSECUTIVE_ENUM(namespace_name, name, first, __VA_ARGS__)
+
+//Add reflection for already existing enum
+ADD_REFLECTION_FOR_CONSECUTIVE_ENUM(
+    clt::meta, EntityKind, IS_ENUM, IS_BUILTIN, IS_CLASS, IS_UNKNOWN);
+
+template<typename T>
+  requires std::is_enum_v<T> && clt::meta::is_reflectable_v<T>
+struct fmt::formatter<T>
+{
+  bool human_readable = false;
+
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    auto it  = ctx.begin();
+    auto end = ctx.end();
+    if (it == end)
+      return it;
+    if (*it == 'h')
+    {
+      ++it;
+      human_readable = true;
+    }
+    assert_true("Possible format for Enum are: {} or {:h}!", *it == '}');
+    return it;
+  }
+
+  template<typename FormatContext>
+  auto format(const T& exp, FormatContext& ctx) const
+  {
+    using namespace clt;
+    using namespace clt::meta;
+
+    if (human_readable)
+      return fmt::format_to(ctx.out(), "{}", reflect<T>::to_str(exp));
+    return fmt::format_to(
+        ctx.out(), "{}::{}", reflect<T>::str(), reflect<T>::to_str(exp));
+  }
+};
 
 template<clt::meta::reflectable T>
   requires(!clt::meta::formattable<T>)
