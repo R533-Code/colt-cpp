@@ -17,6 +17,8 @@ macro(get_all_targets_recursive targets dir)
 endmacro()
 
 function(copy_all_dl_to_bin _target)
+    # We copy the target result to its own location (which does nothing)
+    # as an empty TARGET_RUNTIME_DLLS could cause errors with CMake
     add_custom_command(TARGET ${_target} PRE_LINK
     COMMAND ${CMAKE_COMMAND} -E copy
         "$<TARGET_FILE_DIR:${_target}>;$<TARGET_RUNTIME_DLLS:${_target}>"
@@ -122,7 +124,14 @@ set_target_properties(fmt PROPERTIES OUTPUT_NAME libfmt PREFIX "")
 ###########################
 
 ###########################
+# Add fast_float
+message(STATUS "Adding 'fast_float'...")
+add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/fast_float")
+###########################
+
+###########################
 # Add scnlib
+set(SCN_USE_EXTERNAL_FAST_FLOAT ON CACHE BOOL "" FORCE)
 message(STATUS "Adding 'scnlib'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/scnlib")
 target_link_libraries(coltcpp PUBLIC scn::scn)
