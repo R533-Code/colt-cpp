@@ -407,7 +407,7 @@ namespace clt
       return std::invoke(std::forward<Fn>(f), error());
     }
     template<typename Fn>
-      requires std::move_constructible<ExpectTy>
+      requires std::move_constructible<ExpectedTy>
     constexpr auto or_else(Fn&& f) &&
     {
       static_assert(
