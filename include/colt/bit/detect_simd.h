@@ -89,6 +89,9 @@ namespace clt::bit
     return static_cast<simd_flag>(value);
   }
 
+  COLT_DISABLE_WARNING_PUSH
+  COLT_DISABLE_WARNING("-Wunused-value", 4553)
+
   template<simd_flag... PREFERED>
   struct choose_simd_function
   {
@@ -131,8 +134,7 @@ namespace clt::bit
           {
 #ifdef COLT_DEBUG
             fmt::println(
-                "Using {} implementation for '{}'.", ARRAY[i],
-                src.function_name());
+                "Using {} implementation for '{}'.", ARRAY[i], src.function_name());
 #endif // COLT_DEBUG
             return ARRAYFN[i];
           }
@@ -141,6 +143,7 @@ namespace clt::bit
       }
     }
   };
+  COLT_DISABLE_WARNING_PUSH
 } // namespace clt::bit
 
 template<>

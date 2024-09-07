@@ -81,6 +81,9 @@ namespace clt::bit
     /// @brief The underlying storage
     Ty storage = {0};
 
+    COLT_DISABLE_WARNING_PUSH
+    COLT_DISABLE_WARNING("-Wreturn-type", 4716)
+
     /// @brief Returns the informations about the field of name 'index'
     /// @tparam index The field name
     /// @return Pair containing the offset to the field, and size of the field
@@ -118,6 +121,8 @@ namespace clt::bit
       }
       assert_true("Invalid field index!", false);
     }
+
+    COLT_DISABLE_WARNING_POP
 
     /// @brief Set the field of index 'index'
     /// @tparam index The field index (starting at 0)
