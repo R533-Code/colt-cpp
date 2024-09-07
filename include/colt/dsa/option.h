@@ -9,8 +9,6 @@
 #ifndef HG_DSA_OPTION
 #define HG_DSA_OPTION
 
-#include <fmt/format.h>
-
 #include "colt/dsa/common.h"
 
 namespace clt

@@ -13,6 +13,7 @@
 #include <type_traits>
 #include <compare>
 #include <zpp_bits.h>
+#include <fmt/format.h>
 
 #include "colt/typedefs.h"
 #include "colt/meta/traits.h"
