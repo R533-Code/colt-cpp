@@ -23,16 +23,16 @@
   /// @brief pop a the top scope for warnings
   #define COLT_DISABLE_WARNING_POP __COLT_DO_PRAGMA(GCC diagnostic pop)
   /// @brief disable a warning
-  /// (warning name is for clang/gcc, warning number is for MSVC)
+  /// ("warning name" is for clang/gcc, warning number is for MSVC)
   #define COLT_DISABLE_WARNING(warningName, warningNumber) \
-    __COLT_DO_PRAGMA(GCC diagnostic ignored #warningName)
+    __COLT_DO_PRAGMA(GCC diagnostic ignored warningName)
 #elif defined(_MSC_VER)
   /// @brief push a new scope for warnings
   #define COLT_DISABLE_WARNING_PUSH __pragma(warning(push))
   /// @brief pop a the top scope for warnings
   #define COLT_DISABLE_WARNING_POP  __pragma(warning(pop))
   /// @brief disable a warning
-  /// (warning name is for clang/gcc, warning number is for MSVC)
+  /// ("warning name" is for clang/gcc, warning number is for MSVC)
   #define COLT_DISABLE_WARNING(warningName, warningNumber) \
     __pragma(warning(disable : warningNumber))
 #else
