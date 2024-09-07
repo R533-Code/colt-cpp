@@ -16,6 +16,32 @@
 #include "hedley.h"
 #include "config.h"
 
+#if defined(__GNUC__) || defined(__clang__)
+  #define __COLT_DO_PRAGMA(X) _Pragma(#X)
+  /// @brief push a new scope for warnings
+  #define COLT_DISABLE_WARNING_PUSH __COLT_DO_PRAGMA(GCC diagnostic push)
+  /// @brief pop a the top scope for warnings
+  #define COLT_DISABLE_WARNING_POP __COLT_DO_PRAGMA(GCC diagnostic pop)
+  /// @brief disable a warning
+  /// (warning name is for clang/gcc, warning number is for MSVC)
+  #define COLT_DISABLE_WARNING(warningName, warningNumber) \
+    __COLT_DO_PRAGMA(GCC diagnostic ignored #warningName)
+#elif defined(_MSC_VER)
+  /// @brief push a new scope for warnings
+  #define COLT_DISABLE_WARNING_PUSH __pragma(warning(push))
+  /// @brief pop a the top scope for warnings
+  #define COLT_DISABLE_WARNING_POP  __pragma(warning(pop))
+  /// @brief disable a warning
+  /// (warning name is for clang/gcc, warning number is for MSVC)
+  #define COLT_DISABLE_WARNING(warningName, warningNumber) \
+    __pragma(warning(disable : warningNumber))
+#else
+  // unknown compiler, ignoring suppression directives
+  #define COLT_DISABLE_WARNING_PUSH
+  #define COLT_DISABLE_WARNING_POP
+  #define COLT_DISABLE_WARNING
+#endif
+
 #if defined(__has_builtin)
   #if __has_builtin(__builtin_debugtrap)
     /// @brief Intrinsic trap
