@@ -339,7 +339,7 @@ namespace clt
     /// @brief Returns the Expect value if contained, else 'default_value'
     /// @param default_value The value to return if the Expect contains an error
     /// @return The Expect value or 'default_value'
-    template<typename U>
+    template<std::convertible_to<ExpectedTy> U>
     constexpr ExpectedTy value_or(U&& default_value) const&
     {
       return is_error_v ? static_cast<ExpectedTy>(std::forward<U>(default_value))
@@ -348,7 +348,7 @@ namespace clt
     /// @brief Returns the Expect value if contained, else 'default_value'
     /// @param default_value The value to return if the Expect contains an error
     /// @return The Expect value or 'default_value'
-    template<typename U>
+    template<std::convertible_to<ExpectedTy> U>
     constexpr ExpectedTy value_or(U&& default_value) &&
     {
       return is_error_v ? static_cast<ExpectedTy>(std::forward<U>(default_value))
@@ -382,10 +382,12 @@ namespace clt
     /********************************/
 
     template<typename Fn>
-      requires std::invocable<Fn, decltype(error())>
-               && std::copy_constructible<ExpectedTy>
+      requires std::copy_constructible<ExpectedTy>
     constexpr auto or_else(Fn&& f) &
     {
+      static_assert(
+          std::invocable<Fn, decltype(this->error())>,
+          "Function must have the error type as argument!");
       using G = std::remove_cvref_t<std::invoke_result_t<Fn, decltype(error())>>;
       if (is_expect())
         return G(InPlace, **this);
@@ -393,20 +395,24 @@ namespace clt
     }
 
     template<typename Fn>
-      requires std::invocable<Fn, decltype(error())>
-               && std::copy_constructible<ExpectedTy>
+      requires std::copy_constructible<ExpectedTy>
     constexpr auto or_else(Fn&& f) const&
     {
+      static_assert(
+          std::invocable<Fn, decltype(this->error())>,
+          "Function must have the error type as argument!");
       using G = std::remove_cvref_t<std::invoke_result_t<Fn, decltype(error())>>;
       if (is_expect())
         return G(InPlace, **this);
       return std::invoke(std::forward<Fn>(f), error());
     }
     template<typename Fn>
-      requires std::invocable<Fn, decltype(std::move(error()))>
-               && std::move_constructible<ExpectTy>
+      requires std::move_constructible<ExpectTy>
     constexpr auto or_else(Fn&& f) &&
     {
+      static_assert(
+          std::invocable<Fn, decltype(std::move(this->error()))>,
+          "Function must have the error type as argument!");
       using G = std::remove_cvref_t<
           std::invoke_result_t<Fn, decltype(std::move(error()))>>;
       if (is_expect())
@@ -415,10 +421,12 @@ namespace clt
     }
 
     template<typename Fn>
-      requires std::invocable<Fn, decltype(std::move(error()))>
-               && std::move_constructible<ExpectedTy>
+      requires std::move_constructible<ExpectedTy>
     constexpr auto or_else(Fn&& f) const&&
     {
+      static_assert(
+          std::invocable<Fn, decltype(std::move(this->error()))>,
+          "Function must have the error type as argument!");
       using G = std::remove_cvref_t<
           std::invoke_result_t<Fn, decltype(std::move(error()))>>;
       if (is_expect())
@@ -431,9 +439,11 @@ namespace clt
     /********************************/
 
     template<typename F>
-      requires std::invocable<F, decltype(**this)>
     constexpr auto and_then(F&& f) &
     {
+      static_assert(
+          std::invocable<F, decltype(**this)>,
+          "Function must have the value type as argument!");
       using U = std::remove_cvref_t<
           std::invoke_result_t<F, decltype(**this)>>;
       if (is_expect())
@@ -442,9 +452,11 @@ namespace clt
     }
 
     template<typename F>
-      requires std::invocable<F, decltype(**this)>
     constexpr auto and_then(F&& f) const&
     {
+      static_assert(
+          std::invocable<F, decltype(**this)>,
+          "Function must have the value type as argument!");
       using U = std::remove_cvref_t<std::invoke_result_t<F, decltype(**this)>>;
       if (is_expect())
         return std::invoke(std::forward<F>(f), **this);
@@ -452,9 +464,11 @@ namespace clt
     }
 
     template<typename F>
-      requires std::invocable<F, decltype(std::move(**this))>
     constexpr auto and_then(F&& f) &&
     {
+      static_assert(
+          std::invocable<F, decltype(std::move(**this))>,
+          "Function must have the value type as argument!");
       using U = std::remove_cvref_t<std::invoke_result_t<F, decltype(std::move(**this))>>;
       if (is_expect())
         return std::invoke(std::forward<F>(f), std::move(**this));
@@ -462,9 +476,11 @@ namespace clt
     }
 
     template<typename F>
-      requires std::invocable<F, decltype(std::move(**this))>
     constexpr auto and_then(F&& f) const&&
     {
+      static_assert(
+          std::invocable<F, decltype(std::move(**this))>,
+          "Function must have the value type as argument!");
       using U = std::remove_cvref_t<std::invoke_result_t<F, decltype(std::move(**this))>>;
       if (is_expect())
         return std::invoke(std::forward<F>(f), std::move(**this));
@@ -476,9 +492,11 @@ namespace clt
     /********************************/
 
     template<typename F>
-      requires std::invocable<F, decltype(**this)>
     constexpr auto map(F&& f) &
     {
+      static_assert(
+          std::invocable<F, decltype(**this)>,
+          "Function must have the value type as argument!");
       using U = std::remove_cvref_t<std::invoke_result_t<F, decltype(**this)>>;
       if (is_expect())
         return Expect<U, ErrorTy>(std::invoke(std::forward<F>(f), **this));
@@ -486,9 +504,11 @@ namespace clt
     }
 
     template<typename F>
-      requires std::invocable<F, decltype(**this)>
     constexpr auto map(F&& f) const&
     {
+      static_assert(
+          std::invocable<F, decltype(**this)>,
+          "Function must have the value type as argument!");
       using U = std::remove_cvref_t<std::invoke_result_t<F, decltype(**this)>>;
       if (is_expect())
         return Expect<U, ErrorTy>(std::invoke(std::forward<F>(f), **this));
@@ -496,9 +516,10 @@ namespace clt
     }
 
     template<typename F>
-      requires std::invocable<F, decltype(std::move(**this))>
     constexpr auto map(F&& f) &&
     {
+      static_assert(std::invocable<F, decltype(**this)>,
+          "Function must have the value type as argument!");
       using U = std::remove_cvref_t<std::invoke_result_t<F, decltype(std::move(**this))>>;
       if (is_expect())
         return Expect<U, ErrorTy>(std::invoke(std::forward<F>(f), std::move(**this)));
@@ -506,9 +527,11 @@ namespace clt
     }
 
     template<typename F>
-      requires std::invocable<F, decltype(std::move(**this))>
     constexpr auto map(F&& f) const&&
     {
+      static_assert(
+          std::invocable<F, decltype(std::move(**this))>,
+          "Function must have the value type as argument!");
       using U =
           std::remove_cvref_t<std::invoke_result_t<F, decltype(std::move(**this))>>;
       if (is_expect())
@@ -582,6 +605,53 @@ namespace clt
       }
       else
         return std::move(expected);
+    }
+
+    template<typename Ser>
+      requires meta::serializable<ErrorTy> && meta::serializable<ExpectedTy>
+    static constexpr auto serialize(Ser& archive, Expect& self) noexcept
+    {
+      using namespace zpp::bits;
+      if constexpr (Ser::kind() == kind::out)
+      {
+        u8 value = self.is_expect();
+        if (value)
+        {
+          auto error = archive(value);
+          if (!failure(static_cast<std::errc>(error)))
+            error = archive(self.value());
+          return error;
+        }
+        auto error = archive(value);
+        if (!failure(static_cast<std::errc>(error)))
+          error = archive(self.error());
+        return error;
+      }
+      else
+      {
+        u8 value   = false;
+        auto error = archive(value);
+        if (failure(static_cast<std::errc>(error)))
+          return error;
+        if (value)
+        {
+          ExpectedTy to_move;
+          error = archive(to_move);
+          if (failure(static_cast<std::errc>(error)))
+            return error;
+          self = std::move(to_move);
+          return error;
+        }
+        else
+        {
+          ErrorTy to_move;
+          error = archive(to_move);
+          if (failure(static_cast<std::errc>(error)))
+            return error;
+          self = Expect{Error, std::move(to_move)};
+          return error;
+        }
+      }
     }
   };
 } // namespace clt
