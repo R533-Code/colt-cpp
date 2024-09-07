@@ -10,6 +10,7 @@
 
 #include <concepts>
 #include <iterator>
+#include <functional>
 
 #include "colt/macro/assert.h"
 #include "colt/typedefs.h"
