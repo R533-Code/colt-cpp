@@ -785,6 +785,7 @@ struct fmt::formatter<T>
       ++it;
       human_readable = true;
     }
+
     assert_true("Possible format for Enum are: {} or {:h}!", *it == '}');
     return it;
   }
