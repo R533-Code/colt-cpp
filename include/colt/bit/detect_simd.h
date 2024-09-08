@@ -73,8 +73,9 @@
   // AVX-512 Vector Byte Manipulation Instructions 2 (VBMI2) - byte/word load,
   // store and concatenation with shift.
   #define COLT_FORCE_AVX512VBMI2 COLT_ATTRIBUTE_TARGET("avx512vbmi2")
+#elif defined(COLT_ARM_7or8)
   // +simd for ARM NEON
-  #define COLT_FORCE_NEON //COLT_ATTRIBUTE_TARGET("+simd")
+  #define COLT_FORCE_NEON COLT_ATTRIBUTE_TARGET("+simd")
 #endif // COLT_x86_64
 
 namespace clt::bit
