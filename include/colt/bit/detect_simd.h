@@ -76,6 +76,7 @@
 #elif defined(COLT_ARM_7or8)
   // +simd for ARM NEON
   #define COLT_FORCE_NEON COLT_ATTRIBUTE_TARGET("+simd")
+  #include <arm_neon.h>
 #endif // COLT_x86_64
 
 namespace clt::bit
