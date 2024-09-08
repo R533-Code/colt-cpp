@@ -20,7 +20,7 @@ int main(int argc, const char** argv)
   using namespace clt;
   using namespace clt::io;
 
-  fmt::println(
+  io::print(
       stderr,
       "Running tests on {}{} {}{}{} ({}).\nThis is a {}-endian system.\nSupported "
       "SIMD instructions: {}{}{}.\n"
