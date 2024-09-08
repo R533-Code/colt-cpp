@@ -55,4 +55,4 @@ jobs:
     - name: Run tests with QEMU
       run: |
         cd build
-        qemu-aarch64-static ./coltcpp_tests
+        qemu-aarch64-static -L "$GITHUB_WORKSPACE/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc" ./coltcpp_tests
