@@ -477,6 +477,9 @@ namespace clt::meta
     reflect<std::remove_cvref_t<T>>::apply_on_methods(
         std::forward<T>(of), std::forward<F>(f));
   }
+
+  template<typename T>
+  concept reflectable_enum = std::is_enum_v<T> && clt::meta::is_reflectable_v<T>;
 } // namespace clt::meta
 
 namespace clt
@@ -765,8 +768,7 @@ DECLARE_BUILTIN_TYPE(double);
 ADD_REFLECTION_FOR_CONSECUTIVE_ENUM(
     clt::meta, EntityKind, IS_ENUM, IS_BUILTIN, IS_CLASS, IS_UNKNOWN);
 
-template<typename T>
-  requires std::is_enum_v<T> && clt::meta::is_reflectable_v<T>
+template<clt::meta::reflectable_enum T>
 struct fmt::formatter<T>
 {
   bool human_readable = false;
