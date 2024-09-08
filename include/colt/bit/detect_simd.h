@@ -74,7 +74,7 @@
   // store and concatenation with shift.
   #define COLT_FORCE_AVX512VBMI2 COLT_ATTRIBUTE_TARGET("avx512vbmi2")
   // +simd for ARM NEON
-  #define COLT_FORCE_NEON COLT_ATTRIBUTE_TARGET("+simd")
+  #define COLT_FORCE_NEON //COLT_ATTRIBUTE_TARGET("+simd")
 #endif // COLT_x86_64
 
 namespace clt::bit
