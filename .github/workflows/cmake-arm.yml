@@ -45,7 +45,7 @@ jobs:
       run: |
         echo "$CXX"
         echo "$CC"
-        echo "$GITHUB_PATH"
+        cat "$GITHUB_PATH"
 
     - name: Configure CMake
       run: |
