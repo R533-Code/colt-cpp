@@ -55,4 +55,4 @@ jobs:
     - name: Run tests with QEMU
       run: |
         cd build
-        qemu-aarch64 ./coltcpp_tests
+        qemu-aarch64-static ./coltcpp_tests
