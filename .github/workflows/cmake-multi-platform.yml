@@ -4,15 +4,15 @@ on:
   push:
     branches: [ "main" ]
     paths:
-     - '**/*.cpp'
-     - '**/*.h'
-     - '**/CMakeLists.txt'
+      - '**/*.cpp'
+      - '**/*.h'
+      - '**/CMakeLists.txt'
   pull_request:
     branches: [ "main" ]
     paths:
-     - '**/*.cpp'
-     - '**/*.h'
-     - '**/CMakeLists.txt'
+      - '**/*.cpp'
+      - '**/*.h'
+      - '**/CMakeLists.txt'
 
 jobs:
   build:
@@ -33,13 +33,12 @@ jobs:
             c_compiler: clang
             cpp_compiler: clang++
 
-    # clone --recursive
     steps:
     - name: Harden Runner
       uses: step-security/harden-runner@5c7944e73c4c2a096b17a9cb74d65b6c2bbafbde # v2.9.1
       with:
         egress-policy: audit
-
+    # clone --recursive
     - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       with:
         submodules: recursive
