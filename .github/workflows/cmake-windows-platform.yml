@@ -7,12 +7,14 @@ on:
      - '**/*.cpp'
      - '**/*.h'
      - '**/CMakeLists.txt'
+     - '**/*.yml'
   pull_request:
     branches: [ "main" ]
     paths:
      - '**/*.cpp'
      - '**/*.h'
      - '**/CMakeLists.txt'
+     - '**/*.yml'
 
 env:
   BUILD_TYPE: Debug
