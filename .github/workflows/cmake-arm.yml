@@ -29,16 +29,16 @@ jobs:
       with:
         submodules: recursive
     
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-      with:
-        platforms: arm64
-
     - name: Set up environment
       run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          qemu-user-static \
+          binfmt-support
         wget https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
         tar xvf arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
         echo "$GITHUB_WORKSPACE/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin" >> $GITHUB_PATH
+        echo "$GITHUB_WORKSPACE/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc" >> $GITHUB_PATH
         echo "CC=$GITHUB_WORKSPACE/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-gcc" >> $GITHUB_ENV
         echo "CXX=$GITHUB_WORKSPACE/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-g++" >> $GITHUB_ENV
 
