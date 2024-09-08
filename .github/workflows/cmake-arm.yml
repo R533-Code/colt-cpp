@@ -55,7 +55,7 @@ jobs:
     - name: Run tests (without NEON)
       run: |
         cd build
-        qemu-aarch64-static -cpu cortex-a57,neon=off,vfp=off -L "$GITHUB_WORKSPACE/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc" ./coltcpp_tests
+        qemu-aarch64-static -cpu max,neon=off,vfp=off -L "$GITHUB_WORKSPACE/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc" ./coltcpp_tests
 
     - name: Run tests (with NEON)
       run: |
