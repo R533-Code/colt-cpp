@@ -37,9 +37,9 @@ jobs:
           binfmt-support
         wget https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
         tar xvf arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
-        export PATH=$PATH:arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin
-        export CC=arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-gcc
-        export CXX=arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-g++
+        echo "$HOME/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin" >> $GITHUB_PATH
+        echo "CC=arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-gcc" >> $GITHUB_ENV
+        echo "CXX=arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-g++" >> $GITHUB_ENV
 
     - name: Configure CMake
       run: |
