@@ -9,7 +9,7 @@
   #define COLT_LITTLE_ENDIAN
 #endif
 
-#if defined(__ARM_NEON__) || (defined(COLT_MSVC) && defined(__ARM_ARCH))
+#if defined(COLT_MSVC) && defined(__ARM_ARCH)
   #include <arm_neon.h>
 #endif
 
