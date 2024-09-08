@@ -36,6 +36,8 @@ jobs:
         wget https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu/13.3.rel1/binrel/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
         tar xvf arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu.tar.xz
         export PATH=$PATH:~/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin
+        export CC=aarch64-none-linux-gnu-gcc
+        export CXX=aarch64-none-linux-gnu-g++
 
     - name: Configure CMake
       run: |
@@ -50,4 +52,4 @@ jobs:
     - name: Run tests with QEMU
       run: |
         cd build
-        qemu-aarch64 ./coltcpp_tests
+        qemu-aarch64-static ./coltcpp_tests
