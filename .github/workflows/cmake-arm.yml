@@ -40,9 +40,12 @@ jobs:
         echo "$HOME/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin" >> $GITHUB_PATH
         echo "CC=arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-gcc" >> $GITHUB_ENV
         echo "CXX=arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin/aarch64-none-linux-gnu-g++" >> $GITHUB_ENV
-        echo $CXX
-        echo $CC
-        echo $GITHUB_PATH
+        
+    - name: ECHO
+      run: |
+        echo "$CXX"
+        echo "$CC"
+        echo "$GITHUB_PATH"
 
     - name: Configure CMake
       run: |
