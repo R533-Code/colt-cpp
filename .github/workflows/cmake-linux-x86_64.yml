@@ -1,4 +1,4 @@
-name: "Linux: Clang and GCC"
+name: "Linux: Clang and GCC on x86_64"
 
 on:
   push:
