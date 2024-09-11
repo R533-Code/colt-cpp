@@ -552,7 +552,7 @@ static COLT_FORCE_NEON size_t unitlen16NEON(const char16_t* ptr) noexcept
   constexpr auto PACK_COUNT = sizeof(uint16x8_t) / sizeof(u16);
   u64 mask;
   while (true)
-  {    
+  {
     uint16x8_t values   = vld1q_u16(reinterpret_cast<const u16*>(ptr));
     uint16x8_t cmp      = vceqq_u16(values, zero);
     const uint8x8_t res = vshrn_n_u16(cmp, 8);
@@ -594,6 +594,54 @@ static COLT_FORCE_NEON size_t unitlen32NEON(const char32_t* ptr) noexcept
 }
   #pragma endregion
 
+  #pragma region // strlen8 NEON
+static COLT_FORCE_NEON size_t strlen8NEON(const char8_t* ptr) noexcept
+{
+  const auto copy = ptr;
+  size_t len = 0;
+  // Align pointer to 16 byte boundary to use aligned load
+  // and avoid page faults.
+  // We can't use sequence_length here as the goal is to align
+  // and most likely adding sequence_length will not align the pointer.
+  while (uintptr_t(ptr) % alignof(uint8x16_t) != 0)
+  {
+    if (*ptr == '\0')
+      return len;
+    len += (size_t)(!clt::uni::is_trail(*ptr));
+    ++ptr;
+  }
+
+  // Zero mask
+  const uint8x16_t zero     = vdupq_n_u8(0);
+  const uint8x16_t trail_mask  = vdupq_n_u8((u8)0b1100'0000);
+  const uint8x16_t trail_value = vdupq_n_u8((u8)0b1000'0000);
+  constexpr auto PACK_COUNT = sizeof(uint8x16_t) / sizeof(u8);
+  u64 mask;
+  while (true)
+  {
+    uint8x16_t values   = vld1q_u8(reinterpret_cast<const u8*>(ptr));
+    uint8x16_t cmp      = vceqq_u8(values, zero);
+    const uint8x8_t res = vshrn_n_u16(cmp, 4);
+    mask                = vget_lane_u64(vreinterpret_u64_u8(res), 0);
+    if (mask != 0)
+      break;
+    uint8x16_t is_trail = vandq_s8(values, trail_mask);
+    is_trail         = vceqq_u8(is_trail, trail_value);
+    len += PACK_COUNT - std::popcount(vget_lane_u64(vreinterpret_u64_u8(vshrn_n_u16(is_trail, 4)), 0));
+    ptr += PACK_COUNT;
+  }
+  return (ptr - copy) + std::countr_zero(mask) / 8;
+}
+  #pragma endregion
+
+  #pragma region // strlen16 NEON
+// template<bool SWAP>
+// static COLT_FORCE_NEON size_t strlen16NEON(const char16_t* ptr) noexcept
+// {
+  
+// }
+  #pragma endregion
+
 #endif // COLT_x86_64
 
 size_t clt::uni::details::strlen8(const char8_t* ptr) noexcept
@@ -603,7 +651,11 @@ size_t clt::uni::details::strlen8(const char8_t* ptr) noexcept
   static const auto FN = choose_simd_function<
       simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>{}(
       &strlen8AXV512BW, &strlen8AVX2, &strlen8SSE2);
-  
+
+  return (*FN)(ptr);
+#elif defined(COLT_ARM_7or8)
+  static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
+      &strlen8NEON, &strlen8default);
   return (*FN)(ptr);
 #else
   return strlen8default(ptr);
@@ -613,13 +665,18 @@ size_t clt::uni::details::strlen8(const char8_t* ptr) noexcept
 size_t clt::uni::details::strlen16LE(const char16_t* ptr) noexcept
 {
   using namespace clt::bit;
-#ifdef COLT_x86_64
+
   static constexpr bool SWAP = (TargetEndian::native == TargetEndian::big);
-  static const auto FN       = choose_simd_function<
+#ifdef COLT_x86_64
+  static const auto FN = choose_simd_function<
       simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>{}(
       &strlen16AVX512BW<SWAP>, &strlen16AVX2<SWAP>, &strlen16SSE2<SWAP>);
-  
+
   return (*FN)(ptr);
+// #elif defined(COLT_ARM_7or8)
+//   static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
+//       &strlen16NEON<SWAP>, &strlen16LEdefault);
+//   return (*FN)(ptr);
 #else
   return strlen16LEdefault(ptr);
 #endif // COLT_x86_64
@@ -628,13 +685,18 @@ size_t clt::uni::details::strlen16LE(const char16_t* ptr) noexcept
 size_t clt::uni::details::strlen16BE(const char16_t* ptr) noexcept
 {
   using namespace clt::bit;
-#ifdef COLT_x86_64
+
   static constexpr bool SWAP = (TargetEndian::native == TargetEndian::little);
-  static const auto FN       = choose_simd_function<
+#ifdef COLT_x86_64
+  static const auto FN = choose_simd_function<
       simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>{}(
       &strlen16AVX512BW<SWAP>, &strlen16AVX2<SWAP>, &strlen16SSE2<SWAP>);
-  
+
   return (*FN)(ptr);
+// #elif defined(COLT_ARM_7or8)
+//   static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
+//       &strlen16NEON<SWAP>, &strlen16BEdefault);
+//   return (*FN)(ptr);
 #else
   return strlen16BEdefault(ptr);
 #endif // COLT_x86_64
@@ -655,7 +717,7 @@ size_t clt::uni::details::unitlen16(const char16_t* ptr) noexcept
   static const auto FN = choose_simd_function<
       simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>{}(
       &unitlen16AVX512BW, &unitlen16AVX2, &unitlen16SSE2);
-  
+
   return (*FN)(ptr);
 #elif defined(COLT_ARM_7or8)
   static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
@@ -673,12 +735,12 @@ size_t clt::uni::details::unitlen32(const char32_t* ptr) noexcept
   static const auto FN = choose_simd_function<
       simd_flag::AVX512F, simd_flag::AVX2, simd_flag::DEFAULT>{}(
       &unitlen32AVX512F, &unitlen32AVX2, &unitlen32SSE2);
-  
+
   return (*FN)(ptr);
 #elif defined(COLT_ARM_7or8)
   static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
       &unitlen32NEON, &unitlen32default);
-  
+
   return (*FN)(ptr);
 #else
   return unitlen32default(ptr);
