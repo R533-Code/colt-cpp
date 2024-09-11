@@ -540,7 +540,7 @@ static COLT_FORCE_NEON size_t unitlen16NEON(const char16_t* ptr) noexcept
 
   // Zero mask
   const uint16x8_t zero     = vdupq_n_u16(0);
-  constexpr auto PACK_COUNT = sizeof(uint16x8_t) / sizeof(u32);
+  constexpr auto PACK_COUNT = sizeof(uint16x8_t) / sizeof(u16);
   u64 mask;
   while (true)
   {
@@ -554,7 +554,7 @@ static COLT_FORCE_NEON size_t unitlen16NEON(const char16_t* ptr) noexcept
       break;
     ptr += PACK_COUNT;
   }
-  return (ptr - copy) + std::countr_zero(mask) / 2;
+  return (ptr - copy) + std::countr_zero(mask) / 8;
 }
   #pragma endregion
 
@@ -579,7 +579,7 @@ static COLT_FORCE_NEON size_t unitlen32NEON(const char32_t* ptr) noexcept
       break;
     ptr += PACK_COUNT;
   }
-  return (ptr - copy) + std::countr_zero(mask) / 2;
+  return (ptr - copy) + std::countr_zero(mask) / 16;
 }
   #pragma endregion
 
