@@ -1,4 +1,4 @@
-name: "Linux: GCC on ARM64"
+name: "Linux: GCC on ARM64 "
 
 on:
   push:
