@@ -3,7 +3,7 @@ Contains helpers used throughout the Colt Compiler.
 These include portable bit-fields, endianness utilities, io, argument parsing and data structures.
 
 ![Build and Test on Linux (x86_64)](https://github.com/R533-Code/colt-cpp/actions/workflows/cmake-linux-x86_64.yml/badge.svg)
-![Build and Test on Linux (ARMv8)](https://github.com/R533-Code/colt-cpp/actions/workflows/cmake-linux-arm/badge.svg)
+![Build and Test on Linux (ARMv8)](https://github.com/R533-Code/colt-cpp/actions/workflows/cmake-linux-arm.yml/badge.svg)
 ![Build and Test on Windows (x86_64)](https://github.com/R533-Code/colt-cpp/actions/workflows/cmake-windows-x86_64.yml/badge.svg)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/R533-Code/colt-cpp/badge)](https://scorecard.dev/viewer/?uri=github.com/R533-Code/colt-cpp)
 ![CodeQL](https://github.com/R533-Code/colt-cpp/actions/workflows/codeql.yml/badge.svg)
