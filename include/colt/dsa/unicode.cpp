@@ -533,19 +533,26 @@ static COLT_FORCE_AVX512F size_t unitlen32AVX512F(const char32_t* ptr) noexcept
 
 #elif defined(COLT_ARM_7or8)
 
+// See link below for vshrn
+// https://community.arm.com/arm-community-blogs/b/infrastructure-solutions-blog/posts/porting-x86-vector-bitmask-optimizations-to-arm-neon
+
   #pragma region // unitlen16 NEON
 static COLT_FORCE_NEON size_t unitlen16NEON(const char16_t* ptr) noexcept
 {
   const auto copy = ptr;
+  while (uintptr_t(ptr) % alignof(uint16x8_t) != 0)
+  {
+    if (*ptr == 0)
+      return ptr - copy;
+    ++ptr;
+  }
 
   // Zero mask
   const uint16x8_t zero     = vdupq_n_u16(0);
   constexpr auto PACK_COUNT = sizeof(uint16x8_t) / sizeof(u16);
   u64 mask;
   while (true)
-  {
-    // See link below for vshrn
-    // https://community.arm.com/arm-community-blogs/b/infrastructure-solutions-blog/posts/porting-x86-vector-bitmask-optimizations-to-arm-neon
+  {    
     uint16x8_t values   = vld1q_u16(reinterpret_cast<const u16*>(ptr));
     uint16x8_t cmp      = vceqq_u16(values, zero);
     const uint8x8_t res = vshrn_n_u16(cmp, 8);
@@ -562,6 +569,12 @@ static COLT_FORCE_NEON size_t unitlen16NEON(const char16_t* ptr) noexcept
 static COLT_FORCE_NEON size_t unitlen32NEON(const char32_t* ptr) noexcept
 {
   const auto copy = ptr;
+  while (uintptr_t(ptr) % alignof(uint32x4_t) != 0)
+  {
+    if (*ptr == 0)
+      return ptr - copy;
+    ++ptr;
+  }
 
   // Zero mask
   const uint32x4_t zero     = vdupq_n_u32(0);
@@ -569,8 +582,6 @@ static COLT_FORCE_NEON size_t unitlen32NEON(const char32_t* ptr) noexcept
   u64 mask;
   while (true)
   {
-    // See link below for vshrn
-    // https://community.arm.com/arm-community-blogs/b/infrastructure-solutions-blog/posts/porting-x86-vector-bitmask-optimizations-to-arm-neon
     uint32x4_t values    = vld1q_u32(reinterpret_cast<const u32*>(ptr));
     uint32x4_t cmp       = vceqq_u32(values, zero);
     const uint16x4_t res = vshrn_n_u32(cmp, 8);
