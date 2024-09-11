@@ -599,8 +599,6 @@ static COLT_FORCE_NEON size_t strlen8NEON(const char8_t* ptr) noexcept
 {
   const auto copy = ptr;
   size_t len = 0;
-  // Align pointer to 16 byte boundary to use aligned load
-  // and avoid page faults.
   // We can't use sequence_length here as the goal is to align
   // and most likely adding sequence_length will not align the pointer.
   while (uintptr_t(ptr) % alignof(uint8x16_t) != 0)
@@ -621,25 +619,79 @@ static COLT_FORCE_NEON size_t strlen8NEON(const char8_t* ptr) noexcept
   {
     uint8x16_t values   = vld1q_u8(reinterpret_cast<const u8*>(ptr));
     uint8x16_t cmp      = vceqq_u8(values, zero);
-    const uint8x8_t res = vshrn_n_u16(cmp, 4);
+    const uint8x8_t res = vshrn_n_u16(vreinterpretq_u16_u8(cmp), 4);
     mask                = vget_lane_u64(vreinterpret_u64_u8(res), 0);
     if (mask != 0)
       break;
-    uint8x16_t is_trail = vandq_s8(values, trail_mask);
+    uint8x16_t is_trail = vandq_u8(values, trail_mask);
     is_trail         = vceqq_u8(is_trail, trail_value);
-    len += PACK_COUNT - std::popcount(vget_lane_u64(vreinterpret_u64_u8(vshrn_n_u16(is_trail, 4)), 0));
+    len += PACK_COUNT - std::popcount(
+      vget_lane_u64(vreinterpret_u64_u8(
+        vshrn_n_u16(vreinterpretq_u16_u8(is_trail), 4)), 0)
+        ) / 4;
     ptr += PACK_COUNT;
   }
-  return (ptr - copy) + std::countr_zero(mask) / 8;
+  while (true)
+  {
+    if (*ptr == '\0')
+      return len;
+    len += (size_t)(!clt::uni::is_trail(*ptr));
+    ++ptr;
+  }
+  clt::unreachable("programming error");
 }
   #pragma endregion
 
   #pragma region // strlen16 NEON
-// template<bool SWAP>
-// static COLT_FORCE_NEON size_t strlen16NEON(const char16_t* ptr) noexcept
-// {
-  
-// }
+template<bool SWAP>
+static COLT_FORCE_NEON size_t strlen16NEON(const char16_t* ptr) noexcept
+{
+ const auto copy = ptr;
+  size_t len = 0;
+  // We can't use sequence_length here as the goal is to align
+  // and most likely adding sequence_length will not align the pointer.
+  while (uintptr_t(ptr) % alignof(uint16x8_t) != 0)
+  {
+    if (*ptr == '\0')
+      return len;
+    if constexpr (SWAP)
+      len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
+    else
+      len += (size_t)(!clt::uni::is_trail_surrogate(*ptr));
+    ++ptr;
+  }
+
+  // Zero mask
+  const uint16x8_t zero     = vdupq_n_u16(0);
+  const uint16x8_t trail_mask  = vdupq_n_u16(SWAP ? (u16)0x00FC : (u16)0xFC00);
+  const uint16x8_t trail_value = vdupq_n_u16(SWAP ? (u16)0x00DC : (u16)0xDC00);
+  constexpr auto PACK_COUNT = sizeof(uint16x8_t) / sizeof(u16);
+  u64 mask;
+  while (true)
+  {
+    uint16x8_t values   = vld1q_u16(reinterpret_cast<const u16*>(ptr));
+    uint16x8_t cmp      = vceqq_u16(values, zero);
+    const uint8x8_t res = vshrn_n_u16(cmp, 8);
+    mask                = vget_lane_u64(vreinterpret_u64_u8(res), 0);
+    if (mask != 0)
+      break;
+    uint16x8_t is_trail = vandq_u16(values, trail_mask);
+    is_trail         = vceqq_u16(is_trail, trail_value);
+    len += PACK_COUNT - std::popcount(vget_lane_u64(vreinterpret_u64_u8(vshrn_n_u16(is_trail, 4)), 0)) / 8;
+    ptr += PACK_COUNT;
+  }
+  while (true)
+  {
+    if (*ptr == '\0')
+      return len;
+    if constexpr (SWAP)
+      len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
+    else
+      len += (size_t)(!clt::uni::is_trail_surrogate(*ptr));
+    ++ptr;
+  }
+  clt::unreachable("programming error"); 
+}
   #pragma endregion
 
 #endif // COLT_x86_64
@@ -673,10 +725,10 @@ size_t clt::uni::details::strlen16LE(const char16_t* ptr) noexcept
       &strlen16AVX512BW<SWAP>, &strlen16AVX2<SWAP>, &strlen16SSE2<SWAP>);
 
   return (*FN)(ptr);
-// #elif defined(COLT_ARM_7or8)
-//   static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
-//       &strlen16NEON<SWAP>, &strlen16LEdefault);
-//   return (*FN)(ptr);
+#elif defined(COLT_ARM_7or8)
+  static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
+      &strlen16NEON<SWAP>, &strlen16LEdefault);
+  return (*FN)(ptr);
 #else
   return strlen16LEdefault(ptr);
 #endif // COLT_x86_64
@@ -693,10 +745,10 @@ size_t clt::uni::details::strlen16BE(const char16_t* ptr) noexcept
       &strlen16AVX512BW<SWAP>, &strlen16AVX2<SWAP>, &strlen16SSE2<SWAP>);
 
   return (*FN)(ptr);
-// #elif defined(COLT_ARM_7or8)
-//   static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
-//       &strlen16NEON<SWAP>, &strlen16BEdefault);
-//   return (*FN)(ptr);
+#elif defined(COLT_ARM_7or8)
+  static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
+      &strlen16NEON<SWAP>, &strlen16BEdefault);
+  return (*FN)(ptr);
 #else
   return strlen16BEdefault(ptr);
 #endif // COLT_x86_64
