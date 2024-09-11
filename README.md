@@ -67,4 +67,4 @@ All `NEON` SIMD functions are tested using [`QEMU`](https://www.qemu.org/).
 | SSE4.2 | ❌           | ❌           | ❌         | ❌          |
 | AVX2   | ✅           | ✅           | ✅         | ✅          |
 | AVX512 | ✅           | ✅           | ✅         | ✅          |
-| NEON   | ✅           | ✅           | ❌         | ❌          |
+| NEON   | ✅           | ✅           | ✅         | ✅          |
