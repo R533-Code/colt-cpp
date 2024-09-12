@@ -1,4 +1,5 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/R533-Code/colt-cpp/badge)](https://scorecard.dev/viewer/?uri=github.com/R533-Code/colt-cpp)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9400/badge)](https://www.bestpractices.dev/projects/9400)
 ![CodeQL](https://github.com/R533-Code/colt-cpp/actions/workflows/codeql.yml/badge.svg)
 ## Colt-Cpp:
 Contains helpers used throughout the Colt Compiler.
