@@ -9,10 +9,11 @@
 #include "colt/bit/operations.h"
 #include "colt/bit/detect_simd.h"
 
-#pragma region // DEFAULT: strlen8 strlen16[BL]E
+#pragma region // DEFAULT: len8 len16[BL]E
 
-static size_t strlen8default(const char8_t* ptr) noexcept
+static clt::uni::LenInfo len8default(const char8_t* ptr) noexcept
 {
+  const auto copy = ptr;
   size_t len = 0;
   auto end   = ptr;
   char8_t current;
@@ -21,11 +22,12 @@ static size_t strlen8default(const char8_t* ptr) noexcept
     end += clt::uni::sequence_length(current);
     ++len;
   }
-  return len;
+  return {len, static_cast<size_t>(ptr - copy)};
 }
 
-static size_t strlen16LEdefault(const char16_t* ptr) noexcept
+static clt::uni::LenInfo len16LEdefault(const char16_t* ptr) noexcept
 {
+  const auto copy = ptr;
   size_t len = 0;
   auto end   = ptr;
   char16_t current;
@@ -34,11 +36,12 @@ static size_t strlen16LEdefault(const char16_t* ptr) noexcept
     end += clt::uni::sequence_length(current);
     ++len;
   }
-  return len;
+  return {len, static_cast<size_t>(ptr - copy)};
 }
 
-static size_t strlen16BEdefault(const char16_t* ptr) noexcept
+static clt::uni::LenInfo len16BEdefault(const char16_t* ptr) noexcept
 {
+  const auto copy = ptr;
   size_t len = 0;
   auto end   = ptr;
   char16_t current;
@@ -47,7 +50,7 @@ static size_t strlen16BEdefault(const char16_t* ptr) noexcept
     end += clt::uni::sequence_length(current);
     ++len;
   }
-  return len;
+  return {len, static_cast<size_t>(ptr - copy)};
 }
 
 #pragma endregion
@@ -74,9 +77,10 @@ static size_t unitlen32default(const char32_t* ptr) noexcept
 
 #if defined(COLT_x86_64)
 
-  #pragma region // strlen8 SSE2, AVX2, AXV512BW
-static COLT_FORCE_SSE2 size_t strlen8SSE2(const char8_t* ptr) noexcept
+  #pragma region // len8 SSE2, AVX2, AXV512BW
+static COLT_FORCE_SSE2 clt::uni::LenInfo len8SSE2(const char8_t* ptr) noexcept
 {
+  const auto copy = ptr;
   size_t len = 0;
   // Align pointer to 16 byte boundary to use aligned load
   // and avoid page faults.
@@ -85,7 +89,7 @@ static COLT_FORCE_SSE2 size_t strlen8SSE2(const char8_t* ptr) noexcept
   while (uintptr_t(ptr) % 16 != 0)
   {
     if (*ptr == '\0')
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     len += (size_t)(!clt::uni::is_trail(*ptr));
     ++ptr;
   }
@@ -114,20 +118,21 @@ static COLT_FORCE_SSE2 size_t strlen8SSE2(const char8_t* ptr) noexcept
   while (true)
   {
     if (*ptr == '\0')
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     len += (size_t)(!clt::uni::is_trail(*ptr));
     ++ptr;
   }
   clt::unreachable("programming error");
 }
 
-static COLT_FORCE_AVX2 size_t strlen8AVX2(const char8_t* ptr) noexcept
+static COLT_FORCE_AVX2 clt::uni::LenInfo len8AVX2(const char8_t* ptr) noexcept
 {
+  const auto copy = ptr;
   size_t len = 0;
   while (uintptr_t(ptr) % 32 != 0)
   {
     if (*ptr == '\0')
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     len += (size_t)(!clt::uni::is_trail(*ptr));
     ++ptr;
   }
@@ -156,20 +161,21 @@ static COLT_FORCE_AVX2 size_t strlen8AVX2(const char8_t* ptr) noexcept
   while (true)
   {
     if (*ptr == '\0')
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     len += (size_t)(!clt::uni::is_trail(*ptr));
     ++ptr;
   }
   clt::unreachable("programming error");
 }
 
-static COLT_FORCE_AVX512BW size_t strlen8AXV512BW(const char8_t* ptr) noexcept
+static COLT_FORCE_AVX512BW clt::uni::LenInfo len8AXV512BW(const char8_t* ptr) noexcept
 {
+  const auto copy = ptr;
   size_t len = 0;
   while (uintptr_t(ptr) % 64 != 0)
   {
     if (*ptr == '\0')
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     len += (size_t)(!clt::uni::is_trail(*ptr));
     ++ptr;
   }
@@ -196,7 +202,7 @@ static COLT_FORCE_AVX512BW size_t strlen8AXV512BW(const char8_t* ptr) noexcept
   while (true)
   {
     if (*ptr == '\0')
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     len += (size_t)(!clt::uni::is_trail(*ptr));
     ++ptr;
   }
@@ -205,11 +211,12 @@ static COLT_FORCE_AVX512BW size_t strlen8AXV512BW(const char8_t* ptr) noexcept
 
   #pragma endregion
 
-  #pragma region // strlen16 SSE2, AVX2, AVX512BW
+  #pragma region // len16 SSE2, AVX2, AVX512BW
 
 template<bool SWAP>
-static COLT_FORCE_SSE2 size_t strlen16SSE2(const char16_t* ptr) noexcept
+static COLT_FORCE_SSE2 clt::uni::LenInfo len16SSE2(const char16_t* ptr) noexcept
 {
+  const auto copy = ptr;
   size_t len = 0;
   // Align pointer to 16 byte boundary to use aligned load
   // and avoid page faults.
@@ -218,7 +225,7 @@ static COLT_FORCE_SSE2 size_t strlen16SSE2(const char16_t* ptr) noexcept
   while (uintptr_t(ptr) % 16 != 0)
   {
     if (*ptr == '\0')
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
       len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
     else
@@ -250,7 +257,7 @@ static COLT_FORCE_SSE2 size_t strlen16SSE2(const char16_t* ptr) noexcept
   while (true)
   {
     if (*ptr == 0)
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
       len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
     else
@@ -261,15 +268,16 @@ static COLT_FORCE_SSE2 size_t strlen16SSE2(const char16_t* ptr) noexcept
 }
 
 template<bool SWAP>
-static COLT_FORCE_AVX2 size_t strlen16AVX2(const char16_t* ptr) noexcept
+static COLT_FORCE_AVX2 clt::uni::LenInfo len16AVX2(const char16_t* ptr) noexcept
 {
+  const auto copy = ptr;
   size_t len = 0;
   // We can't use sequence_length here as the goal is to align
   // and most likely adding sequence_length will not align the pointer.
   while (uintptr_t(ptr) % 32 != 0)
   {
     if (*ptr == 0)
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
       len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
     else
@@ -302,7 +310,7 @@ static COLT_FORCE_AVX2 size_t strlen16AVX2(const char16_t* ptr) noexcept
   while (true)
   {
     if (*ptr == 0)
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
       len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
     else
@@ -313,15 +321,16 @@ static COLT_FORCE_AVX2 size_t strlen16AVX2(const char16_t* ptr) noexcept
 }
 
 template<bool SWAP>
-static COLT_FORCE_AVX512BW size_t strlen16AVX512BW(const char16_t* ptr) noexcept
+static COLT_FORCE_AVX512BW clt::uni::LenInfo len16AVX512BW(const char16_t* ptr) noexcept
 {
+  const auto copy  = ptr;
   size_t len = 0;
   // We can't use sequence_length here as the goal is to align
   // and most likely adding sequence_length will not align the pointer.
   while (uintptr_t(ptr) % 64 != 0)
   {
     if (*ptr == 0)
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
       len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
     else
@@ -352,7 +361,7 @@ static COLT_FORCE_AVX512BW size_t strlen16AVX512BW(const char16_t* ptr) noexcept
   while (true)
   {
     if (*ptr == 0)
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
       len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
     else
@@ -594,8 +603,8 @@ static COLT_FORCE_NEON size_t unitlen32NEON(const char32_t* ptr) noexcept
 }
   #pragma endregion
 
-  #pragma region // strlen8 NEON
-static COLT_FORCE_NEON size_t strlen8NEON(const char8_t* ptr) noexcept
+  #pragma region // len8 NEON
+static COLT_FORCE_NEON clt::uni::LenInfo len8NEON(const char8_t* ptr) noexcept
 {
   const auto copy = ptr;
   size_t len = 0;
@@ -604,7 +613,7 @@ static COLT_FORCE_NEON size_t strlen8NEON(const char8_t* ptr) noexcept
   while (uintptr_t(ptr) % alignof(uint8x16_t) != 0)
   {
     if (*ptr == '\0')
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     len += (size_t)(!clt::uni::is_trail(*ptr));
     ++ptr;
   }
@@ -634,7 +643,7 @@ static COLT_FORCE_NEON size_t strlen8NEON(const char8_t* ptr) noexcept
   while (true)
   {
     if (*ptr == '\0')
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     len += (size_t)(!clt::uni::is_trail(*ptr));
     ++ptr;
   }
@@ -642,9 +651,9 @@ static COLT_FORCE_NEON size_t strlen8NEON(const char8_t* ptr) noexcept
 }
   #pragma endregion
 
-  #pragma region // strlen16 NEON
+  #pragma region // len16 NEON
 template<bool SWAP>
-static COLT_FORCE_NEON size_t strlen16NEON(const char16_t* ptr) noexcept
+static COLT_FORCE_NEON clt::uni::LenInfo len16NEON(const char16_t* ptr) noexcept
 {
  const auto copy = ptr;
   size_t len = 0;
@@ -653,7 +662,7 @@ static COLT_FORCE_NEON size_t strlen16NEON(const char16_t* ptr) noexcept
   while (uintptr_t(ptr) % alignof(uint16x8_t) != 0)
   {
     if (*ptr == '\0')
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
       len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
     else
@@ -683,7 +692,7 @@ static COLT_FORCE_NEON size_t strlen16NEON(const char16_t* ptr) noexcept
   while (true)
   {
     if (*ptr == '\0')
-      return len;
+      return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
       len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
     else
@@ -696,25 +705,25 @@ static COLT_FORCE_NEON size_t strlen16NEON(const char16_t* ptr) noexcept
 
 #endif // COLT_x86_64
 
-size_t clt::uni::details::strlen8(const char8_t* ptr) noexcept
+clt::uni::LenInfo clt::uni::details::len8(const char8_t* ptr) noexcept
 {
   using namespace clt::bit;
 #ifdef COLT_x86_64
   static const auto FN = choose_simd_function<
       simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>{}(
-      &strlen8AXV512BW, &strlen8AVX2, &strlen8SSE2);
+      &len8AXV512BW, &len8AVX2, &len8SSE2);
 
   return (*FN)(ptr);
 #elif defined(COLT_ARM_7or8)
   static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
-      &strlen8NEON, &strlen8default);
+      &len8NEON, &len8default);
   return (*FN)(ptr);
 #else
-  return strlen8default(ptr);
+  return len8default(ptr);
 #endif // COLT_x86_64
 }
 
-size_t clt::uni::details::strlen16LE(const char16_t* ptr) noexcept
+clt::uni::LenInfo clt::uni::details::len16LE(const char16_t* ptr) noexcept
 {
   using namespace clt::bit;
 
@@ -722,19 +731,19 @@ size_t clt::uni::details::strlen16LE(const char16_t* ptr) noexcept
 #ifdef COLT_x86_64
   static const auto FN = choose_simd_function<
       simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>{}(
-      &strlen16AVX512BW<SWAP>, &strlen16AVX2<SWAP>, &strlen16SSE2<SWAP>);
+      &len16AVX512BW<SWAP>, &len16AVX2<SWAP>, &len16SSE2<SWAP>);
 
   return (*FN)(ptr);
 #elif defined(COLT_ARM_7or8)
   static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
-      &strlen16NEON<SWAP>, &strlen16LEdefault);
+      &len16NEON<SWAP>, &len16LEdefault);
   return (*FN)(ptr);
 #else
-  return strlen16LEdefault(ptr);
+  return len16LEdefault(ptr);
 #endif // COLT_x86_64
 }
 
-size_t clt::uni::details::strlen16BE(const char16_t* ptr) noexcept
+clt::uni::LenInfo clt::uni::details::len16BE(const char16_t* ptr) noexcept
 {
   using namespace clt::bit;
 
@@ -742,24 +751,24 @@ size_t clt::uni::details::strlen16BE(const char16_t* ptr) noexcept
 #ifdef COLT_x86_64
   static const auto FN = choose_simd_function<
       simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>{}(
-      &strlen16AVX512BW<SWAP>, &strlen16AVX2<SWAP>, &strlen16SSE2<SWAP>);
+      &len16AVX512BW<SWAP>, &len16AVX2<SWAP>, &len16SSE2<SWAP>);
 
   return (*FN)(ptr);
 #elif defined(COLT_ARM_7or8)
   static const auto FN = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
-      &strlen16NEON<SWAP>, &strlen16BEdefault);
+      &len16NEON<SWAP>, &len16BEdefault);
   return (*FN)(ptr);
 #else
-  return strlen16BEdefault(ptr);
+  return len16BEdefault(ptr);
 #endif // COLT_x86_64
 }
 
-size_t clt::uni::details::strlen16(const char16_t* ptr) noexcept
+clt::uni::LenInfo clt::uni::details::len16(const char16_t* ptr) noexcept
 {
   if constexpr (StringEncoding::UTF16 == StringEncoding::UTF16LE)
-    return strlen16LE(ptr);
+    return len16LE(ptr);
   else
-    return strlen16BE(ptr);
+    return len16BE(ptr);
 }
 
 size_t clt::uni::details::unitlen16(const char16_t* ptr) noexcept

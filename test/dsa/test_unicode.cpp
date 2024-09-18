@@ -184,13 +184,13 @@ TEST_CASE("Unicode SIMD strlen")
   using namespace clt::uni;
 #define TEST_STRLEN8(value)        \
   REQUIRE(                         \
-      uni::details::strlen8(value) \
+      uni::details::len8(value).strlen \
       == simdutf::count_utf8(      \
           (const char*)value, ((sizeof value) / sizeof(value[0]) - 1)));
 
 #define TEST_STRLEN16(value)        \
   REQUIRE(                          \
-      uni::details::strlen16(value) \
+      uni::details::len16(value).strlen \
       == simdutf::count_utf16(value, ((sizeof value) / sizeof(value[0]) - 1)));
 
   SECTION("UTF8")

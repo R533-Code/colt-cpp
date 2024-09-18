@@ -770,7 +770,7 @@ namespace clt
     /// @return The number of code points
     template<typename T>
       requires(meta::CppCharType<T> || meta::CharType<T>)
-    constexpr size_t count(const T* start, size_t units) noexcept;
+    constexpr size_t countlen(const T* start, size_t units) noexcept;
 
     /// @brief Returns the number of code points of a NUL-terminated string
     /// @tparam T The char type
@@ -780,24 +780,38 @@ namespace clt
       requires(meta::CppCharType<T> || meta::CharType<T>)
     constexpr size_t strlen(const T* start) noexcept;
 
+    struct LenInfo
+    {
+      size_t strlen;
+      size_t unitlen;
+    };
+
+    /// @brief Returns the strlen and unitlen of a NUL terminated string.
+    /// @tparam T The char type
+    /// @param start The start of the NUL terminated string
+    /// @return LenInfo representing the result
+    template<typename T>
+      requires(meta::CppCharType<T> || meta::CharType<T>)
+    constexpr LenInfo len(const T* start) noexcept;
+
     namespace details
     {
       /// @brief Optimized strlen for UTF8
       /// @param ptr The NUL-terminated string whose code point count to return
       /// @return Return the number of code point (not including NUL-terminator)
-      size_t strlen8(const char8_t* ptr) noexcept;
+      LenInfo len8(const char8_t* ptr) noexcept;
       /// @brief Optimized strlen for UTF16LE
       /// @param ptr The NUL-terminated string whose code point count to return
       /// @return Return the number of code point (not including NUL-terminator)
-      size_t strlen16LE(const char16_t* ptr) noexcept;
+      LenInfo len16LE(const char16_t* ptr) noexcept;
       /// @brief Optimized strlen for UTF16BE
       /// @param ptr The NUL-terminated string whose code point count to return
       /// @return Return the number of code point (not including NUL-terminator)
-      size_t strlen16BE(const char16_t* ptr) noexcept;
+      LenInfo len16BE(const char16_t* ptr) noexcept;
       /// @brief Optimized strlen for native UTF16
       /// @param ptr The NUL-terminated string whose code point count to return
       /// @return Return the number of code point (not including NUL-terminator)
-      size_t strlen16(const char16_t* ptr) noexcept;
+      LenInfo len16(const char16_t* ptr) noexcept;
       /// @brief Optimized unitlen for UTF16.
       /// This works for both endianness as zero are represented the same
       /// way on both endianness.
@@ -1193,8 +1207,8 @@ namespace clt
         if (is_trail_surrogate(*second))
           ++second;
       }
-      auto lhs                = uni::count(start, second - start);
-      auto rhs                = uni::count(second, (start + unit_len) - second);
+      auto lhs                = uni::countlen(start, second - start);
+      auto rhs                = uni::countlen(second, (start + unit_len) - second);
       const auto count_result = lhs + rhs;
       const auto half_count   = count_result / 2;
       if (lhs < half_count)
@@ -1209,7 +1223,7 @@ namespace clt
 
     template<typename T>
       requires(meta::CppCharType<T> || meta::CharType<T>)
-    constexpr size_t count(const T* start, size_t unit_len) noexcept
+    constexpr size_t countlen(const T* start, size_t unit_len) noexcept
     {
       assert_true("Expected non-null pointer!", start != nullptr);
       if constexpr (meta::is_any_of<T, char, char32_t, Char32BE, Char32LE>)
@@ -1245,14 +1259,25 @@ namespace clt
       requires(meta::CppCharType<T> || meta::CharType<T>)
     constexpr size_t strlen(const T* start) noexcept
     {
+      return len(start).strlen;
+    }
+    
+    template<typename T>
+      requires(meta::CppCharType<T> || meta::CharType<T>)
+    constexpr LenInfo len(const T* start) noexcept
+    {
       assert_true("Expected non-null pointer!", start != nullptr);
       if constexpr (meta::is_any_of<T, char, char32_t, Char32BE, Char32LE>)
-        return uni::unitlen(start);
+      {
+        auto cache = uni::unitlen(start);
+        return {cache, cache};
+      }
 
       if constexpr (meta::is_any_of<T, char8_t, Char8>)
       {
         if (std::is_constant_evaluated())
         {
+          const auto copy = start;
           size_t len   = 0;
           const T* end = start;
           char8_t current;
@@ -1261,15 +1286,16 @@ namespace clt
             end += sequence_length(current);
             ++len;
           }
-          return len;
+          return {len, static_cast<size_t>(start - copy)};
         }
         else
-          return details::strlen8(reinterpret_cast<const char8_t*>(start));
+          return details::len8(reinterpret_cast<const char8_t*>(start));
       }
       if constexpr (meta::is_any_of<T, char16_t, Char16BE, Char16LE>)
       {
         if (std::is_constant_evaluated())
         {
+          const auto copy = start;
           size_t len   = 0;
           const T* end = start;
           char16_t current;
@@ -1278,16 +1304,16 @@ namespace clt
             end += sequence_length(current);
             ++len;
           }
-          return len;
+          return {len, static_cast<size_t>(start - copy)};
         }
         else
         {
           if constexpr (std::same_as<T, char16_t>)
-            return details::strlen16(start);
+            return details::len16(start);
           if constexpr (std::same_as<T, Char16BE>)
-            return details::strlen16BE(reinterpret_cast<const char16_t*>(start));
+            return details::len16BE(reinterpret_cast<const char16_t*>(start));
           if constexpr (std::same_as<T, Char16LE>)
-            return details::strlen16LE(reinterpret_cast<const char16_t*>(start));
+            return details::len16LE(reinterpret_cast<const char16_t*>(start));
         }
       }
     }
