@@ -314,7 +314,7 @@ namespace clt
       else if constexpr (HAS_COUNT)
       {
         if (_is_long())
-          _ptr_or_buffer.count() = uni::count(cache_data, _size);
+          _ptr_or_buffer.count() = uni::countlen(cache_data, _size);
       }
     }
 
@@ -349,9 +349,9 @@ namespace clt
     {
       if constexpr (HAS_COUNT)
         return _is_long() ? _ptr_or_buffer.count()
-                          : uni::count(_ptr_or_buffer.buffer(), _size);
+                          : uni::countlen(_ptr_or_buffer.buffer(), _size);
       else
-        return uni::count(data(), _size);
+        return uni::countlen(data(), _size);
     }
 
     /// @brief Returns the unit count over which the view is spanning.

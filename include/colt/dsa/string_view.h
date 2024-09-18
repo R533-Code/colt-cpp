@@ -9,7 +9,7 @@
 #ifndef HG_DSA_STRING_VIEW
 #define HG_DSA_STRING_VIEW
 
-#include "unicode.h"
+#include "colt/uni/unicode.h"
 #include <zpp_bits.h>
 #include "colt/dsa/iterator.h"
 
@@ -151,7 +151,7 @@ namespace clt
       if constexpr (meta::is_any_of<underlying_type, char, Char32BE, Char32LE>)
         return _size;
       else
-        return uni::count(_ptr, _size);
+        return uni::countlen(_ptr, _size);
     }
 
     /// @brief Returns the unit count over which the view is spanning.

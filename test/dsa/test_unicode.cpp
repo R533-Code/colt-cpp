@@ -6,7 +6,7 @@
  * @date   August 2024
  *********************************************************************/
 #include "../includes.h"
-#include <colt/dsa/unicode.h>
+#include <colt/uni/unicode.h>
 
 // Using COLT_FOR_EACH, we can generate a test for each of the strings below.
 // COLT_CONCAT(x, ...) is used to concatenate the string literal (u8, u, U).
