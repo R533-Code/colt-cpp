@@ -95,7 +95,7 @@ namespace clt::bit
   COLT_DISABLE_WARNING("-Wunused-value", 4553)
 
   template<simd_flag... PREFERED>
-  struct choose_simd_function
+  struct choose_simd_implementation
   {
     static_assert(
         (PREFERED, ...) == simd_flag::DEFAULT,
@@ -104,21 +104,21 @@ namespace clt::bit
 #ifdef COLT_DEBUG
     clt::source_location src;
 
-    constexpr choose_simd_function(
+    constexpr choose_simd_implementation(
         clt::source_location src = clt::source_location::current()) noexcept
         : src(src)
     {
     }
 #endif // COLT_DEBUG
 
-    template<typename FnPtr, typename... FnPtrs>
-    FnPtr operator()(FnPtr first, FnPtrs... ts)
+    template<typename Ty, typename... Tys>
+    Ty operator()(Ty first, Tys... ts)
     {
       static_assert(
-          sizeof...(PREFERED) == sizeof...(FnPtrs) + 1,
+          sizeof...(PREFERED) == sizeof...(Tys) + 1,
           "Number of simd_flag and function pointers must be equal!");
       static_assert(
-          meta::are_all_same<FnPtr, FnPtr, FnPtrs...>,
+          meta::are_all_same<Ty, Ty, Tys...>,
           "All function pointers must be of the same type!");
       if constexpr (sizeof...(ts) == 0)
       {
@@ -129,15 +129,17 @@ namespace clt::bit
         auto support                = detect_supported_architectures();
         constexpr size_t ARRAY_SIZE = sizeof...(PREFERED);
         constexpr simd_flag ARRAY[] = {PREFERED...};
-        const FnPtr ARRAYFN[]       = {first, ts...};
+        const Ty ARRAYFN[]       = {first, ts...};
         for (size_t i = 0; i < ARRAY_SIZE - 1; i++)
         {
           if (support & ARRAY[i])
           {
-#ifdef COLT_DEBUG
-            fmt::println(
-                "Using {} implementation for '{}'.", ARRAY[i], src.function_name());
-#endif // COLT_DEBUG
+            if constexpr (is_debug_build())
+            {
+              fmt::println(
+                  "Using {} implementation for '{}'.", ARRAY[i],
+                  src.function_name());
+            }
             return ARRAYFN[i];
           }
         }
