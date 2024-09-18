@@ -1,19 +1,19 @@
 /*****************************************************************/ /**
  * @file   detect_simd.h
- * @brief  Contains 'choose_simd_function' to select a function depending
+ * @brief  Contains 'choose_simd_implementation' to select a function depending
  *         on CPU supported instructions.
- * 'choose_simd_function' chooses the first supported function.
+ * 'choose_simd_implementation' chooses the first supported function.
  * As an example:
  * @code{.cpp}
  * size_t unitlen32(const char32_t* ptr) noexcept
  * {
  *   static const auto FN =
- *     choose_simd_function<simd_flag::AVX512F, simd_flag::AVX2, simd_flag::DEFAULT>(
+ *     choose_simd_implementation<simd_flag::AVX512F, simd_flag::AVX2, simd_flag::DEFAULT>{}(
  *       &unitlen32AVX512F, &unitlen32AVX2, &unitlen16default);
  *   return (*FN)(ptr);
  * }
  * @endcode
- * In the example above, 'choose_simd_function' will:
+ * In the example above, 'choose_simd_implementation' will:
  * - check if AVX512F instructions are supported, if so returns the first argument
  *   of the function,
  * - else, check if AVX2 instructions are supported, if so returns the second argument
@@ -134,15 +134,18 @@ namespace clt::bit
         {
           if (support & ARRAY[i])
           {
-            if constexpr (is_debug_build())
-            {
-              fmt::println(
-                  "Using {} implementation for '{}'.", ARRAY[i],
-                  src.function_name());
-            }
+#ifdef COLT_DEBUG
+            fmt::println(
+                "Using {} implementation for '{}'.", ARRAY[i],
+                src.function_name());
+#endif // COLT_DEBUG
             return ARRAYFN[i];
           }
         }
+#ifdef COLT_DEBUG
+        fmt::println(
+            "Using {} implementation for '{}'.", ARRAY[ARRAY_SIZE - 1], src.function_name());
+#endif // COLT_DEBUG
         return ARRAYFN[ARRAY_SIZE - 1];
       }
     }
