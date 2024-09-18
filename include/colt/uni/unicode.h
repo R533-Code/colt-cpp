@@ -673,4 +673,29 @@ namespace clt::uni
   }
 } // namespace uni
 
+template<clt::meta::is_any_of<clt::Char32BE, clt::Char32LE> Ty>
+struct fmt::formatter<Ty>
+{
+  template<typename ParseContext>
+  constexpr auto parse(ParseContext& ctx)
+  {
+    return ctx.begin();
+  }
+
+  template<typename FormatContext>
+  auto format(const Ty op, FormatContext& ctx) const
+  {
+    using namespace clt::uni;
+
+    // 4 char max for utf-8 + NUL terminator
+    char8_t array8[clt::Char8::max_sequence + 1] = {0};
+    auto from                                    = &op;
+    auto result                                  = &array8[0];
+    if (to_utf8(from, 1, result, 5) == ConvError::NO_ERROR)
+      return fmt::format_to(ctx.out(), "{}", reinterpret_cast<const char*>(array8));
+    FMT_THROW(std::runtime_error("invalid unicode"));
+    clt::unreachable("Cannot be reached!");
+  }
+};
+
 #endif // !HG_DSA_UNICODE
