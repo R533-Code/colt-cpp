@@ -758,13 +758,14 @@ static const SIMDImpl& get_colt_unicode_simd() noexcept
           &unitlen32SSE2});
   return ret;
 #elif defined(COLT_ARM_7or8)
-  static auto ret = choose_simd_function<simd_flag::NEON, simd_flag::DEFAULT>{}(
-      SIMDImpl{
-          &len8NEON, &len16NEON<SWAP>, &len16NEON<!SWAP>, &unitlen16NEON,
-          &unitlen32NEON},
-      SIMDImpl{
-          &len8default, &len16LEdefault, &len16BEdefault, &unitlen16default,
-          &unitlen32default});
+  static auto ret =
+      choose_simd_implementation<simd_flag::NEON, simd_flag::DEFAULT>{}(
+          SIMDImpl{
+              &len8NEON, &len16NEON<SWAP>, &len16NEON<!SWAP>, &unitlen16NEON,
+              &unitlen32NEON},
+          SIMDImpl{
+              &len8default, &len16LEdefault, &len16BEdefault, &unitlen16default,
+              &unitlen32default});
   return ret;
 #else
   static auto ret = SIMDImpl{
