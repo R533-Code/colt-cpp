@@ -48,6 +48,17 @@
   COLT_CONCAT(x, "End of tests!")
 // clang-format on
 
+struct MAKE_BE{};
+
+template<size_t N>
+const clt::Char16Other* operator+(MAKE_BE, const char16_t (&str)[N])
+{
+  auto ret = new char16_t[N];
+  for (size_t i = 0; i < N; i++)
+    ret[i] = clt::bit::byteswap(str[i]);
+  return reinterpret_cast<clt::Char16Other*>(ret);
+}
+
 #define TEST_STRING8  TEST_STRING(u8)
 #define TEST_STRING16 TEST_STRING(u)
 #define TEST_STRING32 TEST_STRING(U)
@@ -68,6 +79,10 @@ TEST_CASE("Unicode Length")
   REQUIRE(                   \
       strlen(value)          \
       == simdutf::count_utf16(value, ((sizeof value) / sizeof(value[0]) - 1)));
+#define TEST_STRLEN16OTHER(value) \
+  REQUIRE(                   \
+      strlen(MAKE_BE{} + value) \
+      == simdutf::count_utf16(value, ((sizeof value) / sizeof(value[0]) - 1)));
 
 #define TEST_STRLEN32(value) \
   REQUIRE(strlen(value) == (sizeof value) / sizeof(value[0]) - 1);
@@ -79,6 +94,10 @@ TEST_CASE("Unicode Length")
   SECTION("UTF16")
   {
     COLT_FOR_EACH(TEST_STRLEN16, TEST_STRING16);
+  }
+  SECTION("UTF16 Other")
+  {
+    COLT_FOR_EACH(TEST_STRLEN16OTHER, TEST_STRING16);
   }
   SECTION("UTF32")
   {
@@ -140,6 +159,8 @@ TEST_CASE("Unicode Size")
 
 #define TEST_UNITLEN(value) \
   REQUIRE(unitlen(value) == ((sizeof value) / sizeof(value[0]) - 1));
+#define TEST_UNITLEN16OTHER(value) \
+  REQUIRE(unitlen(MAKE_BE{} + value) == ((sizeof value) / sizeof(value[0]) - 1));
 
   SECTION("UTF8")
   {
@@ -148,6 +169,10 @@ TEST_CASE("Unicode Size")
   SECTION("UTF16")
   {
     COLT_FOR_EACH(TEST_UNITLEN, TEST_STRING16);
+  }
+  SECTION("UTF16 Other")
+  {
+    COLT_FOR_EACH(TEST_UNITLEN16OTHER, TEST_STRING16);
   }
   SECTION("UTF32")
   {
