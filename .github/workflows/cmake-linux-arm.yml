@@ -10,11 +10,6 @@ on:
       - '**/*.yml'
   pull_request:
     branches: [ "main" ]
-    paths:
-      - '**/*.cpp'
-      - '**/*.h'
-      - '**/CMakeLists.txt'
-      - '**/*.yml'
 
 jobs:
   build-and-test:
