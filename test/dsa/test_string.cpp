@@ -21,10 +21,10 @@ using AllStrings = std::tuple<
         clt::meta::StringCustomization{StringEncoding::UTF8, 8, true, true, true},
         mem::Mallocator>,
     BasicString<
-        clt::meta::StringCustomization{StringEncoding::UTF8, 0, false, false, false},
+        clt::meta::StringCustomization{StringEncoding::UTF8, 0, true, true, true},
         mem::Mallocator>>;
 
-TEMPLATE_LIST_TEST_CASE("String Indexing", "[template]", AllStrings)
+TEMPLATE_LIST_TEST_CASE("String Indexing", "[BasicString]", AllStrings)
 {
   using namespace clt;
 
