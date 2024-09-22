@@ -457,14 +457,24 @@ namespace clt::cl
     void print_help_for_arg(u64 max_size, u64 max_desc) noexcept
     {
       if constexpr (Arg::alias.empty())
+      {
+        auto offset = Arg::name.find_first_not_of("-");
         io::print<"">(
-            "   -{}{: <{}}{}", io::BrightCyanF, Arg::name.data(), max_size,
+            "   -{}{}{: <{}}{}", Arg::name.substr(0, offset), io::BrightCyanF,
+            Arg::name.substr(offset), max_size,
             io::Reset);
+      }
       else
+      {
+        auto offset = Arg::name.find_first_not_of("-");
+        auto offset2 = Arg::alias.find_first_not_of("-");
         io::print<"">(
-            "   -{}{}{}, -{}{}{}{: <{}}", io::BrightCyanF, Arg::name.data(),
-            io::Reset, io::BrightCyanF, Arg::alias.data(), io::Reset, "",
+            "   -{}{}{}{}, -{}{}{}{}{: <{}}", Arg::name.substr(0, offset), io::BrightCyanF,
+            Arg::name.substr(offset), io::Reset,
+            Arg::alias.substr(0, offset2), io::BrightCyanF, Arg::alias.substr(offset2),
+            io::Reset, "",
             max_size - Arg::name.size() - Arg::alias.size() - 3);
+      }
 
       if constexpr (Arg::value_desc.empty())
         io::print<"">("{: <{}}", "", max_desc);
@@ -558,7 +568,7 @@ namespace clt::cl
       else
       {
         io::print_error(
-            "'{}' is not an option!\nUse '-help' to enumerate possible options.",
+            "'-{}' is not an option!\nUse '-help' to enumerate possible options.",
             arg);
         std::exit(1);
       }
