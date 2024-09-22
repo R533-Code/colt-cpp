@@ -39,7 +39,7 @@ namespace clt
       constexpr bool has_count() const noexcept
       {
         return is_variadic_encoding(ENCODING)
-               && buffer_bytesize() > sizeof(void*) + sizeof(size_t) && CACHE_COUNT;
+               && buffer_bytesize() >= sizeof(void*) + sizeof(size_t) && CACHE_COUNT;
       }
       /// @brief True if the string must cache the offset to the middle code point.
       /// This can never be true if the count is not cached as computing the middle
@@ -90,9 +90,9 @@ namespace clt
     };
 
     template<bool CACHE_MIDDLE>
-    using SSOCacheMiddle = std::conditional_t<CACHE_MIDDLE, SSOCount, meta::empty_t>;
+    using SSOCacheMiddle = std::conditional_t<CACHE_MIDDLE, SSOCount, meta::empty_t<SSOCount>>;
     template<bool CACHE_COUNT>
-    using SSOCacheCount = std::conditional_t<CACHE_COUNT, SSOMiddle, meta::empty_t>;
+    using SSOCacheCount = std::conditional_t<CACHE_COUNT, SSOMiddle, meta::empty_t<SSOMiddle>>;
 
     template<meta::CharType Ty, bool CACHE_MIDDLE, bool CACHE_COUNT>
     class SSOLongInfo
@@ -144,7 +144,7 @@ namespace clt
             CUSTOMIZATION.CACHE_MIDDLE, CUSTOMIZATION.CACHE_COUNT>
             _long;
 
-        char_t _buffer[CUSTOMIZATION.buffer_bytesize() / sizeof(char_t)];
+        char_t _buffer[math::max(CUSTOMIZATION.buffer_bytesize() / sizeof(char_t), size_t(sizeof(void*)))];
       };
 
     public:
@@ -220,7 +220,7 @@ namespace clt
 
     /// @brief The true size of the string (including NUL terminator)
     /// @return _size + 1 to account for terminator
-    size_t _true_size() const noexcept { return _size + 1; }
+    size_t _true_size() const noexcept { return _size + (size_t)(_size != 0); }
 
     /// @brief Allocates more memory for the string.
     /// This modifies the capacity (and data()).
@@ -255,7 +255,8 @@ namespace clt
       }
       else
         ALLOCATOR::dealloc(
-            {_ptr_or_buffer.ptr() * (size_t)(_capacity != 0), _capacity * sizeof(char_t)});
+            {(void*)((uintptr_t)_ptr_or_buffer.ptr() * (size_t)(_capacity != 0)),
+             _capacity * sizeof(char_t)});
       // The multiplication by (_capacity != 0) is used to eliminate
       // the case where the BasicString is initialized to "".
     }
@@ -381,75 +382,15 @@ namespace clt
     }
 
     /// @brief Returns the char at index 'index'.
-    /// Do not use this operator to iterate over the view:
-    /// use a ranged for loop for performance.
-    /// Same as 'index_front'.
     /// @pre index < size()
     /// @param index The index of the char to return
     /// @return The char at index 'index'
-    constexpr char32_t index_front(size_t index) const noexcept
-    {
-      assert_true("Invalid index!", index < size());
-      // If the size is not cached, then computing the size
-      // will take more time than just indexing.
-      if constexpr (HAS_MIDDLE)
-      {
-        if (_is_long())
-        {
-          const size_t cached_size         = size();
-          const size_t middle_cached_size  = cached_size / 2;
-          const size_t quarter_cached_size = cached_size / 4;
-          if (index >= middle_cached_size)
-          {
-            return uni::index_front(
-                _ptr_or_buffer.ptr() + _ptr_or_buffer.middle(),
-                index - middle_cached_size);
-          }
-          if (index > quarter_cached_size)
-          {
-            return uni::index_back(
-                _ptr_or_buffer.ptr() + _ptr_or_buffer.middle(),
-                middle_cached_size - index);
-          }
-          return uni::index_front(_ptr_or_buffer.ptr(), index);
-        }
-        return uni::index_front(_ptr_or_buffer.buffer(), index);
-      }
-      else
-        return uni::index_front(data(), index);
-    }
-
-    constexpr char32_t index_back(size_t index) const noexcept
-    {
-      assert_true("Invalid index!", index < size());
-      // If the size is not cached, then computing the size
-      // will take more time than just indexing.
-      if constexpr (HAS_MIDDLE)
-      {
-        if (_is_long())
-        {
-          const size_t cached_size         = size();
-          const size_t middle_cached_size  = cached_size / 2;
-          const size_t quarter_cached_size = 3 * (cached_size / 4);
-          if (index >= middle_cached_size)
-          {
-            return uni::index_back(
-                _ptr_or_buffer.ptr() + _ptr_or_buffer.middle(),
-                middle_cached_size - index);
-          }
-          if (index > quarter_cached_size)
-          {
-            return uni::index_front(
-                _ptr_or_buffer.ptr() + _ptr_or_buffer.middle(),
-                index - middle_cached_size);
-          }
-          return uni::index_back(_ptr_or_buffer.ptr() + _size - 1, index);
-        }
-        return uni::index_back(_ptr_or_buffer.buffer() + _size - 1, index);
-      }
-      else
-        return uni::index_back(data() + _size - 1, index);
-    }
+    constexpr char32_t index_front(size_t index) const noexcept;
+    /// @brief Returns the char at index 'index' starting from the end.
+    /// @pre index < size()
+    /// @param index The index of the char to return
+    /// @return The char at index 'index' starting from the end
+    constexpr char32_t index_back(size_t index) const noexcept;    
 
     /// @brief Get the front of the view.
     /// @return The first item of the view
@@ -530,6 +471,95 @@ namespace clt
   using u16String = String<ALLOCATOR, StringEncoding::UTF16>;
   template<typename ALLOCATOR>
   using u32String = String<ALLOCATOR, StringEncoding::UTF32>;
+  
+  
+  template<meta::StringCustomization CUSTOMIZATION, typename ALLOCATOR>
+  constexpr char32_t BasicString<CUSTOMIZATION, ALLOCATOR>::index_front(
+      size_t index) const noexcept
+  {
+    assert_true("Invalid index!", index < size());
+    // If the size is not cached, then computing the size
+    // will take more time than just indexing.
+    if constexpr (HAS_MIDDLE)
+    {
+      if (_is_long())
+      {
+        const size_t cached_size         = size();
+        const size_t middle_cached_size  = cached_size / 2;
+        const size_t quarter_cached_size = cached_size / 4;
+        if (index >= middle_cached_size)
+        {
+          return uni::index_front(
+              _ptr_or_buffer.ptr() + _ptr_or_buffer.middle(),
+              index - middle_cached_size);
+        }
+        if (index > quarter_cached_size)
+        {
+          return uni::index_back(
+              _ptr_or_buffer.ptr() + _ptr_or_buffer.middle(),
+              middle_cached_size - index);
+        }
+        return uni::index_front(_ptr_or_buffer.ptr(), index);
+      }
+      return uni::index_front(_ptr_or_buffer.buffer(), index);
+    }
+    else if constexpr (HAS_COUNT)
+    {
+      if (_is_long())
+      {
+        if (index >= _ptr_or_buffer.count() / 2)
+          return uni::index_back(_ptr_or_buffer.ptr(), _ptr_or_buffer.count() - index);
+        return uni::index_front(_ptr_or_buffer.ptr(), index);
+      }
+      return uni::index_front(_ptr_or_buffer.buffer(), index);
+    }
+    else
+      return uni::index_front(data(), index);
+  }
+  template<meta::StringCustomization CUSTOMIZATION, typename ALLOCATOR>
+  constexpr char32_t BasicString<CUSTOMIZATION, ALLOCATOR>::index_back(
+      size_t index) const noexcept
+  {
+    assert_true("Invalid index!", index < size());
+    // If the size is not cached, then computing the size
+    // will take more time than just indexing.
+    if constexpr (HAS_MIDDLE)
+    {
+      if (_is_long())
+      {
+        const size_t cached_size         = size();
+        const size_t middle_cached_size  = cached_size / 2;
+        const size_t quarter_cached_size = 3 * (cached_size / 4);
+        if (index >= middle_cached_size)
+        {
+          return uni::index_back(
+              _ptr_or_buffer.ptr() + _ptr_or_buffer.middle(),
+              middle_cached_size - index);
+        }
+        if (index > quarter_cached_size)
+        {
+          return uni::index_front(
+              _ptr_or_buffer.ptr() + _ptr_or_buffer.middle(),
+              index - middle_cached_size);
+        }
+        return uni::index_back(_ptr_or_buffer.ptr() + _size - 1, index);
+      }
+      return uni::index_back(_ptr_or_buffer.buffer() + _size - 1, index);
+    }
+    else if constexpr (HAS_COUNT)
+    {
+      if (_is_long())
+      {
+        if (index >= _ptr_or_buffer.count() / 2)
+          return uni::index_front(
+              _ptr_or_buffer.ptr(), _ptr_or_buffer.count() - index);
+        return uni::index_back(data() + _size - 1, index);
+      }
+      return uni::index_back(_ptr_or_buffer.buffer(), index);
+    }
+    else
+      return uni::index_back(data() + _size - 1, index);
+  }
 } // namespace clt
 
 template<clt::meta::StringCustomization CUSTOMIZATION, typename ALLOCATOR>
