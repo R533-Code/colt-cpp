@@ -462,13 +462,22 @@ namespace clt
   /// @return True if in const segment
   bool maybe_in_const_segment(const void* ptr) noexcept;
 
+  /// @brief Represents a String with the default customization
+  /// @tparam ALLOCATOR The allocator
+  /// @tparam ENCODING The encoding of the string
   template<typename ALLOCATOR, StringEncoding ENCODING = StringEncoding::ASCII>
   using String = BasicString<
       meta::StringCustomization{ENCODING, 24, true, true, true}, ALLOCATOR>;
+  /// @brief Represents a UTF8 string with the default customization
+  /// @tparam ALLOCATOR The allocator
   template<typename ALLOCATOR>
   using u8String = String<ALLOCATOR, StringEncoding::UTF8>;
+  /// @brief Represents a UTF16 with platform endianness string with the default customization
+  /// @tparam ALLOCATOR The allocator
   template<typename ALLOCATOR>
   using u16String = String<ALLOCATOR, StringEncoding::UTF16>;
+  /// @brief Represents a UTF32 with platform endianness string with the default customization
+  /// @tparam ALLOCATOR The allocator
   template<typename ALLOCATOR>
   using u32String = String<ALLOCATOR, StringEncoding::UTF32>;
   
@@ -516,6 +525,7 @@ namespace clt
     else
       return uni::index_front(data(), index);
   }
+  
   template<meta::StringCustomization CUSTOMIZATION, typename ALLOCATOR>
   constexpr char32_t BasicString<CUSTOMIZATION, ALLOCATOR>::index_back(
       size_t index) const noexcept
