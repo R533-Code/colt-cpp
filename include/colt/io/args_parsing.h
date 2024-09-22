@@ -389,9 +389,11 @@ namespace clt::cl
 
       if constexpr (opt::location != nullptr)
       {
-        auto res = clt::parse(strv, *opt::location);
-        if (!res)
-          return res;
+        auto res = clt::parse<ResultType>(strv);
+        if (res)
+          *opt::location = std::move(*res);
+        else
+          return res.error();
       }
 
       //Run callback if it exists.
