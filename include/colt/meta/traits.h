@@ -56,7 +56,9 @@ namespace clt::meta
     T value{};
   };
 
-  /// @brief empty_t struct helper
+  /// @brief Empty type
+  /// @tparam T Any type to generate different empty_t
+  template<typename T>
   struct empty_t
   {
   };
