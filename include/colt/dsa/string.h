@@ -50,7 +50,7 @@ namespace clt
       constexpr bool has_middle() const noexcept
       {
         return is_variadic_encoding(ENCODING)
-               && buffer_bytesize() > sizeof(void*) + 2 * sizeof(size_t)
+               && buffer_bytesize() >= sizeof(void*) + 2 * sizeof(size_t)
                && CACHE_COUNT && CACHE_MIDDLE;
       }
       /// @brief True if the string will not make copy of literal unless a modification occurs.
@@ -255,7 +255,7 @@ namespace clt
       }
       else
         ALLOCATOR::dealloc(
-            {_ptr_or_buffer.ptr() * (_capacity != 0), _capacity * sizeof(char_t)});
+            {_ptr_or_buffer.ptr() * (size_t)(_capacity != 0), _capacity * sizeof(char_t)});
       // The multiplication by (_capacity != 0) is used to eliminate
       // the case where the BasicString is initialized to "".
     }
@@ -295,10 +295,14 @@ namespace clt
         const ALLOCATOR& ALLOC, BasicStringView<STR_ENCODING, IS_ZSTRING> str,
         size_t added_capacity = 0) noexcept
         : ALLOCATOR(ALLOC)
-        , _size(str.unit_len())
-        , _capacity(0)
+        , _size(0)
+        , _capacity(SSO_SIZE)
     {
-      alloc(_size + added_capacity + 1);
+      const size_t size = str.unit_len();
+      // The size must still be 0 when call is done to not copy anything
+      alloc(size + added_capacity + 1);
+      _size = size;
+
       const auto cache_data = data();
       ::memcpy(cache_data, str.data(), sizeof(char_t) * _size);
       cache_data[_size] = '\0';
@@ -388,7 +392,7 @@ namespace clt
       assert_true("Invalid index!", index < size());
       // If the size is not cached, then computing the size
       // will take more time than just indexing.
-      if constexpr (HAS_MIDDLE && HAS_COUNT)
+      if constexpr (HAS_MIDDLE)
       {
         if (_is_long())
         {
@@ -420,20 +424,20 @@ namespace clt
       assert_true("Invalid index!", index < size());
       // If the size is not cached, then computing the size
       // will take more time than just indexing.
-      if constexpr (HAS_MIDDLE && HAS_COUNT)
+      if constexpr (HAS_MIDDLE)
       {
         if (_is_long())
         {
           const size_t cached_size         = size();
           const size_t middle_cached_size  = cached_size / 2;
           const size_t quarter_cached_size = 3 * (cached_size / 4);
-          if (index < middle_cached_size)
+          if (index >= middle_cached_size)
           {
             return uni::index_back(
                 _ptr_or_buffer.ptr() + _ptr_or_buffer.middle(),
                 middle_cached_size - index);
           }
-          if (index <= quarter_cached_size)
+          if (index > quarter_cached_size)
           {
             return uni::index_front(
                 _ptr_or_buffer.ptr() + _ptr_or_buffer.middle(),
@@ -505,8 +509,9 @@ namespace clt
         const BasicString& v1,
         const BasicStringView<ENCODING2, ZSTRING2>& v2) noexcept
     {
+      auto view = v1.to_view();
       return std::lexicographical_compare_three_way(
-          v1.begin(), v1.end(), v2.begin(), v2.end());
+          view.begin(), view.end(), v2.begin(), v2.end());
     }
   };
 
