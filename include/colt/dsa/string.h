@@ -237,7 +237,7 @@ namespace clt
         }
       }
       auto blk = ALLOCATOR::alloc((new_capacity + _capacity) * sizeof(char_t));
-      ::memcpy(data(), blk.ptr(), _true_size());
+      ::memcpy(blk.ptr(), data(), _true_size() * sizeof(char_t));
       dealloc();
       _ptr_or_buffer.ptr() = ptr_to<char_t*>(blk.ptr());
       _capacity            = new_capacity;
@@ -441,6 +441,37 @@ namespace clt
       return {data(), _size};
     }
 
+    template<bool IS_ZSTRING>
+    BasicString& operator+=(const BasicStringView<STR_ENCODING, IS_ZSTRING>& str) noexcept
+    {
+      auto len = str.unit_len();
+      if (len + _true_size() > capacity())
+        alloc(len + _true_size());
+      const auto cache_data = data();
+      ::memcpy(cache_data + _size, str.data(), len * sizeof(char_t));
+      _size += len;
+      cache_data[_size] = '\0';
+      if constexpr (HAS_MIDDLE)
+      {
+        if (_is_long())
+        {
+          const auto [count, middle] = uni::count_and_middle(str.data(), len);
+          _ptr_or_buffer.count() += count;
+          _ptr_or_buffer.middle() += middle;
+        }
+      }
+      else if constexpr (HAS_COUNT)
+      {
+        if (_is_long())
+        {
+          const auto cache_len = uni::countlen(str.data(), len);
+          _ptr_or_buffer.count() += cache_len;
+        }
+      }
+
+      return *this;
+    }
+
     /// @brief Lexicographically compare two views
     /// @param v1 The first view
     /// @param v2 The second view
@@ -565,7 +596,7 @@ namespace clt
               _ptr_or_buffer.ptr(), _ptr_or_buffer.count() - index);
         return uni::index_back(data() + _size - 1, index);
       }
-      return uni::index_back(_ptr_or_buffer.buffer(), index);
+      return uni::index_back(_ptr_or_buffer.buffer() + _size - 1, index);
     }
     else
       return uni::index_back(data() + _size - 1, index);
