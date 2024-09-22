@@ -9,6 +9,7 @@
 #include <catch2/catch_tostring.hpp>
 
 #include <fmt/format.h>
+#include <colt/uni/unicode.h>
 
 namespace Catch
 {
@@ -23,9 +24,20 @@ namespace Catch
     requires fmt::is_formattable<T>::value
   struct StringMaker<T>
   {
-    static std::string convert(T const& value)
+    static std::string convert(T const& value) { return fmt::format("{}", value); }
+  };
+
+  template<>
+  struct StringMaker<char32_t>
+  {
+    static std::string convert(const char32_t& value)
     {
-      return fmt::format("{}", value);
+      constexpr size_t SIZE = clt::Char8::max_sequence + 1;
+      char8_t RESULT[SIZE]  = {0};
+      char8_t* ptr          = RESULT;
+      const clt::Char32* from = (const clt::Char32*)&value;
+      clt::uni::to_utf8(from, 1, ptr, SIZE);
+      return fmt::format("{}", (const char*)RESULT);
     }
   };
 } // namespace Catch
