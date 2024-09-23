@@ -48,7 +48,8 @@ add_executable(coltcpp_tests
 )
 
 # The library that can be linked with
-add_library(coltcpp ${ColtHeaders} ${ColtUnits})
+# OBJECT is needed as colt_main will be defined outside of the library
+add_library(coltcpp OBJECT ${ColtHeaders} ${ColtUnits})
 set_target_properties(coltcpp PROPERTIES OUTPUT_NAME libcoltcpp PREFIX "")
 
 
