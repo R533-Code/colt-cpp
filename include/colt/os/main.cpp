@@ -12,11 +12,17 @@ extern int colt_main(clt::Span<const char8_t*> args);
 
   #ifdef COLT_WINDOWS
 
+    #include <fcntl.h>
+
 // On Windows, we make use of 'wmain' to obtain
 // the arguments as Unicode.
 int wmain(int argc, const wchar_t** argv)
 {
   using namespace clt;
+
+  // Set support to wchar_t in Console
+  _setmode(_fileno(stdout), _O_WTEXT);
+  _setmode(_fileno(stdin), _O_WTEXT);
 
   // Allocator used for needed memory to convert 'argv' to UTF8
   mem::FallbackAllocator<mem::StackAllocator<1024>, mem::Mallocator> allocator;
