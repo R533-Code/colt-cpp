@@ -1,10 +1,10 @@
+#include <colt/dsa/string_view.h>
+#include <colt/mem/composable_alloc.h>
 #include <colt/macro/config.h>
+#include <cstdio>
 
 #if defined(COLT_DEFINE_MAIN) && !defined(COLT_TESTING)
 
-  #include <cstdio>
-  #include <colt/dsa/string_view.h>
-  #include <colt/mem/composable_alloc.h>
 
 /// @brief The main function to call
 /// @param args Span over the UTF8 encoded arguments
