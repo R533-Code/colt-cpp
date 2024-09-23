@@ -1,8 +1,9 @@
-#ifdef COLT_DEFINE_MAIN
+#include <colt/macro/config.h>
+
+#if defined(COLT_DEFINE_MAIN) && !defined(COLT_TESTING)
 
   #include <cstdio>
   #include <colt/dsa/string_view.h>
-  #include <colt/macro/config.h>
   #include <colt/mem/composable_alloc.h>
 
 /// @brief The main function to call
@@ -13,6 +14,7 @@ extern int colt_main(clt::Span<const char8_t*> args);
   #ifdef COLT_WINDOWS
 
     #include <fcntl.h>
+    #include <io.h>
 
 // On Windows, we make use of 'wmain' to obtain
 // the arguments as Unicode.
@@ -22,6 +24,7 @@ int wmain(int argc, const wchar_t** argv)
 
   // Set support to wchar_t in Console
   _setmode(_fileno(stdout), _O_WTEXT);
+  _setmode(_fileno(stderr), _O_WTEXT);
   _setmode(_fileno(stdin), _O_WTEXT);
 
   // Allocator used for needed memory to convert 'argv' to UTF8
@@ -63,7 +66,7 @@ int wmain(int argc, const wchar_t** argv)
   try
   {
     return colt_main(
-        clt::Span{reinterpret_cast<const char8_t**>(pointers.ptr()), argc});
+        clt::Span{reinterpret_cast<const char8_t**>(pointers.ptr()), (size_t)argc});
   }
   catch (const std::exception& e)
   {

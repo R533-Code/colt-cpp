@@ -13,6 +13,9 @@
   #include <arm_neon.h>
 #endif
 
+/// @brief If defined, then a custom main is used for portability
+#cmakedefine COLT_DEFINE_MAIN
+
 /// @brief Major version of Colt
 #define COLT_VERSION_MAJOR 		${PROJECT_VERSION_MAJOR}
 /// @brief Minor version of Colt

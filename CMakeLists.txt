@@ -36,6 +36,8 @@ project(Colt-Cpp VERSION 0.0.5.0 LANGUAGES CXX C)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
+option(COLT_DEFINE_MAIN "Make use of custom main for portability" OFF)
+
 # Save all the files to compile
 file(GLOB_RECURSE ColtHeaders "include/*.h")
 file(GLOB_RECURSE ColtUnits "include/*.cpp")
@@ -56,6 +58,7 @@ target_compile_definitions(
 )
 target_compile_definitions(
   coltcpp_tests PUBLIC $<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
+  COLT_TESTING
 )
 
 target_compile_options(
