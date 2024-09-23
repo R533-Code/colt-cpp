@@ -639,6 +639,15 @@ namespace clt::cl
       std::exit(1);
     }
   }
+
+  template<meta::TypeList list>
+  void parse_command_line_options(
+      Span<const char8_t*> args, std::string_view name = {},
+      std::string_view description = {}) noexcept
+  {
+    return parse_command_line_options<list>(
+        (int)args.size(), (const char**)args.data(), name, description);
+  }
 } // namespace clt::cl
 
 #endif //!HG_COLT_PARSE_ARGS
