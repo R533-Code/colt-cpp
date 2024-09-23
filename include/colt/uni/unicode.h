@@ -16,6 +16,7 @@
 #define HG_DSA_UNICODE
 
 #include "unicode_types.h"
+#include "gen/xid_table.h"
 
 namespace clt::uni
 {
