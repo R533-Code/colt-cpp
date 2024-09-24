@@ -36,8 +36,6 @@ project(Colt-Cpp VERSION 0.0.5.0 LANGUAGES CXX C)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
-option(COLT_DEFINE_MAIN "Make use of custom main for portability" OFF)
-
 # Save all the files to compile
 file(GLOB_RECURSE ColtHeaders "include/*.h")
 file(GLOB_RECURSE ColtUnits "include/*.cpp")
@@ -47,9 +45,7 @@ add_executable(coltcpp_tests
   ${ColtHeaders} ${ColtUnits} ${ColtUnitTests}
 )
 
-# The library that can be linked with
-# OBJECT is needed as colt_main will be defined outside of the library
-add_library(coltcpp OBJECT ${ColtHeaders} ${ColtUnits})
+add_library(coltcpp ${ColtHeaders} ${ColtUnits})
 set_target_properties(coltcpp PROPERTIES OUTPUT_NAME libcoltcpp PREFIX "")
 
 
