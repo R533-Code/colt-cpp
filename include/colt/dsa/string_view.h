@@ -124,6 +124,22 @@ namespace clt
 
     MAKE_DEFAULT_COPY_AND_MOVE_FOR(BasicStringView);
 
+    /// @brief Returned by find when not found
+    static constexpr size_t npos = (size_t)-1;
+
+    constexpr size_t find(char32_t chr, size_t starting_offset = 0) const noexcept
+    {
+      auto _begin = uni::CodePointIterator<ENCODING>(_ptr + math::min(starting_offset, unit_len()));
+      auto _end = uni::CodePointIterator<ENCODING>(_ptr + unit_len());
+      while (_begin != _end)
+      {
+        if (*_begin == chr)
+          return _begin.current() - _ptr;
+        _begin++;
+      }
+      return npos;
+    }
+
     /// @brief Returns an iterator to the start of the view
     /// @return Iterator to the start of the view
     constexpr uni::CodePointIterator<ENCODING> begin() const noexcept
