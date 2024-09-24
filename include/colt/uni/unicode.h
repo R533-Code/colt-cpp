@@ -202,6 +202,8 @@ namespace clt::uni
 
     MAKE_DEFAULT_COPY_AND_MOVE_FOR(CodePointIterator);
 
+    constexpr const ptr_t* current() const noexcept { return ptr; }
+
     constexpr CodePointIterator& operator++() noexcept
     {
       if constexpr (meta::is_any_of<ptr_t, Char32BE, Char32LE, char>)
@@ -672,7 +674,7 @@ namespace clt::uni
       }
     }
   }
-} // namespace uni
+} // namespace clt::uni
 
 template<clt::meta::is_any_of<clt::Char32BE, clt::Char32LE> Ty>
 struct fmt::formatter<Ty>
