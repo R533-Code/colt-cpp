@@ -461,7 +461,7 @@ namespace clt::cl
         auto offset = Arg::name.find_first_not_of("-");
         io::print<"">(
             "   -{}{}{: <{}}{}", Arg::name.substr(0, offset), io::BrightCyanF,
-            Arg::name.substr(offset), max_size,
+            Arg::name.substr(offset), max_size - offset,
             io::Reset);
       }
       else
