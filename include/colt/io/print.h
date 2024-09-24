@@ -13,7 +13,7 @@
 #include <cstdio>
 
 #include "colt/meta/string_literal.h"
-#include "ansi_color.h"
+#include "console_effect.h"
 
 namespace clt::io
 {
@@ -21,6 +21,16 @@ namespace clt::io
   /// @brief Shorthand for fmt::format_string
   /// @tparam ...Args The types to be formatted to the string
   using fmt_str = fmt::format_string<Args...>;
+
+  /// @brief Prints 'Press any key to continue...' and waits for any key input.
+  inline void press_to_continue() noexcept
+  {
+    std::fputs("Press any key to continue...\n", stdout);
+    //toggle_echo();
+    wait_kbhit();
+    //toggle_echo();
+    //std::fputc('\n', stdout);
+  }
 
   template<meta::StringLiteral endl = "\n", typename... Args>
   /// @brief Formats and prints a string to 'file'

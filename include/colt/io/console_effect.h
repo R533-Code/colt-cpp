@@ -1,12 +1,12 @@
 /*****************************************************************/ /**
- * @file   ansi_color.h
+ * @file   console_effect.h
  * @brief  Contains ANSIEffect.
  * 
  * @author RPC
  * @date   August 2024
  *********************************************************************/
-#ifndef HG_IO_ANSI_COLOR
-#define HG_IO_ANSI_COLOR
+#ifndef HG_IO_CONSOLE_EFFECT
+#define HG_IO_CONSOLE_EFFECT
 
 #include <array>
 #include <cstdint>
@@ -14,6 +14,17 @@
 
 namespace clt::io
 {
+  /// @brief Turns on/off echo to the console
+  void toggle_echo() noexcept;
+
+  /// @brief Returns the terminal size
+  /// @param width The width
+  /// @param height The height
+  void terminal_size(int& width, int& height) noexcept;
+
+  /// @brief Wait for any key to be pressed
+  void wait_kbhit() noexcept;
+
   namespace details
   {
     /// @brief Array of effects
@@ -174,4 +185,4 @@ struct fmt::formatter<clt::io::ANSIEffect>
   }
 };
 
-#endif // !HG_IO_ANSI_COLOR
+#endif // !HG_IO_CONSOLE_EFFECT
