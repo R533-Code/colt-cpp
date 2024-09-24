@@ -12,7 +12,7 @@
 extern int colt_main(clt::Span<const char8_t*> args);
 
   #ifdef COLT_WINDOWS
-
+    #include <Windows.h>
     #include <fcntl.h>
     #include <io.h>
 
@@ -22,9 +22,11 @@ int wmain(int argc, const wchar_t** argv)
 {
   using namespace clt;
 
+  // Set console code page to UTF-8 so console known how to interpret string data
+  SetConsoleOutputCP(CP_UTF8);
+  // Enable buffering to prevent VS from chopping up UTF-8 byte sequences
+  setvbuf(stdout, nullptr, _IOFBF, 1000);
   // Set support to wchar_t in Console
-  _setmode(_fileno(stdout), _O_WTEXT);
-  _setmode(_fileno(stderr), _O_WTEXT);
   _setmode(_fileno(stdin), _O_WTEXT);
 
   // Allocator used for needed memory to convert 'argv' to UTF8
@@ -70,7 +72,8 @@ int wmain(int argc, const wchar_t** argv)
   }
   catch (const std::exception& e)
   {
-    std::printf("FATAL: Uncaught Exception: %s", e.what());
+    std::fputs("FATAL: Uncaught Exception: ", stderr);
+    std::fputs(e.what(), stderr);
     return -1;
   }
 }
