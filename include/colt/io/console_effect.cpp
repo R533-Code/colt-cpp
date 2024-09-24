@@ -6,6 +6,7 @@
   #include <termios.h>
   #include <unistd.h>
   #include <sys/ioctl.h>
+  #include <fcntl.h>
 #else
   #define NOMINMAX
   #include <Windows.h>
