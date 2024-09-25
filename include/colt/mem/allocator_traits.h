@@ -54,4 +54,18 @@ namespace clt::meta
       };
 } // namespace clt::meta
 
+namespace clt::mem
+{
+  /// @brief Represents an allocation function
+  using fn_alloc_t = mem::MemBlock(*)(u64);
+  /// @brief Represents a deallocation function
+  using fn_dealloc_t = void(*)(mem::MemBlock);
+  /// @brief Represents an owning function
+  using fn_owns_t = bool(*)(mem::MemBlock);
+  /// @brief Represents an expansion function
+  using fn_expand_t = mem::MemBlock(*)(mem::MemBlock, u64);
+  /// @brief Represents a reallocation function
+  using fn_realloc_t = mem::MemBlock(*)(mem::MemBlock, u64);
+}
+
 #endif //!HG_COLT_ALLOCATOR_TRAITS
