@@ -2,7 +2,7 @@
 #define HG_DSA_STRING
 
 #include "string_view.h"
-#include "colt/mem/composable_alloc.h"
+#include "colt/mem/allocator_ref.h"
 
 namespace clt
 {
@@ -512,6 +512,51 @@ namespace clt
   template<typename ALLOCATOR>
   using u32String = String<ALLOCATOR, StringEncoding::UTF32>;
   
+  /// @brief Creates a string using the default string allocator
+  /// @tparam ...Ty The parameter to forward to the string constructor
+  /// @tparam ENCODING The string encoding
+  /// @param ...args The arguments
+  /// @return String using the default StringCustomization
+  template<StringEncoding ENCODING = StringEncoding::ASCII, typename... Ty>
+  auto make_string(Ty&&... args) noexcept
+  {
+    using enum clt::StringEncoding;
+    return String<decltype(mem::GlobalAllocator), ENCODING>(
+        mem::GlobalAllocator, std::forward<Ty>(args)...);
+  }
+
+  /// @brief Creates a UTF8 string using the default string allocator
+  /// @tparam ...Ty The parameter to forward to the string constructor
+  /// @param ...args The arguments
+  /// @return u8String
+  template<typename... Ty>
+  auto make_u8string(Ty&&... args) noexcept
+  {
+    using enum clt::StringEncoding;
+    return make_string<UTF8>(std::forward<Ty>(args)...);
+  }
+  
+  /// @brief Creates a UTF16 string using the default string allocator
+  /// @tparam ...Ty The parameter to forward to the string constructor
+  /// @param ...args The arguments
+  /// @return u8String
+  template<typename... Ty>
+  auto make_u16string(Ty&&... args) noexcept
+  {
+    using enum clt::StringEncoding;
+    return make_string<UTF16>(std::forward<Ty>(args)...);
+  }
+  
+  /// @brief Creates a UTF32 string using the default string allocator
+  /// @tparam ...Ty The parameter to forward to the string constructor
+  /// @param ...args The arguments
+  /// @return u8String
+  template<typename... Ty>
+  auto make_u32string(Ty&&... args) noexcept
+  {
+    using enum clt::StringEncoding;
+    return make_string<UTF32>(std::forward<Ty>(args)...);
+  }
   
   template<meta::StringCustomization CUSTOMIZATION, typename ALLOCATOR>
   constexpr char32_t BasicString<CUSTOMIZATION, ALLOCATOR>::index_front(
