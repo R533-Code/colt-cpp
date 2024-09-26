@@ -1,6 +1,7 @@
 #ifndef HG_ALLOCATOR_REF
 #define HG_ALLOCATOR_REF
 
+#include "simple_alloc.h"
 #include "composable_alloc.h"
 
 namespace clt::mem
@@ -84,6 +85,23 @@ namespace clt::mem
       return ptr->realloc(sz, dt);
     }
   };
+
+  inline FreeList<Mallocator, 16, size_t{4096}, size_t{4096}>
+      DefaultGlobalAllocator;
+
+  MemBlock global_alloc(u64 size) noexcept
+  {
+    return DefaultGlobalAllocator.alloc(size);
+  }
+
+  void global_dealloc(MemBlock blk) noexcept
+  {
+    DefaultGlobalAllocator.dealloc(blk);
+  }
+
+  static constexpr GlobalAllocatorRef<
+      &global_alloc, &global_dealloc, nullptr, nullptr, nullptr>
+      GlobalAllocator;
 }
 
 #endif //!HG_ALLOCATOR_REF
