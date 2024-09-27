@@ -32,9 +32,8 @@ TEMPLATE_LIST_TEST_CASE("BasicString", "[BasicString]", AllStrings)
 
   SECTION("Index long")
   {
-    u8StringView a =
-        ptr_to<const Char8*>(u8"10\u03BC\u00BC10\u03BC\u00BC10\u03BC\u00BC10\u03BC"
-                             u8"\u00BC10\u03BC\u00BC10\u03BC\u00BC10\u03BC\u00BC");
+    u8StringView a = "10\u03BC\u00BC10\u03BC\u00BC10\u03BC\u00BC10\u03BC"
+                      "\u00BC10\u03BC\u00BC10\u03BC\u00BC10\u03BC\u00BC"_UTF8;
     StringType ab = {mem::Mallocator{}, a};
     REQUIRE(ab.front() == U'1');
     REQUIRE(ab[0] == U'1');
@@ -45,9 +44,8 @@ TEMPLATE_LIST_TEST_CASE("BasicString", "[BasicString]", AllStrings)
   }
   SECTION("Index short")
   {
-    u8StringView a =
-        ptr_to<const Char8*>(u8"10\u03BC\u00BC");
-    StringType ab = {mem::Mallocator{}, a};
+    u8StringView a = "10\u03BC\u00BC"_UTF8;
+    StringType ab  = {mem::Mallocator{}, a};
     REQUIRE(ab.front() == U'1');
     REQUIRE(ab[0] == U'1');
     REQUIRE(ab[1] == U'0');
@@ -57,11 +55,10 @@ TEMPLATE_LIST_TEST_CASE("BasicString", "[BasicString]", AllStrings)
   }
   SECTION("Add long")
   {
-    u8StringView a =
-        ptr_to<const Char8*>(u8"10\u03BC\u00BC10\u03BC\u00BC10\u03BC\u00BC10\u03BC"
-                             u8"\u00BC10\u03BC\u00BC10\u03BC\u00BC10\u03BC\u00BC");
-    StringType ab = {mem::Mallocator{}, a};
-    ab += u8StringView{ptr_to<const Char8*>(u8"Hello World!")};
+    u8StringView a = "10\u03BC\u00BC10\u03BC\u00BC10\u03BC\u00BC10\u03BC"
+                     "\u00BC10\u03BC\u00BC10\u03BC\u00BC10\u03BC\u00BC"_UTF8;
+    StringType ab  = {mem::Mallocator{}, a};
+    ab += "Hello World!"_UTF8;
     REQUIRE(ab.front() == U'1');
     REQUIRE(ab[0] == U'1');
     REQUIRE(ab[1] == U'0');
@@ -72,10 +69,9 @@ TEMPLATE_LIST_TEST_CASE("BasicString", "[BasicString]", AllStrings)
   }
   SECTION("Add long")
   {
-    u8StringView a =
-        ptr_to<const Char8*>(u8"10\u03BC\u00BC");
-    StringType ab = {mem::Mallocator{}, a};
-    ab += u8StringView{ptr_to<const Char8*>(u8"d!")};
+    u8StringView a = "10\u03BC\u00BC"_UTF8;
+    StringType ab  = {mem::Mallocator{}, a};
+    ab += "d!"_UTF8;
     REQUIRE(ab.front() == U'1');
     REQUIRE(ab[0] == U'1');
     REQUIRE(ab[1] == U'0');
