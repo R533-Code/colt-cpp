@@ -369,6 +369,54 @@ namespace clt
     /// @return True if size() == 0
     bool is_empty() const noexcept { return unit_len() == 0; }
 
+    /// @brief Returned by find when not found
+    static constexpr size_t npos = (size_t)-1;
+
+    /// @brief Finds the offset of the first character equal to 'chr'
+    /// @param chr The character to search for
+    /// @param starting_offset The offset (in units!) from which to start searching
+    /// @return npos if not found or the unit offset to the first instance equal to 'chr'
+    constexpr size_t find(char32_t chr, size_t starting_offset = 0) const noexcept
+    {
+      const auto cache_data = data();
+      auto _begin = uni::CodePointIterator<STR_ENCODING>(
+          cache_data + math::min(starting_offset, unit_len()));
+      auto _end = uni::CodePointIterator<STR_ENCODING>(cache_data + unit_len());
+      while (_begin != _end)
+      {
+        if (*_begin == chr)
+          return _begin.current() - cache_data;
+        _begin++;
+      }
+      return npos;
+    }
+
+    /// @brief Shortens the view from the front by 1.
+    /// @return Self
+    constexpr BasicString& pop_front() noexcept
+    {
+    }
+
+    /// @brief Shortens the view from the front by N.
+    /// @param N The number of objects to pop
+    /// @return Self
+    constexpr BasicString& pop_front_n(size_t N) noexcept
+    {
+    }
+
+    /// @brief Shortens the view from the back by 1.
+    /// @return Self
+    constexpr BasicString& pop_back() noexcept
+    {
+    }
+
+    /// @brief Shortens the view from the back by N.
+    /// @param N The number of objects to pop
+    /// @return Self
+    constexpr BasicString& pop_back_n(size_t N) noexcept
+    {
+    }
+
     /// @brief Returns the char at index 'index'.
     /// Do not use this operator to iterate over the view:
     /// use a ranged for loop for performance.
@@ -441,8 +489,7 @@ namespace clt
       return {data(), _size};
     }
 
-    template<bool IS_ZSTRING>
-    BasicString& operator+=(const BasicStringView<STR_ENCODING, IS_ZSTRING>& str) noexcept
+    BasicString& operator+=(const BasicStringView<STR_ENCODING>& str) noexcept
     {
       auto len = str.unit_len();
       if (len + _true_size() > capacity())
