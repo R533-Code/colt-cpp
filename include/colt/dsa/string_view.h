@@ -60,6 +60,16 @@ namespace clt
     {
     }
 
+    /// @brief Constructs a StringView from a unicode literal
+    /// @tparam N The size of the literal
+    /// @param str The literal
+    template<size_t N>
+    explicit(false) constexpr BasicStringView(const UnicodeLiteral<underlying_type, N>& str) noexcept
+        : _ptr(str.data())
+        , _size(N)
+    {
+    }
+
     /// @brief Constructs a view starting at 'ptr', of size 'size'.
     /// For ZStringView, the character AFTER the last character MUST
     /// be a NUL-terminator: `ptr[size] == '\0'`.
@@ -234,11 +244,18 @@ namespace clt
       return data();
     }
 
+    /// @brief Converts a ZStringView to a StringView
+    constexpr operator BasicStringView<ENCODING, false>() const noexcept
+      requires ZSTRING
+    {
+      return {data(), unit_len()};
+    }
+
     /// @brief Shortens the view from the front by 1.
     /// @return Self
     constexpr BasicStringView& pop_front() noexcept
     {
-      assert_true("StringView was empty!", !is_empty());
+      assert_true("StringView was empty!", !is_empty());      
       if constexpr (meta::is_any_of<underlying_type, char, Char32BE, Char32LE>)
       {
         ++_ptr;
@@ -312,7 +329,7 @@ namespace clt
     /// @brief Shortens the view from the back by N.
     /// @param N The number of objects to pop
     /// @return Self
-    constexpr BasicStringView pop_back_n(size_t N) noexcept
+    constexpr BasicStringView& pop_back_n(size_t N) noexcept
       requires(!ZSTRING)
     {
       assert_true("StringView does not contain enough objects!", N <= size());
@@ -427,6 +444,20 @@ namespace clt
       }
     }
   };
+
+  template<meta::CharType T, size_t SIZE>
+  UnicodeLiteral<T, SIZE>::operator BasicStringView<
+      meta::char_to_encoding_v<T>, true>() noexcept
+  {
+    return {Parent::data(), Parent::size()};
+  }
+
+  template<meta::CharType T, size_t SIZE>
+  UnicodeLiteral<T, SIZE>::operator BasicStringView<
+      meta::char_to_encoding_v<T>, false>() noexcept
+  {
+    return {Parent::data(), Parent::size()};
+  }
 
   /// @brief Represents a NUL-terminated StringView
   /// @tparam ENCODING The encoding of the StringView
