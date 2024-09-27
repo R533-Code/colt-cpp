@@ -89,12 +89,12 @@ namespace clt::mem
   inline FreeList<Mallocator, 16, size_t{4096}, size_t{4096}>
       DefaultGlobalAllocator;
 
-  MemBlock global_alloc(u64 size) noexcept
+  inline MemBlock global_alloc(u64 size) noexcept
   {
     return DefaultGlobalAllocator.alloc(size);
   }
 
-  void global_dealloc(MemBlock blk) noexcept
+  inline void global_dealloc(MemBlock blk) noexcept
   {
     DefaultGlobalAllocator.dealloc(blk);
   }
