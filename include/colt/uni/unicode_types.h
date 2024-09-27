@@ -126,7 +126,7 @@ namespace clt
     {
       return value >= TRAIL_SURROGATE_MIN && value <= TRAIL_SURROGATE_MAX;
     }
-    
+
     /// @brief Check if a value represents a trail byte in UTF8
     /// @param value The value
     /// @return True if trail byte
@@ -716,6 +716,335 @@ namespace clt
   constexpr Char16LE::operator Char16BE() const noexcept
   {
     return as_big();
+  }
+
+  template<StringEncoding ENCODING, bool ZSTRING>
+  class BasicStringView;
+
+  template<meta::CharType T, size_t SIZE>
+  struct UnicodeLiteral : public std::array<T, SIZE>
+  {
+    using Parent = std::array<T, SIZE>;
+
+    constexpr operator const std::array<T, SIZE>&() const& { return Parent; }
+    constexpr operator std::array<T, SIZE>&() & { return Parent; }
+    constexpr operator std::array<T, SIZE>&&() && { return Parent; }
+    constexpr operator const std::array<T, SIZE>&() const&& { return Parent; }
+    constexpr operator const T*() const { return Parent::data(); }
+    constexpr operator T*() { return Parent::data(); }
+
+    constexpr UnicodeLiteral(std::array<T, SIZE> value) noexcept
+        : Parent(value)
+    {
+    }
+    
+    UnicodeLiteral(UnicodeLiteral&&) = delete;
+    UnicodeLiteral& operator=(UnicodeLiteral&&) = delete;
+    UnicodeLiteral(const UnicodeLiteral&) = delete;
+    UnicodeLiteral& operator=(const UnicodeLiteral&) = delete;
+
+    operator BasicStringView<meta::char_to_encoding_v<T>, true>() noexcept;
+    operator BasicStringView<meta::char_to_encoding_v<T>, false>() noexcept;
+  };
+
+  namespace details
+  {
+    constexpr size_t utf8_to_utf16_buffer_size(
+        const char* utf8_data, size_t utf8_size) noexcept
+    {
+      size_t utf16_size = 0;
+      const char* end   = utf8_data + utf8_size;
+
+      while (utf8_data < end)
+      {
+        char lead_byte = *utf8_data++;
+        if ((lead_byte & 0x80) == 0)
+          utf16_size++;
+        else if ((lead_byte & 0xE0) == 0xC0)
+        {
+          if (utf8_data >= end)
+            break;
+          utf16_size++;
+          utf8_data++;
+        }
+        else if ((lead_byte & 0xF0) == 0xE0)
+        {
+          utf16_size++;
+          utf8_data += 2;
+        }
+        else
+        {
+          utf16_size += 2;
+          utf8_data += 3;
+        }
+      }
+      return utf16_size;
+    }
+
+    constexpr size_t utf8_to_utf32_buffer_size(
+        const char* utf8_data, size_t utf8_size) noexcept
+    {
+      size_t utf32_size = 0;
+      const char* end   = utf8_data + utf8_size;
+
+      while (utf8_data < end)
+      {
+        uint8_t lead_byte = *utf8_data++;
+        if ((lead_byte & 0x80) == 0)
+          utf32_size++;
+        else if ((lead_byte & 0xE0) == 0xC0)
+        {
+          utf32_size++;
+          utf8_data++;
+        }
+        else if ((lead_byte & 0xF0) == 0xE0)
+        {
+          utf32_size++;
+          utf8_data += 2;
+        }
+        else
+        {
+          utf32_size++;
+          utf8_data += 3;
+        }
+      }
+      return utf32_size;
+    }
+
+    constexpr u32 utf8_to_cp(char lead_byte, const char*& utf8_data)
+    {
+      u32 codepoint;
+      if ((lead_byte & 0x80) == 0)
+        codepoint = lead_byte;
+      else if ((lead_byte & 0xE0) == 0xC0)
+      {
+        codepoint = (lead_byte & 0x1F) << 6;
+        codepoint |= (*utf8_data++ & 0x3F);
+      }
+      else if ((lead_byte & 0xF0) == 0xE0)
+      {
+        codepoint = (lead_byte & 0x0F) << 12;
+        codepoint |= ((*utf8_data++) & 0x3F) << 6;
+        codepoint |= (*utf8_data++ & 0x3F);
+      }
+      else
+      {
+        codepoint = (lead_byte & 0x07) << 18;
+        codepoint |= ((*utf8_data++) & 0x3F) << 12;
+        codepoint |= ((*utf8_data++) & 0x3F) << 6;
+        codepoint |= (*utf8_data++ & 0x3F);
+      }
+      return codepoint;
+    }
+
+    constexpr void utf8_to_utf16(
+        const char* utf8_data, size_t utf8_size, Char16* utf16_data)
+    {
+      const char* end = utf8_data + utf8_size;
+      while (utf8_data < end)
+      {
+        char lead_byte     = *utf8_data++;
+        char32_t codepoint = utf8_to_cp(lead_byte, utf8_data);
+
+        if (codepoint <= 0xFFFF)
+          *utf16_data++ = Char16((u16)codepoint);
+        else // Surrogate pair
+        {
+          *utf16_data++ = Char16((u16)((codepoint - 0x10000) >> 10) + 0xD800);
+          *utf16_data++ = Char16((u16)((codepoint & 0x3FF) + 0xDC00));
+        }
+      }
+    }
+
+    constexpr void utf8_to_utf32(
+        const char* utf8_data, size_t utf8_size, Char32* utf32_data)
+    {
+      const char* end = utf8_data + utf8_size;
+      while (utf8_data < end)
+      {
+        char lead_byte     = *utf8_data++;
+        char32_t codepoint = utf8_to_cp(lead_byte, utf8_data);
+        *utf32_data++      = Char32(codepoint);
+      }
+    }
+
+    template<size_t N>
+    struct LiteralConverter
+    {
+      char str[N]{};
+      size_t size = N;
+
+      constexpr LiteralConverter(const char (&pp)[N]) noexcept
+      {
+        for (size_t i = 0; i < N; i++)
+          str[i] = pp[i];
+      }
+    };
+
+    template<auto VALUE>
+    consteval auto literal_to_utf8() noexcept
+    {
+      std::array<Char8, VALUE.size> ret;
+      for (size_t i = 0; i < VALUE.size; i++)
+      {
+        ret[i] = Char8(VALUE.str[i]);
+      }
+      return ret;
+    }
+
+    template<auto VALUE>
+    consteval auto literal_to_utf16() noexcept
+    {
+      std::array<Char16, utf8_to_utf16_buffer_size(VALUE.str, VALUE.size)> ret;
+      utf8_to_utf16(VALUE.str, VALUE.size, ret.data());
+      return ret;
+    }
+
+    template<auto VALUE>
+    consteval auto literal_to_utf16le() noexcept
+    {
+      if constexpr (bit::TargetEndian::native == bit::TargetEndian::little)
+        return literal_to_utf16<VALUE>();
+      else
+      {
+        auto array = literal_to_utf16<VALUE>();
+        std::array<Char16LE, utf8_to_utf16_buffer_size(VALUE.str, VALUE.size)> ret;
+        for (size_t i = 0; i < array.size(); i++)
+          ret[i] = bit::byteswap(array[i]);
+        return ret;
+      }
+    }
+
+    template<auto VALUE>
+    consteval auto literal_to_utf16be() noexcept
+    {
+      if constexpr (bit::TargetEndian::native == bit::TargetEndian::big)
+        return literal_to_utf16<VALUE>();
+      else
+      {
+        auto array = literal_to_utf16<VALUE>();
+        std::array<Char16BE, utf8_to_utf16_buffer_size(VALUE.str, VALUE.size)> ret;
+        for (size_t i = 0; i < array.size(); i++)
+          ret[i] = bit::byteswap(array[i]);
+        return ret;
+      }
+    }
+
+    template<auto VALUE>
+    consteval auto literal_to_utf32() noexcept
+    {
+      std::array<Char32, utf8_to_utf32_buffer_size(VALUE.str, VALUE.size)> ret;
+      utf8_to_utf32(VALUE.str, VALUE.size, ret.data());
+      return ret;
+    }
+
+    template<auto VALUE>
+    consteval auto literal_to_utf32le() noexcept
+    {
+      if constexpr (bit::TargetEndian::native == bit::TargetEndian::little)
+        return literal_to_utf32<VALUE>();
+      else
+      {
+        auto array = literal_to_utf32<VALUE>();
+        std::array<Char32LE, utf8_to_utf32_buffer_size(VALUE.str, VALUE.size)> ret;
+        for (size_t i = 0; i < array.size(); i++)
+          ret[i] = bit::byteswap(array[i]);
+        return ret;
+      }
+    }
+
+    template<auto VALUE>
+    consteval auto literal_to_utf32be() noexcept
+    {
+      if constexpr (bit::TargetEndian::native == bit::TargetEndian::big)
+        return literal_to_utf32<VALUE>();
+      else
+      {
+        auto array = literal_to_utf32<VALUE>();
+        std::array<Char32BE, utf8_to_utf32_buffer_size(VALUE.str, VALUE.size)> ret;
+        for (size_t i = 0; i < array.size(); i++)
+          ret[i] = bit::byteswap(array[i]);
+        return ret;
+      }
+    }    
+
+    template<auto VALUE>
+    static constexpr auto literal_to_utf8_v =
+        UnicodeLiteral{literal_to_utf8<VALUE>()};
+
+    template<auto VALUE>
+    static constexpr auto literal_to_utf16_v =
+        UnicodeLiteral{literal_to_utf16<VALUE>()};
+
+    template<auto VALUE>
+    static constexpr auto literal_to_utf16le_v =
+        UnicodeLiteral{literal_to_utf16le<VALUE>()};
+
+    template<auto VALUE>
+    static constexpr auto literal_to_utf16be_v =
+        UnicodeLiteral{literal_to_utf16be<VALUE>()};
+
+    template<auto VALUE>
+    static constexpr auto literal_to_utf32_v =
+        UnicodeLiteral{literal_to_utf32<VALUE>()};
+
+    template<auto VALUE>
+    static constexpr auto literal_to_utf32le_v =
+        UnicodeLiteral{literal_to_utf32le<VALUE>()};
+
+    template<auto VALUE>
+    static constexpr auto literal_to_utf32be_v =
+        UnicodeLiteral{literal_to_utf32be<VALUE>()};
+
+  } // namespace details
+
+  template<details::LiteralConverter a>
+  consteval decltype(auto) operator""_UTF8()
+  {
+    const auto& val = details::literal_to_utf8_v<a>;
+    return (val);
+  }
+
+  template<details::LiteralConverter a>
+  consteval decltype(auto) operator""_UTF16()
+  {
+    const auto& val = details::literal_to_utf16_v<a>;
+    return (val);
+  }
+
+  template<details::LiteralConverter a>
+  consteval decltype(auto) operator""_UTF16LE()
+  {
+    const auto& val = details::literal_to_utf16le_v<a>;
+    return (val);
+  }
+
+  template<details::LiteralConverter a>
+  consteval decltype(auto) operator""_UTF16BE()
+  {
+    const auto& val = details::literal_to_utf16be_v<a>;
+    return (val);
+  }
+
+  template<details::LiteralConverter a>
+  consteval decltype(auto) operator""_UTF32()
+  {
+    const auto& val = details::literal_to_utf32_v<a>;
+    return (val);
+  }
+
+  template<details::LiteralConverter a>
+  consteval decltype(auto) operator""_UTF32LE()
+  {
+    const auto& val = details::literal_to_utf32le_v<a>;
+    return (val);
+  }
+
+  template<details::LiteralConverter a>
+  consteval decltype(auto) operator""_UTF32BE()
+  {
+    const auto& val = details::literal_to_utf32be_v<a>;
+    return (val);
   }
 } // namespace clt
 
