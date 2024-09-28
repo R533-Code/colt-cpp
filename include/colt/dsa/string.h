@@ -489,7 +489,9 @@ namespace clt
       return {data(), _size};
     }
 
-    BasicString& operator+=(const BasicStringView<STR_ENCODING>& str) noexcept
+    template<bool IS_ZSTR>
+    BasicString& operator+=(
+        const BasicStringView<STR_ENCODING, IS_ZSTR>& str) noexcept
     {
       auto len = str.unit_len();
       if (len + _true_size() > capacity())
