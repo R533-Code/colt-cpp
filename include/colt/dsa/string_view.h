@@ -452,13 +452,6 @@ namespace clt
     return {Parent::data(), Parent::size()};
   }
 
-  template<meta::CharType T, size_t SIZE>
-  UnicodeLiteral<T, SIZE>::operator BasicStringView<
-      meta::char_to_encoding_v<T>, false>() noexcept
-  {
-    return {Parent::data(), Parent::size()};
-  }
-
   /// @brief Represents a NUL-terminated StringView
   /// @tparam ENCODING The encoding of the StringView
   template<StringEncoding ENCODING>
