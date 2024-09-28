@@ -64,9 +64,9 @@ namespace clt
     /// @tparam N The size of the literal
     /// @param str The literal
     template<size_t N>
-    explicit(false) constexpr BasicStringView(const UnicodeLiteral<underlying_type, N>& str) noexcept
+    constexpr BasicStringView(const UnicodeLiteral<underlying_type, N>& str) noexcept
         : _ptr(str.data())
-        , _size(N)
+        , _size(N - 1)
     {
     }
 
@@ -447,9 +447,9 @@ namespace clt
 
   template<meta::CharType T, size_t SIZE>
   UnicodeLiteral<T, SIZE>::operator BasicStringView<
-      meta::char_to_encoding_v<T>, true>() noexcept
+      meta::char_to_encoding_v<T>, true>() const noexcept
   {
-    return {Parent::data(), Parent::size()};
+    return {Parent::data(), SIZE - 1};
   }
 
   /// @brief Represents a NUL-terminated StringView
