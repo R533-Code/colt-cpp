@@ -359,6 +359,20 @@ namespace clt
         return uni::countlen(data(), _size);
     }
 
+    /// @brief Returns an iterator to the start of the string
+    /// @return Iterator to the start of the string
+    uni::CodePointIterator<ENCODING> begin() const noexcept
+    {
+      return data();
+    }
+    /// @brief Returns an iterator to the end of the string.
+    /// This iterator should not be dereferenced.
+    /// @return Iterator to the end of the string
+    uni::CodePointIterator<ENCODING> end() const noexcept
+    {
+      return data() + _size;
+    }
+
     /// @brief Returns the unit count over which the view is spanning.
     /// This does not include the NUL terminator.
     /// @return The unit count
@@ -376,7 +390,7 @@ namespace clt
     /// @param chr The character to search for
     /// @param starting_offset The offset (in units!) from which to start searching
     /// @return npos if not found or the unit offset to the first instance equal to 'chr'
-    constexpr size_t find(char32_t chr, size_t starting_offset = 0) const noexcept
+    size_t find(char32_t chr, size_t starting_offset = 0) const noexcept
     {
       const auto cache_data = data();
       auto _begin = uni::CodePointIterator<STR_ENCODING>(
@@ -393,27 +407,27 @@ namespace clt
 
     /// @brief Shortens the view from the front by 1.
     /// @return Self
-    constexpr BasicString& pop_front() noexcept
+    BasicString& pop_front() noexcept
     {
     }
 
     /// @brief Shortens the view from the front by N.
     /// @param N The number of objects to pop
     /// @return Self
-    constexpr BasicString& pop_front_n(size_t N) noexcept
+    BasicString& pop_front_n(size_t N) noexcept
     {
     }
 
     /// @brief Shortens the view from the back by 1.
     /// @return Self
-    constexpr BasicString& pop_back() noexcept
+    BasicString& pop_back() noexcept
     {
     }
 
     /// @brief Shortens the view from the back by N.
     /// @param N The number of objects to pop
     /// @return Self
-    constexpr BasicString& pop_back_n(size_t N) noexcept
+    BasicString& pop_back_n(size_t N) noexcept
     {
     }
 
@@ -424,7 +438,7 @@ namespace clt
     /// @pre index < size()
     /// @param index The index of the char to return
     /// @return The char at index 'index'
-    constexpr char32_t operator[](size_t index) const noexcept
+    char32_t operator[](size_t index) const noexcept
     {
       return index_front(index);
     }
@@ -433,12 +447,12 @@ namespace clt
     /// @pre index < size()
     /// @param index The index of the char to return
     /// @return The char at index 'index'
-    constexpr char32_t index_front(size_t index) const noexcept;
+    char32_t index_front(size_t index) const noexcept;
     /// @brief Returns the char at index 'index' starting from the end.
     /// @pre index < size()
     /// @param index The index of the char to return
     /// @return The char at index 'index' starting from the end
-    constexpr char32_t index_back(size_t index) const noexcept;    
+    char32_t index_back(size_t index) const noexcept;    
 
     /// @brief Get the front of the view.
     /// @return The first item of the view
@@ -528,8 +542,8 @@ namespace clt
       return *this;
     }
 
-    /// @brief Lexicographically compare two views
-    /// @param v1 The first view
+    /// @brief Lexicographically compare two strings
+    /// @param v1 The first string
     /// @param v2 The second view
     /// @return Result of comparison
     template<StringEncoding ENCODING2, bool ZSTRING2>
@@ -537,9 +551,8 @@ namespace clt
         const BasicString& v1,
         const BasicStringView<ENCODING2, ZSTRING2>& v2) noexcept
     {
-      auto view = v1.to_view();
       return std::lexicographical_compare_three_way(
-          view.begin(), view.end(), v2.begin(), v2.end());
+          v1.begin(), v2.end(), v2.begin(), v2.end());
     }
   };
 
