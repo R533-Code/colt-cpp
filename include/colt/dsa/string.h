@@ -489,6 +489,13 @@ namespace clt
       return {data(), _size};
     }
 
+    template<size_t SIZE>
+    BasicString& operator+=(
+      const UnicodeLiteral<char_t, SIZE>& str) noexcept
+    {
+      return *this += (BasicStringView<STR_ENCODING, false>)str;
+    }
+
     template<bool IS_ZSTR>
     BasicString& operator+=(
         const BasicStringView<STR_ENCODING, IS_ZSTR>& str) noexcept
