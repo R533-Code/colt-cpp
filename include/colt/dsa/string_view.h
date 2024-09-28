@@ -449,7 +449,7 @@ namespace clt
   UnicodeLiteral<T, SIZE>::operator BasicStringView<
       meta::char_to_encoding_v<T>, true>() const noexcept
   {
-    return {Parent::data(), SIZE - 1};
+    return {std::array<T, SIZE>::data(), SIZE - 1};
   }
 
   /// @brief Represents a NUL-terminated StringView

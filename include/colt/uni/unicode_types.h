@@ -660,14 +660,14 @@ namespace clt
   struct UnicodeLiteral : public std::array<T, SIZE>
   {
     /// @brief Conversion to NUL-terminated data
-    constexpr operator const T*() const { return data(); }
+    constexpr operator const T*() const { return std::array<T, SIZE>::data(); }
     /// @brief Conversion to NUL-terminated data
-    constexpr operator T*() { return data(); }
+    constexpr operator T*() { return std::array<T, SIZE>::data(); }
 
     /// @brief Constructor
     /// @param value The array of units
     constexpr UnicodeLiteral(std::array<T, SIZE> value) noexcept
-        : Parent(value)
+        : std::array<T, SIZE>(value)
     {
     }
 
