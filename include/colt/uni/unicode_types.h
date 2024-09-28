@@ -659,21 +659,10 @@ namespace clt
   template<meta::CharType T, size_t SIZE>
   struct UnicodeLiteral : public std::array<T, SIZE>
   {
-    /// @brief The array backing storage
-    using Parent = std::array<T, SIZE>;
-
-    /// @brief Conversion to array
-    constexpr operator const std::array<T, SIZE>&() const& { return Parent; }
-    /// @brief Conversion to array
-    constexpr operator std::array<T, SIZE>&() & { return Parent; }
-    /// @brief Conversion to array
-    constexpr operator std::array<T, SIZE>&&() && { return Parent; }
-    /// @brief Conversion to array
-    constexpr operator const std::array<T, SIZE>&() const&& { return Parent; }
     /// @brief Conversion to NUL-terminated data
-    constexpr operator const T*() const { return Parent::data(); }
+    constexpr operator const T*() const { return data(); }
     /// @brief Conversion to NUL-terminated data
-    constexpr operator T*() { return Parent::data(); }
+    constexpr operator T*() { return data(); }
 
     /// @brief Constructor
     /// @param value The array of units
