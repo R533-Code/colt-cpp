@@ -690,7 +690,7 @@ namespace clt
     UnicodeLiteral& operator=(const UnicodeLiteral&) = delete;
 
     /// @brief Conversion to ZStringView
-    operator BasicStringView<meta::char_to_encoding_v<T>, true>() noexcept;
+    operator BasicStringView<meta::char_to_encoding_v<T>, true>() const noexcept;
   };
 
   // All the ugly code below is used for a simple purpose:
