@@ -33,8 +33,8 @@ TEMPLATE_LIST_TEST_CASE("BasicString", "[BasicString]", AllStrings)
   SECTION("Index long")
   {
     u8StringView a = "10\u03BC\u00BC10\u03BC\u00BC10\u03BC\u00BC10\u03BC"
-                      "\u00BC10\u03BC\u00BC10\u03BC\u00BC10\u03BC\u00BC"_UTF8;
-    StringType ab = {mem::Mallocator{}, a};
+                     "\u00BC10\u03BC\u00BC10\u03BC\u00BC10\u03BC\u00BC"_UTF8;
+    StringType ab  = {mem::Mallocator{}, a};
     REQUIRE(ab.front() == U'1');
     REQUIRE(ab[0] == U'1');
     REQUIRE(ab[1] == U'0');
@@ -67,7 +67,7 @@ TEMPLATE_LIST_TEST_CASE("BasicString", "[BasicString]", AllStrings)
     REQUIRE(ab.back() == U'!');
     REQUIRE(ab.index_back(1) == U'd');
   }
-  SECTION("Add long")
+  SECTION("Add short")
   {
     u8StringView a = "10\u03BC\u00BC"_UTF8;
     StringType ab  = {mem::Mallocator{}, a};
@@ -79,5 +79,32 @@ TEMPLATE_LIST_TEST_CASE("BasicString", "[BasicString]", AllStrings)
     REQUIRE(ab[3] == U'\u00BC');
     REQUIRE(ab.back() == U'!');
     REQUIRE(ab.index_back(1) == U'd');
+  }
+  SECTION("Pop back short")
+  {
+    StringType ab = {mem::Mallocator{}, "10\u03BC\u00BC"_UTF8};
+    ab.pop_back();
+    REQUIRE(ab.front() == U'1');
+    REQUIRE(ab[0] == U'1');
+    REQUIRE(ab[1] == U'0');
+    REQUIRE(ab.size() == 3);
+    ab.pop_back_n(2);
+    REQUIRE(ab[0] == U'1');
+    REQUIRE(ab.size() == 1);
+    REQUIRE(ab == "1"_UTF8);
+  }
+  SECTION("Pop back long")
+  {
+    StringType ab = {
+        mem::Mallocator{},
+        "10\u00BC10\u03BC\u00BC10\u03BC\u00BC10\u03BC\u00BC\u00BC10\u03BC"
+        "\u00BC10\u03BC\u00BC10\u03BC\u00BC\u00BC10\u03BC\u00BC10\u03BC"
+        "\u00BC10\u03BC\u00BC10\u03BC\u00BC"_UTF8};
+    ab.pop_back();
+    REQUIRE(ab.front() == U'1');
+    REQUIRE(ab[0] == U'1');
+    REQUIRE(ab[1] == U'0');
+    ab.pop_back_n(2);
+    REQUIRE(ab[0] == U'1');
   }
 }
