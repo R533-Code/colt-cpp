@@ -649,6 +649,249 @@ namespace clt
     }();
   } // namespace meta
 
+  template<StringEncoding ENCODING, bool ZSTRING>
+  class BasicStringView;
+
+  /// @brief Unicode literal.
+  /// Use "TEXT"_UTF[8|16|32] to create one.
+  /// @tparam SIZE The size of the literal in code units
+  /// @tparam T The code unit type
+  template<meta::CharType T, size_t SIZE>
+  struct UnicodeLiteral : public std::array<T, SIZE>
+  {
+    /// @brief The array backing storage
+    using Parent = std::array<T, SIZE>;
+
+    /// @brief Conversion to array
+    constexpr operator const std::array<T, SIZE>&() const& { return Parent; }
+    /// @brief Conversion to array
+    constexpr operator std::array<T, SIZE>&() & { return Parent; }
+    /// @brief Conversion to array
+    constexpr operator std::array<T, SIZE>&&() && { return Parent; }
+    /// @brief Conversion to array
+    constexpr operator const std::array<T, SIZE>&() const&& { return Parent; }
+    /// @brief Conversion to NUL-terminated data
+    constexpr operator const T*() const { return Parent::data(); }
+    /// @brief Conversion to NUL-terminated data
+    constexpr operator T*() { return Parent::data(); }
+
+    /// @brief Constructor
+    /// @param value The array of units
+    constexpr UnicodeLiteral(std::array<T, SIZE> value) noexcept
+        : Parent(value)
+    {
+    }
+
+    // ALL DELETED FOR PERFORMANCE REASONS.
+
+    UnicodeLiteral(UnicodeLiteral&&)                 = delete;
+    UnicodeLiteral& operator=(UnicodeLiteral&&)      = delete;
+    UnicodeLiteral(const UnicodeLiteral&)            = delete;
+    UnicodeLiteral& operator=(const UnicodeLiteral&) = delete;
+
+    /// @brief Conversion to ZStringView
+    operator BasicStringView<meta::char_to_encoding_v<T>, true>() noexcept;
+  };
+
+  // All the ugly code below is used for a simple purpose:
+  // In C++, string literals can be prepended with:
+  // u8 -> UTF8
+  // u  -> UTF16 (in host endianness)
+  // U  -> UTF32 (in host endianness)
+  // This causes a problem:
+  // BasicStringView and BasicString all deal
+  // with Char8, Char16, Char32. We could reinterpret_cast
+  // in their constructors, but this would prevent constexpr.
+  // This would also make it difficult to represent endianness
+  // in the type system. Also, it would be UB to convert
+  // char* to char8_t*.
+  // So, we need a way to write literals such that they make
+  // use of Char8, Char16[LB]E, Char32[LB]E.
+  // The solution: append _UTF[8|16|32] to the string literal
+  // and do the conversion at compile-time.
+  // Most of the code below is to fight the type system to
+  // provide static storage for the generated literal.
+
+  namespace details
+  {
+    // DO NOT USE ANY OF THESE FUNCTIONS ELSEWHERE:
+    // THEY DO NOT DO ANY CHECKING AND HAVE ABYSMAL
+    // PEFORMANCE COMPARED TO SIMDUTF.
+
+    /// @brief Computes the needed storage to encode a UTF8 as UTF16
+    /// @param utf8_data The data
+    /// @param utf8_size The size in bytes of the data
+    /// @return The needed storage
+    constexpr size_t utf8_to_utf16_buffer_size(
+        const char* utf8_data, size_t utf8_size) noexcept;
+
+    /// @brief Computes the needed storage to encode a UTF8 as UTF32
+    /// @param utf8_data The data
+    /// @param utf8_size The size in bytes of the data
+    /// @return The needed storage
+    constexpr size_t utf8_to_utf32_buffer_size(
+        const char* utf8_data, size_t utf8_size) noexcept;
+
+    /// @brief Decodes a UTF8 sequence
+    /// @param lead_byte The starting byte
+    /// @param utf8_data The pointer to the next byte
+    /// @return Decoded code point
+    constexpr u32 utf8_to_cp(char lead_byte, const char*& utf8_data);
+
+    /// @brief Converts UTF8 to UTF16 in host endianness
+    /// @param utf8_data The UTF8 data
+    /// @param utf8_size The UTF8 data size in bytes
+    /// @param utf16_data The UTF16 output
+    constexpr void utf8_to_utf16(
+        const char* utf8_data, size_t utf8_size, Char16* utf16_data);
+
+    /// @brief Converts UTF8 to UTF32 in host endianness
+    /// @param utf8_data The UTF8 data
+    /// @param utf8_size The UTF8 data size in bytes
+    /// @param utf16_data The UTF32 output
+    constexpr void utf8_to_utf32(
+        const char* utf8_data, size_t utf8_size, Char32* utf32_data);
+
+    /// @brief Templated type used for template literal operator
+    /// @tparam N The size of the literal
+    template<size_t N>
+    struct LiteralConverter
+    {
+      /// @brief The actual content (encoded as a UTF8)
+      char str[N]{};
+      /// @brief The size in bytes (including NUL)
+      size_t size = N;
+
+      /// @brief Constructor
+      /// @param pp The string literal
+      constexpr LiteralConverter(const char (&pp)[N]) noexcept
+      {
+        for (size_t i = 0; i < N; i++)
+          str[i] = pp[i];
+      }
+    };
+
+    template<auto VALUE>
+    consteval auto literal_to_utf8() noexcept;
+
+    template<auto VALUE>
+    consteval auto literal_to_utf16() noexcept;
+
+    template<auto VALUE>
+    consteval auto literal_to_utf16le() noexcept;
+
+    template<auto VALUE>
+    consteval auto literal_to_utf16be() noexcept;
+
+    template<auto VALUE>
+    consteval auto literal_to_utf32() noexcept;
+
+    template<auto VALUE>
+    consteval auto literal_to_utf32le() noexcept;
+
+    template<auto VALUE>
+    consteval auto literal_to_utf32be() noexcept;
+
+    template<auto VALUE>
+    static constexpr auto literal_to_utf8_v =
+        UnicodeLiteral{literal_to_utf8<VALUE>()};
+
+    template<auto VALUE>
+    static constexpr auto literal_to_utf16_v =
+        UnicodeLiteral{literal_to_utf16<VALUE>()};
+
+    template<auto VALUE>
+    static constexpr auto literal_to_utf16le_v =
+        UnicodeLiteral{literal_to_utf16le<VALUE>()};
+
+    template<auto VALUE>
+    static constexpr auto literal_to_utf16be_v =
+        UnicodeLiteral{literal_to_utf16be<VALUE>()};
+
+    template<auto VALUE>
+    static constexpr auto literal_to_utf32_v =
+        UnicodeLiteral{literal_to_utf32<VALUE>()};
+
+    template<auto VALUE>
+    static constexpr auto literal_to_utf32le_v =
+        UnicodeLiteral{literal_to_utf32le<VALUE>()};
+
+    template<auto VALUE>
+    static constexpr auto literal_to_utf32be_v =
+        UnicodeLiteral{literal_to_utf32be<VALUE>()};
+
+  } // namespace details
+
+  /// @brief Converts a string to a UTF8 encoded string
+  /// @tparam a The literal converter
+  /// @return UnicodeLiteral<Char8>
+  template<details::LiteralConverter a>
+  consteval decltype(auto) operator""_UTF8()
+  {
+    const auto& val = details::literal_to_utf8_v<a>;
+    return (val);
+  }
+
+  /// @brief Converts a string to a UTF16 encoded string with native endianness
+  /// @tparam a The literal converter
+  /// @return UnicodeLiteral<Char16>
+  template<details::LiteralConverter a>
+  consteval decltype(auto) operator""_UTF16()
+  {
+    const auto& val = details::literal_to_utf16_v<a>;
+    return (val);
+  }
+
+  /// @brief Converts a string to a UTF16LE encoded string
+  /// @tparam a The literal converter
+  /// @return UnicodeLiteral<Char16LE>
+  template<details::LiteralConverter a>
+  consteval decltype(auto) operator""_UTF16LE()
+  {
+    const auto& val = details::literal_to_utf16le_v<a>;
+    return (val);
+  }
+
+  /// @brief Converts a string to a UTF16BE encoded string
+  /// @tparam a The literal converter
+  /// @return UnicodeLiteral<Char16BE>
+  template<details::LiteralConverter a>
+  consteval decltype(auto) operator""_UTF16BE()
+  {
+    const auto& val = details::literal_to_utf16be_v<a>;
+    return (val);
+  }
+
+  /// @brief Converts a string to a UTF32 encoded string
+  /// @tparam a The literal converter
+  /// @return UnicodeLiteral<Char32>
+  template<details::LiteralConverter a>
+  consteval decltype(auto) operator""_UTF32()
+  {
+    const auto& val = details::literal_to_utf32_v<a>;
+    return (val);
+  }
+
+  /// @brief Converts a string to a UTF32LE encoded string
+  /// @tparam a The literal converter
+  /// @return UnicodeLiteral<Char32LE>
+  template<details::LiteralConverter a>
+  consteval decltype(auto) operator""_UTF32LE()
+  {
+    const auto& val = details::literal_to_utf32le_v<a>;
+    return (val);
+  }
+
+  /// @brief Converts a string to a UTF32BE encoded string
+  /// @tparam a The literal converter
+  /// @return UnicodeLiteral<Char32BE>
+  template<details::LiteralConverter a>
+  consteval decltype(auto) operator""_UTF32BE()
+  {
+    const auto& val = details::literal_to_utf32be_v<a>;
+    return (val);
+  }
+
   constexpr Char32BE::Char32BE(Char32LE value) noexcept
       : _value((char32_t)bit::byteswap((u32)value.in_endian()))
   {
@@ -718,67 +961,150 @@ namespace clt
     return as_big();
   }
 
-  template<StringEncoding ENCODING, bool ZSTRING>
-  class BasicStringView;
-
-  template<meta::CharType T, size_t SIZE>
-  struct UnicodeLiteral : public std::array<T, SIZE>
-  {
-    using Parent = std::array<T, SIZE>;
-
-    constexpr operator const std::array<T, SIZE>&() const& { return Parent; }
-    constexpr operator std::array<T, SIZE>&() & { return Parent; }
-    constexpr operator std::array<T, SIZE>&&() && { return Parent; }
-    constexpr operator const std::array<T, SIZE>&() const&& { return Parent; }
-    constexpr operator const T*() const { return Parent::data(); }
-    constexpr operator T*() { return Parent::data(); }
-
-    constexpr UnicodeLiteral(std::array<T, SIZE> value) noexcept
-        : Parent(value)
-    {
-    }
-    
-    UnicodeLiteral(UnicodeLiteral&&) = delete;
-    UnicodeLiteral& operator=(UnicodeLiteral&&) = delete;
-    UnicodeLiteral(const UnicodeLiteral&) = delete;
-    UnicodeLiteral& operator=(const UnicodeLiteral&) = delete;
-
-    operator BasicStringView<meta::char_to_encoding_v<T>, true>() noexcept;
-    operator BasicStringView<meta::char_to_encoding_v<T>, false>() noexcept;
-  };
-
   namespace details
   {
-    constexpr size_t utf8_to_utf16_buffer_size(
-        const char* utf8_data, size_t utf8_size) noexcept
+    template<auto VALUE>
+    consteval auto literal_to_utf32be() noexcept
     {
-      size_t utf16_size = 0;
-      const char* end   = utf8_data + utf8_size;
+      if constexpr (bit::TargetEndian::native == bit::TargetEndian::big)
+        return literal_to_utf32<VALUE>();
+      else
+      {
+        auto array = literal_to_utf32<VALUE>();
+        std::array<Char32BE, utf8_to_utf32_buffer_size(VALUE.str, VALUE.size)> ret;
+        for (size_t i = 0; i < array.size(); i++)
+          ret[i] = bit::byteswap(array[i]);
+        return ret;
+      }
+    }
 
+    template<auto VALUE>
+    consteval auto literal_to_utf32le() noexcept
+    {
+      if constexpr (bit::TargetEndian::native == bit::TargetEndian::little)
+        return literal_to_utf32<VALUE>();
+      else
+      {
+        auto array = literal_to_utf32<VALUE>();
+        std::array<Char32LE, utf8_to_utf32_buffer_size(VALUE.str, VALUE.size)> ret;
+        for (size_t i = 0; i < array.size(); i++)
+          ret[i] = bit::byteswap(array[i]);
+        return ret;
+      }
+    }
+
+    template<auto VALUE>
+    consteval auto literal_to_utf32() noexcept
+    {
+      std::array<Char32, utf8_to_utf32_buffer_size(VALUE.str, VALUE.size)> ret;
+      utf8_to_utf32(VALUE.str, VALUE.size, ret.data());
+      return ret;
+    }
+
+    template<auto VALUE>
+    consteval auto literal_to_utf16be() noexcept
+    {
+      if constexpr (bit::TargetEndian::native == bit::TargetEndian::big)
+        return literal_to_utf16<VALUE>();
+      else
+      {
+        auto array = literal_to_utf16<VALUE>();
+        std::array<Char16BE, utf8_to_utf16_buffer_size(VALUE.str, VALUE.size)> ret;
+        for (size_t i = 0; i < array.size(); i++)
+          ret[i] = bit::byteswap(array[i]);
+        return ret;
+      }
+    }
+
+    template<auto VALUE>
+    consteval auto literal_to_utf16le() noexcept
+    {
+      if constexpr (bit::TargetEndian::native == bit::TargetEndian::little)
+        return literal_to_utf16<VALUE>();
+      else
+      {
+        auto array = literal_to_utf16<VALUE>();
+        std::array<Char16LE, utf8_to_utf16_buffer_size(VALUE.str, VALUE.size)> ret;
+        for (size_t i = 0; i < array.size(); i++)
+          ret[i] = bit::byteswap(array[i]);
+        return ret;
+      }
+    }
+
+    template<auto VALUE>
+    consteval auto literal_to_utf16() noexcept
+    {
+      std::array<Char16, utf8_to_utf16_buffer_size(VALUE.str, VALUE.size)> ret;
+      utf8_to_utf16(VALUE.str, VALUE.size, ret.data());
+      return ret;
+    }
+
+    template<auto VALUE>
+    consteval auto literal_to_utf8() noexcept
+    {
+      std::array<Char8, VALUE.size> ret;
+      for (size_t i = 0; i < VALUE.size; i++)
+      {
+        ret[i] = Char8(VALUE.str[i]);
+      }
+      return ret;
+    }
+
+    constexpr void utf8_to_utf32(
+        const char* utf8_data, size_t utf8_size, Char32* utf32_data)
+    {
+      const char* end = utf8_data + utf8_size;
       while (utf8_data < end)
       {
-        char lead_byte = *utf8_data++;
-        if ((lead_byte & 0x80) == 0)
-          utf16_size++;
-        else if ((lead_byte & 0xE0) == 0xC0)
+        char lead_byte     = *utf8_data++;
+        char32_t codepoint = utf8_to_cp(lead_byte, utf8_data);
+        *utf32_data++      = Char32(codepoint);
+      }
+    }
+
+    constexpr void utf8_to_utf16(
+        const char* utf8_data, size_t utf8_size, Char16* utf16_data)
+    {
+      const char* end = utf8_data + utf8_size;
+      while (utf8_data < end)
+      {
+        char lead_byte     = *utf8_data++;
+        char32_t codepoint = utf8_to_cp(lead_byte, utf8_data);
+
+        if (codepoint <= 0xFFFF)
+          *utf16_data++ = Char16((u16)codepoint);
+        else // Surrogate pair
         {
-          if (utf8_data >= end)
-            break;
-          utf16_size++;
-          utf8_data++;
-        }
-        else if ((lead_byte & 0xF0) == 0xE0)
-        {
-          utf16_size++;
-          utf8_data += 2;
-        }
-        else
-        {
-          utf16_size += 2;
-          utf8_data += 3;
+          *utf16_data++ = Char16((u16)((codepoint - 0x10000) >> 10) + 0xD800);
+          *utf16_data++ = Char16((u16)((codepoint & 0x3FF) + 0xDC00));
         }
       }
-      return utf16_size;
+    }
+
+    constexpr u32 utf8_to_cp(char lead_byte, const char*& utf8_data)
+    {
+      u32 codepoint;
+      if ((lead_byte & 0x80) == 0)
+        codepoint = lead_byte;
+      else if ((lead_byte & 0xE0) == 0xC0)
+      {
+        codepoint = (lead_byte & 0x1F) << 6;
+        codepoint |= (*utf8_data++ & 0x3F);
+      }
+      else if ((lead_byte & 0xF0) == 0xE0)
+      {
+        codepoint = (lead_byte & 0x0F) << 12;
+        codepoint |= ((*utf8_data++) & 0x3F) << 6;
+        codepoint |= (*utf8_data++ & 0x3F);
+      }
+      else
+      {
+        codepoint = (lead_byte & 0x07) << 18;
+        codepoint |= ((*utf8_data++) & 0x3F) << 12;
+        codepoint |= ((*utf8_data++) & 0x3F) << 6;
+        codepoint |= (*utf8_data++ & 0x3F);
+      }
+      return codepoint;
     }
 
     constexpr size_t utf8_to_utf32_buffer_size(
@@ -811,241 +1137,38 @@ namespace clt
       return utf32_size;
     }
 
-    constexpr u32 utf8_to_cp(char lead_byte, const char*& utf8_data)
+    constexpr size_t utf8_to_utf16_buffer_size(
+        const char* utf8_data, size_t utf8_size) noexcept
     {
-      u32 codepoint;
-      if ((lead_byte & 0x80) == 0)
-        codepoint = lead_byte;
-      else if ((lead_byte & 0xE0) == 0xC0)
-      {
-        codepoint = (lead_byte & 0x1F) << 6;
-        codepoint |= (*utf8_data++ & 0x3F);
-      }
-      else if ((lead_byte & 0xF0) == 0xE0)
-      {
-        codepoint = (lead_byte & 0x0F) << 12;
-        codepoint |= ((*utf8_data++) & 0x3F) << 6;
-        codepoint |= (*utf8_data++ & 0x3F);
-      }
-      else
-      {
-        codepoint = (lead_byte & 0x07) << 18;
-        codepoint |= ((*utf8_data++) & 0x3F) << 12;
-        codepoint |= ((*utf8_data++) & 0x3F) << 6;
-        codepoint |= (*utf8_data++ & 0x3F);
-      }
-      return codepoint;
-    }
+      size_t utf16_size = 0;
+      const char* end   = utf8_data + utf8_size;
 
-    constexpr void utf8_to_utf16(
-        const char* utf8_data, size_t utf8_size, Char16* utf16_data)
-    {
-      const char* end = utf8_data + utf8_size;
       while (utf8_data < end)
       {
-        char lead_byte     = *utf8_data++;
-        char32_t codepoint = utf8_to_cp(lead_byte, utf8_data);
-
-        if (codepoint <= 0xFFFF)
-          *utf16_data++ = Char16((u16)codepoint);
-        else // Surrogate pair
+        char lead_byte = *utf8_data++;
+        if ((lead_byte & 0x80) == 0)
+          utf16_size++;
+        else if ((lead_byte & 0xE0) == 0xC0)
         {
-          *utf16_data++ = Char16((u16)((codepoint - 0x10000) >> 10) + 0xD800);
-          *utf16_data++ = Char16((u16)((codepoint & 0x3FF) + 0xDC00));
+          if (utf8_data >= end)
+            break;
+          utf16_size++;
+          utf8_data++;
+        }
+        else if ((lead_byte & 0xF0) == 0xE0)
+        {
+          utf16_size++;
+          utf8_data += 2;
+        }
+        else
+        {
+          utf16_size += 2;
+          utf8_data += 3;
         }
       }
+      return utf16_size;
     }
-
-    constexpr void utf8_to_utf32(
-        const char* utf8_data, size_t utf8_size, Char32* utf32_data)
-    {
-      const char* end = utf8_data + utf8_size;
-      while (utf8_data < end)
-      {
-        char lead_byte     = *utf8_data++;
-        char32_t codepoint = utf8_to_cp(lead_byte, utf8_data);
-        *utf32_data++      = Char32(codepoint);
-      }
-    }
-
-    template<size_t N>
-    struct LiteralConverter
-    {
-      char str[N]{};
-      size_t size = N;
-
-      constexpr LiteralConverter(const char (&pp)[N]) noexcept
-      {
-        for (size_t i = 0; i < N; i++)
-          str[i] = pp[i];
-      }
-    };
-
-    template<auto VALUE>
-    consteval auto literal_to_utf8() noexcept
-    {
-      std::array<Char8, VALUE.size> ret;
-      for (size_t i = 0; i < VALUE.size; i++)
-      {
-        ret[i] = Char8(VALUE.str[i]);
-      }
-      return ret;
-    }
-
-    template<auto VALUE>
-    consteval auto literal_to_utf16() noexcept
-    {
-      std::array<Char16, utf8_to_utf16_buffer_size(VALUE.str, VALUE.size)> ret;
-      utf8_to_utf16(VALUE.str, VALUE.size, ret.data());
-      return ret;
-    }
-
-    template<auto VALUE>
-    consteval auto literal_to_utf16le() noexcept
-    {
-      if constexpr (bit::TargetEndian::native == bit::TargetEndian::little)
-        return literal_to_utf16<VALUE>();
-      else
-      {
-        auto array = literal_to_utf16<VALUE>();
-        std::array<Char16LE, utf8_to_utf16_buffer_size(VALUE.str, VALUE.size)> ret;
-        for (size_t i = 0; i < array.size(); i++)
-          ret[i] = bit::byteswap(array[i]);
-        return ret;
-      }
-    }
-
-    template<auto VALUE>
-    consteval auto literal_to_utf16be() noexcept
-    {
-      if constexpr (bit::TargetEndian::native == bit::TargetEndian::big)
-        return literal_to_utf16<VALUE>();
-      else
-      {
-        auto array = literal_to_utf16<VALUE>();
-        std::array<Char16BE, utf8_to_utf16_buffer_size(VALUE.str, VALUE.size)> ret;
-        for (size_t i = 0; i < array.size(); i++)
-          ret[i] = bit::byteswap(array[i]);
-        return ret;
-      }
-    }
-
-    template<auto VALUE>
-    consteval auto literal_to_utf32() noexcept
-    {
-      std::array<Char32, utf8_to_utf32_buffer_size(VALUE.str, VALUE.size)> ret;
-      utf8_to_utf32(VALUE.str, VALUE.size, ret.data());
-      return ret;
-    }
-
-    template<auto VALUE>
-    consteval auto literal_to_utf32le() noexcept
-    {
-      if constexpr (bit::TargetEndian::native == bit::TargetEndian::little)
-        return literal_to_utf32<VALUE>();
-      else
-      {
-        auto array = literal_to_utf32<VALUE>();
-        std::array<Char32LE, utf8_to_utf32_buffer_size(VALUE.str, VALUE.size)> ret;
-        for (size_t i = 0; i < array.size(); i++)
-          ret[i] = bit::byteswap(array[i]);
-        return ret;
-      }
-    }
-
-    template<auto VALUE>
-    consteval auto literal_to_utf32be() noexcept
-    {
-      if constexpr (bit::TargetEndian::native == bit::TargetEndian::big)
-        return literal_to_utf32<VALUE>();
-      else
-      {
-        auto array = literal_to_utf32<VALUE>();
-        std::array<Char32BE, utf8_to_utf32_buffer_size(VALUE.str, VALUE.size)> ret;
-        for (size_t i = 0; i < array.size(); i++)
-          ret[i] = bit::byteswap(array[i]);
-        return ret;
-      }
-    }    
-
-    template<auto VALUE>
-    static constexpr auto literal_to_utf8_v =
-        UnicodeLiteral{literal_to_utf8<VALUE>()};
-
-    template<auto VALUE>
-    static constexpr auto literal_to_utf16_v =
-        UnicodeLiteral{literal_to_utf16<VALUE>()};
-
-    template<auto VALUE>
-    static constexpr auto literal_to_utf16le_v =
-        UnicodeLiteral{literal_to_utf16le<VALUE>()};
-
-    template<auto VALUE>
-    static constexpr auto literal_to_utf16be_v =
-        UnicodeLiteral{literal_to_utf16be<VALUE>()};
-
-    template<auto VALUE>
-    static constexpr auto literal_to_utf32_v =
-        UnicodeLiteral{literal_to_utf32<VALUE>()};
-
-    template<auto VALUE>
-    static constexpr auto literal_to_utf32le_v =
-        UnicodeLiteral{literal_to_utf32le<VALUE>()};
-
-    template<auto VALUE>
-    static constexpr auto literal_to_utf32be_v =
-        UnicodeLiteral{literal_to_utf32be<VALUE>()};
-
   } // namespace details
-
-  template<details::LiteralConverter a>
-  consteval decltype(auto) operator""_UTF8()
-  {
-    const auto& val = details::literal_to_utf8_v<a>;
-    return (val);
-  }
-
-  template<details::LiteralConverter a>
-  consteval decltype(auto) operator""_UTF16()
-  {
-    const auto& val = details::literal_to_utf16_v<a>;
-    return (val);
-  }
-
-  template<details::LiteralConverter a>
-  consteval decltype(auto) operator""_UTF16LE()
-  {
-    const auto& val = details::literal_to_utf16le_v<a>;
-    return (val);
-  }
-
-  template<details::LiteralConverter a>
-  consteval decltype(auto) operator""_UTF16BE()
-  {
-    const auto& val = details::literal_to_utf16be_v<a>;
-    return (val);
-  }
-
-  template<details::LiteralConverter a>
-  consteval decltype(auto) operator""_UTF32()
-  {
-    const auto& val = details::literal_to_utf32_v<a>;
-    return (val);
-  }
-
-  template<details::LiteralConverter a>
-  consteval decltype(auto) operator""_UTF32LE()
-  {
-    const auto& val = details::literal_to_utf32le_v<a>;
-    return (val);
-  }
-
-  template<details::LiteralConverter a>
-  consteval decltype(auto) operator""_UTF32BE()
-  {
-    const auto& val = details::literal_to_utf32be_v<a>;
-    return (val);
-  }
 } // namespace clt
 
 #endif // !HG_UNI_UNICODE_TYPES
