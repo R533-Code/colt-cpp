@@ -452,6 +452,13 @@ namespace clt
     return {std::array<T, SIZE>::data(), SIZE - 1};
   }
 
+  template<meta::CharType T, size_t SIZE>
+  constexpr BasicStringView<meta::char_to_encoding_v<T>, true> clt::
+      UnicodeLiteral<T, SIZE>::to_zview() const noexcept
+  {
+    return {std::array<T, SIZE>::data(), SIZE - 1};
+  }
+
   /// @brief Represents a NUL-terminated StringView
   /// @tparam ENCODING The encoding of the StringView
   template<StringEncoding ENCODING>
