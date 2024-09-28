@@ -446,7 +446,7 @@ namespace clt
   };
 
   template<meta::CharType T, size_t SIZE>
-  UnicodeLiteral<T, SIZE>::operator BasicStringView<
+  constexpr UnicodeLiteral<T, SIZE>::operator BasicStringView<
       meta::char_to_encoding_v<T>, true>() const noexcept
   {
     return {std::array<T, SIZE>::data(), SIZE - 1};
