@@ -90,9 +90,11 @@ namespace clt
     };
 
     template<bool CACHE_MIDDLE>
-    using SSOCacheMiddle = std::conditional_t<CACHE_MIDDLE, SSOCount, meta::empty_t<SSOCount>>;
+    using SSOCacheMiddle =
+        std::conditional_t<CACHE_MIDDLE, SSOCount, meta::empty_t<SSOCount>>;
     template<bool CACHE_COUNT>
-    using SSOCacheCount = std::conditional_t<CACHE_COUNT, SSOMiddle, meta::empty_t<SSOMiddle>>;
+    using SSOCacheCount =
+        std::conditional_t<CACHE_COUNT, SSOMiddle, meta::empty_t<SSOMiddle>>;
 
     template<meta::CharType Ty, bool CACHE_MIDDLE, bool CACHE_COUNT>
     class SSOLongInfo
@@ -144,7 +146,9 @@ namespace clt
             CUSTOMIZATION.CACHE_MIDDLE, CUSTOMIZATION.CACHE_COUNT>
             _long;
 
-        char_t _buffer[math::max(CUSTOMIZATION.buffer_bytesize() / sizeof(char_t), size_t(sizeof(void*)))];
+        char_t _buffer[math::max(
+            CUSTOMIZATION.buffer_bytesize() / sizeof(char_t),
+            size_t(sizeof(void*)))];
       };
 
     public:
@@ -291,6 +295,13 @@ namespace clt
       _ptr_or_buffer.ptr() = meta::empty_string_literal<char_t>();
     }
 
+    template<size_t N>
+    BasicString(
+        const ALLOCATOR& ALLOC, const UnicodeLiteral<char_t, N>& literal) noexcept
+        : BasicString(ALLOC, BasicStringView<STR_ENCODING, false>(literal))
+    {
+    }
+
     template<bool IS_ZSTRING>
     BasicString(
         const ALLOCATOR& ALLOC, BasicStringView<STR_ENCODING, IS_ZSTRING> str,
@@ -361,14 +372,11 @@ namespace clt
 
     /// @brief Returns an iterator to the start of the string
     /// @return Iterator to the start of the string
-    uni::CodePointIterator<ENCODING> begin() const noexcept
-    {
-      return data();
-    }
+    uni::CodePointIterator<STR_ENCODING> begin() const noexcept { return data(); }
     /// @brief Returns an iterator to the end of the string.
     /// This iterator should not be dereferenced.
     /// @return Iterator to the end of the string
-    uni::CodePointIterator<ENCODING> end() const noexcept
+    uni::CodePointIterator<STR_ENCODING> end() const noexcept
     {
       return data() + _size;
     }
@@ -393,7 +401,7 @@ namespace clt
     size_t find(char32_t chr, size_t starting_offset = 0) const noexcept
     {
       const auto cache_data = data();
-      auto _begin = uni::CodePointIterator<STR_ENCODING>(
+      auto _begin           = uni::CodePointIterator<STR_ENCODING>(
           cache_data + math::min(starting_offset, unit_len()));
       auto _end = uni::CodePointIterator<STR_ENCODING>(cache_data + unit_len());
       while (_begin != _end)
@@ -407,28 +415,42 @@ namespace clt
 
     /// @brief Shortens the view from the front by 1.
     /// @return Self
-    BasicString& pop_front() noexcept
-    {
-    }
+    BasicString& pop_front() noexcept {}
 
     /// @brief Shortens the view from the front by N.
     /// @param N The number of objects to pop
     /// @return Self
-    BasicString& pop_front_n(size_t N) noexcept
-    {
-    }
+    BasicString& pop_front_n(size_t N) noexcept {}
 
     /// @brief Shortens the view from the back by 1.
     /// @return Self
-    BasicString& pop_back() noexcept
-    {
-    }
+    BasicString& pop_back() noexcept { return pop_back_n(1); }
 
     /// @brief Shortens the view from the back by N.
     /// @param N The number of objects to pop
     /// @return Self
     BasicString& pop_back_n(size_t N) noexcept
     {
+      assert_true("Invalid N for pop_back_n", N < size());
+      const auto cache_data = data();
+      auto iter             = uni::iterator_index_back(cache_data + _size, N);
+      if constexpr (HAS_MIDDLE)
+      {
+        if (_is_long())
+        {
+          auto middle = uni::iterator_index_front(iter, N / 2);
+          _ptr_or_buffer.middle() -= middle - iter;
+          _ptr_or_buffer.count() -= N;
+        }
+      }
+      else if constexpr (HAS_COUNT)
+      {
+        if (_is_long())
+          _ptr_or_buffer.count() -= N;
+      }
+      _size = iter - cache_data;
+      *iter = '\0';
+      return *this;
     }
 
     /// @brief Returns the char at index 'index'.
@@ -438,10 +460,7 @@ namespace clt
     /// @pre index < size()
     /// @param index The index of the char to return
     /// @return The char at index 'index'
-    char32_t operator[](size_t index) const noexcept
-    {
-      return index_front(index);
-    }
+    char32_t operator[](size_t index) const noexcept { return index_front(index); }
 
     /// @brief Returns the char at index 'index'.
     /// @pre index < size()
@@ -452,7 +471,7 @@ namespace clt
     /// @pre index < size()
     /// @param index The index of the char to return
     /// @return The char at index 'index' starting from the end
-    char32_t index_back(size_t index) const noexcept;    
+    char32_t index_back(size_t index) const noexcept;
 
     /// @brief Get the front of the view.
     /// @return The first item of the view
@@ -504,8 +523,7 @@ namespace clt
     }
 
     template<size_t SIZE>
-    BasicString& operator+=(
-      const UnicodeLiteral<char_t, SIZE>& str) noexcept
+    BasicString& operator+=(const UnicodeLiteral<char_t, SIZE>& str) noexcept
     {
       return *this += (BasicStringView<STR_ENCODING, false>)str;
     }
@@ -542,6 +560,34 @@ namespace clt
       return *this;
     }
 
+    template<meta::CharType ENCODING2, size_t N>
+    friend constexpr auto operator==(
+        const BasicString& v1, const UnicodeLiteral<ENCODING2, N>& v2) noexcept
+    {
+      return v1.to_zview() == v2.to_zview();
+    }
+
+    template<StringEncoding ENCODING2, bool ZSTRING2>
+    friend constexpr auto operator==(
+        const BasicString& v1,
+        const BasicStringView<ENCODING2, ZSTRING2>& v2) noexcept
+    {
+      return v1.to_zview() == v2;
+    }
+
+    /// @brief Lexicographically compare two strings
+    /// @param v1 The first string
+    /// @param v2 The second view
+    /// @return Result of comparison
+    template<meta::CharType ENCODING2, size_t N>
+    friend constexpr auto operator<=>(
+        const BasicString& v1,
+        const UnicodeLiteral<ENCODING2, N>& v2) noexcept
+    {
+      return std::lexicographical_compare_three_way(
+          v1.begin(), v1.end(), v2.begin(), v2.end());
+    }
+
     /// @brief Lexicographically compare two strings
     /// @param v1 The first string
     /// @param v2 The second view
@@ -552,7 +598,7 @@ namespace clt
         const BasicStringView<ENCODING2, ZSTRING2>& v2) noexcept
     {
       return std::lexicographical_compare_three_way(
-          v1.begin(), v2.end(), v2.begin(), v2.end());
+          v1.begin(), v1.end(), v2.begin(), v2.end());
     }
   };
 
@@ -580,7 +626,7 @@ namespace clt
   /// @tparam ALLOCATOR The allocator
   template<typename ALLOCATOR>
   using u32String = String<ALLOCATOR, StringEncoding::UTF32>;
-  
+
   /// @brief Creates a string using the default string allocator
   /// @tparam ...Ty The parameter to forward to the string constructor
   /// @tparam ENCODING The string encoding
@@ -604,7 +650,7 @@ namespace clt
     using enum clt::StringEncoding;
     return make_string<UTF8>(std::forward<Ty>(args)...);
   }
-  
+
   /// @brief Creates a UTF16 string using the default string allocator
   /// @tparam ...Ty The parameter to forward to the string constructor
   /// @param ...args The arguments
@@ -615,7 +661,7 @@ namespace clt
     using enum clt::StringEncoding;
     return make_string<UTF16>(std::forward<Ty>(args)...);
   }
-  
+
   /// @brief Creates a UTF32 string using the default string allocator
   /// @tparam ...Ty The parameter to forward to the string constructor
   /// @param ...args The arguments
@@ -626,9 +672,9 @@ namespace clt
     using enum clt::StringEncoding;
     return make_string<UTF32>(std::forward<Ty>(args)...);
   }
-  
+
   template<meta::StringCustomization CUSTOMIZATION, typename ALLOCATOR>
-  constexpr char32_t BasicString<CUSTOMIZATION, ALLOCATOR>::index_front(
+  char32_t BasicString<CUSTOMIZATION, ALLOCATOR>::index_front(
       size_t index) const noexcept
   {
     assert_true("Invalid index!", index < size());
@@ -662,7 +708,8 @@ namespace clt
       if (_is_long())
       {
         if (index >= _ptr_or_buffer.count() / 2)
-          return uni::index_back(_ptr_or_buffer.ptr(), _ptr_or_buffer.count() - index);
+          return uni::index_back(
+              _ptr_or_buffer.ptr(), _ptr_or_buffer.count() - index);
         return uni::index_front(_ptr_or_buffer.ptr(), index);
       }
       return uni::index_front(_ptr_or_buffer.buffer(), index);
@@ -670,9 +717,9 @@ namespace clt
     else
       return uni::index_front(data(), index);
   }
-  
+
   template<meta::StringCustomization CUSTOMIZATION, typename ALLOCATOR>
-  constexpr char32_t BasicString<CUSTOMIZATION, ALLOCATOR>::index_back(
+  char32_t BasicString<CUSTOMIZATION, ALLOCATOR>::index_back(
       size_t index) const noexcept
   {
     assert_true("Invalid index!", index < size());
