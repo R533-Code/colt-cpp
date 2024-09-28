@@ -99,14 +99,18 @@ namespace clt::uni
   constexpr char32_t index_back(const underlying_type* _ptr, size_t _index) noexcept;
 
   template<typename underlying_type>
-    requires(meta::CharType<underlying_type> || meta::CppCharType<underlying_type>)
-  constexpr const underlying_type* iterator_index_front(
-      const underlying_type* _ptr, size_t _index) noexcept;
+    requires(
+        meta::CharType<std::remove_cv_t<underlying_type>>
+        || meta::CppCharType<std::remove_cv_t<underlying_type>>)
+  constexpr underlying_type* iterator_index_front(
+      underlying_type* _ptr, size_t _index) noexcept;
 
   template<typename underlying_type>
-    requires(meta::CharType<underlying_type> || meta::CppCharType<underlying_type>)
-  constexpr const underlying_type* iterator_index_back(
-      const underlying_type* _ptr, size_t _index) noexcept;
+    requires(
+        meta::CharType<std::remove_cv_t<underlying_type>>
+        || meta::CppCharType<std::remove_cv_t<underlying_type>>)
+  constexpr underlying_type* iterator_index_back(
+      underlying_type* _ptr, size_t _index) noexcept;
 
   /// @brief Returns the size in bytes of a NUL-terminated string
   /// @tparam T The char type
@@ -464,13 +468,16 @@ namespace clt::uni
   }
 
   template<typename underlying_type>
-    requires(meta::CharType<underlying_type> || meta::CppCharType<underlying_type>)
-  constexpr const underlying_type* iterator_index_front(
-      const underlying_type* _ptr, size_t index) noexcept
+    requires(
+        meta::CharType<std::remove_cv_t<underlying_type>>
+        || meta::CppCharType<std::remove_cv_t<underlying_type>>)
+  constexpr underlying_type* iterator_index_front(
+      underlying_type* _ptr, size_t index) noexcept
   {
-    if constexpr (meta::is_any_of<underlying_type, Char32BE, Char32LE>)
+    using ty = std::remove_cv_t<underlying_type>;
+    if constexpr (meta::is_any_of<ty, Char32BE, Char32LE>)
       return _ptr + index;
-    else if constexpr (meta::is_any_of<underlying_type, char>)
+    else if constexpr (meta::is_any_of<ty, char>)
       return _ptr + index;
     else
     {
@@ -486,14 +493,17 @@ namespace clt::uni
   }
 
   template<typename underlying_type>
-    requires(meta::CharType<underlying_type> || meta::CppCharType<underlying_type>)
-  constexpr const underlying_type* iterator_index_back(
-      const underlying_type* _ptr, size_t _index) noexcept
+    requires(
+        meta::CharType<std::remove_cv_t<underlying_type>>
+        || meta::CppCharType<std::remove_cv_t<underlying_type>>)
+  constexpr underlying_type* iterator_index_back(
+      underlying_type* _ptr, size_t _index) noexcept
   {
+    using ty = std::remove_cv_t<underlying_type>;
     // TODO: handle possible overflow when negating index
-    if constexpr (meta::is_any_of<underlying_type, char, Char32BE, Char32LE>)
+    if constexpr (meta::is_any_of<ty, char, Char32BE, Char32LE>)
       return _ptr + -static_cast<i64>(_index);
-    if constexpr (meta::is_any_of<underlying_type, Char8, char8_t>)
+    if constexpr (meta::is_any_of<ty, Char8, char8_t>)
     {
       auto ptr = _ptr;
       while (_index != 0)
@@ -507,7 +517,7 @@ namespace clt::uni
         --ptr;
       return ptr;
     }
-    if constexpr (meta::is_any_of<underlying_type, Char16BE, Char16LE, char16_t>)
+    if constexpr (meta::is_any_of<ty, Char16BE, Char16LE, char16_t>)
     {
       auto ptr = _ptr;
       while (_index != 0)
@@ -675,6 +685,23 @@ namespace clt::uni
     }
   }
 } // namespace clt::uni
+
+namespace clt
+{
+  template<meta::CharType T, size_t SIZE>
+  constexpr uni::CodePointIterator<meta::char_to_encoding_v<T>> clt::
+      UnicodeLiteral<T, SIZE>::begin() const noexcept
+  {
+    return std::array<T, SIZE>::data();
+  }
+
+  template<meta::CharType T, size_t SIZE>
+  constexpr uni::CodePointIterator<meta::char_to_encoding_v<T>> clt::UnicodeLiteral<
+      T, SIZE>::end() const noexcept
+  {
+    return std::array<T, SIZE>::data() + std::array<T, SIZE>::size();
+  }
+}
 
 template<clt::meta::is_any_of<clt::Char32BE, clt::Char32LE> Ty>
 struct fmt::formatter<Ty>

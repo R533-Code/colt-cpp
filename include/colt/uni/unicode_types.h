@@ -652,6 +652,12 @@ namespace clt
   template<StringEncoding ENCODING, bool ZSTRING>
   class BasicStringView;
 
+  namespace uni
+  {
+    template<StringEncoding ENCODING>
+    class CodePointIterator;
+  }
+
   /// @brief Unicode literal.
   /// Use "TEXT"_UTF[8|16|32] to create one.
   /// @tparam SIZE The size of the literal in code units
@@ -671,6 +677,16 @@ namespace clt
     {
     }
 
+    /// @brief Returns an iterator to the start of the view
+    /// @return Iterator to the start of the view
+    constexpr uni::CodePointIterator<meta::char_to_encoding_v<T>> begin()
+        const noexcept;
+    /// @brief Returns an iterator to the end of the view.
+    /// This iterator should not be dereferenced.
+    /// @return Iterator to the end of the view
+    constexpr uni::CodePointIterator<meta::char_to_encoding_v<T>> end()
+        const noexcept;
+
     // ALL DELETED FOR PERFORMANCE REASONS.
 
     UnicodeLiteral(UnicodeLiteral&&)                 = delete;
@@ -680,6 +696,9 @@ namespace clt
 
     /// @brief Conversion to ZStringView
     constexpr operator BasicStringView<meta::char_to_encoding_v<T>, true>() const noexcept;
+
+    constexpr BasicStringView<meta::char_to_encoding_v<T>, true> to_zview()
+        const noexcept;
   };
 
   // All the ugly code below is used for a simple purpose:
