@@ -28,3 +28,6 @@
 [submodule "libraries/simdutf"]
 	path = libraries/simdutf
 	url = https://github.com/simdutf/simdutf.git
+[submodule "libraries/hat-trie"]
+	path = libraries/hat-trie
+	url = https://github.com/Tessil/hat-trie.git
