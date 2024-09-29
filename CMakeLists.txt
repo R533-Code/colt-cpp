@@ -31,7 +31,7 @@ endfunction()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-project(Colt-Cpp VERSION 0.0.5.0 LANGUAGES CXX C)
+project(Colt-Cpp VERSION 0.0.6.0 LANGUAGES CXX C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -121,6 +121,14 @@ add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/fmt")
 target_link_libraries(coltcpp PUBLIC fmt::fmt)
 target_link_libraries(coltcpp_tests PUBLIC fmt::fmt)
 set_target_properties(fmt PROPERTIES OUTPUT_NAME libfmt PREFIX "")
+###########################
+
+###########################
+# Add hat-trie
+message(STATUS "Adding 'hat-trie'...")
+add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/hat-trie")
+target_link_libraries(coltcpp PUBLIC tsl::hat_trie)
+target_link_libraries(coltcpp_tests PUBLIC tsl::hat_trie)
 ###########################
 
 ###########################
