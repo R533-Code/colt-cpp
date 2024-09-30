@@ -132,6 +132,14 @@ target_link_libraries(coltcpp_tests PUBLIC tsl::hat_trie)
 ###########################
 
 ###########################
+# Add hopscotch
+message(STATUS "Adding 'hopscotch-map'...")
+add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/hopscotch-map")
+target_link_libraries(coltcpp PUBLIC tsl::hopscotch_map)
+target_link_libraries(coltcpp_tests PUBLIC tsl::hopscotch_map)
+###########################
+
+###########################
 # Add fast_float
 message(STATUS "Adding 'fast_float'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/fast_float")
