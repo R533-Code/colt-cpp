@@ -31,3 +31,6 @@
 [submodule "libraries/hat-trie"]
 	path = libraries/hat-trie
 	url = https://github.com/Tessil/hat-trie.git
+[submodule "libraries/hopscotch-map"]
+	path = libraries/hopscotch-map
+	url = https://github.com/Tessil/hopscotch-map.git
