@@ -85,7 +85,9 @@ namespace clt::os
     Option<Ty> find(ZStringView name) const
     {
       auto sym = find_symbol(name.c_str());
-      return sym ? reinterpret_cast<Ty>(sym) : (Ty)nullptr;
+      if (sym == nullptr)
+        return None;
+      return reinterpret_cast<Ty>(sym);
     }
 
     /// @brief Searches for a symbol in the currently loaded library.
@@ -98,7 +100,9 @@ namespace clt::os
     Option<Ty> find(const char* name) const
     {
       auto sym = find_symbol(name);
-      return sym ? reinterpret_cast<Ty>(sym) : (Ty)nullptr;
+      if (sym == nullptr)
+        return None;
+      return reinterpret_cast<Ty>(sym);
     }
 
     /// @brief Opens the current process as a dynamic library

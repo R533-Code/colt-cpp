@@ -688,6 +688,30 @@ namespace clt::uni
 
 namespace clt
 {
+  namespace meta
+  {
+    /// @brief Returns "" with the right char type
+    /// @tparam T The char type
+    /// @return "" or u8"" or u"" or U""
+    template<CharType T>
+    consteval auto empty_string_literal() noexcept
+    {
+      // We can cheat a bit as 0 is represented the same on different endianness.
+      if constexpr (std::same_as<T, char>)
+        return "";
+      if constexpr (std::same_as<T, Char8>)
+        return ""_UTF8.data();
+      if constexpr (std::same_as<T, Char16LE>)
+        return ""_UTF16LE.data();
+      if constexpr (std::same_as<T, Char16BE>)
+        return ""_UTF16BE.data();
+      if constexpr (std::same_as<T, Char32LE>)
+        return ""_UTF32LE.data();
+      if constexpr (std::same_as<T, Char32BE>)
+        return ""_UTF32LE.data();
+    }
+  }
+
   template<meta::CharType T, size_t SIZE>
   constexpr uni::CodePointIterator<meta::char_to_encoding_v<T>> clt::
       UnicodeLiteral<T, SIZE>::begin() const noexcept

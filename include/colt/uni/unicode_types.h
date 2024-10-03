@@ -542,24 +542,7 @@ namespace clt
 
     /// @brief Represents any of the C++ char types
     template<typename T>
-    concept CppCharType = meta::is_any_of<T, char, char8_t, char16_t, char32_t>;
-
-    /// @brief Returns "" with the right char type
-    /// @tparam T The char type
-    /// @return "" or u8"" or u"" or U""
-    template<CharType T>
-    consteval auto empty_string_literal() noexcept
-    {
-      // We can cheat a bit as 0 is represented the same on different endianness.
-      if constexpr (std::same_as<T, char>)
-        return "";
-      if constexpr (std::same_as<T, Char8>)
-        return u8"";
-      if constexpr (meta::is_any_of<T, Char16LE, Char16BE>)
-        return u"";
-      if constexpr (meta::is_any_of<T, Char32BE, Char32LE>)
-        return U"";
-    }
+    concept CppCharType = meta::is_any_of<T, char, char8_t, char16_t, char32_t>;    
 
     template<CppCharType Ty>
     struct cppchar_to_char
@@ -1019,7 +1002,7 @@ namespace clt
         auto array = literal_to_utf16<VALUE>();
         std::array<Char16BE, utf8_to_utf16_buffer_size(VALUE.str, VALUE.size)> ret;
         for (size_t i = 0; i < array.size(); i++)
-          ret[i] = bit::byteswap(array[i]);
+          ret[i] = bit::byteswap((u16)array[i]);
         return ret;
       }
     }
@@ -1034,7 +1017,7 @@ namespace clt
         auto array = literal_to_utf16<VALUE>();
         std::array<Char16LE, utf8_to_utf16_buffer_size(VALUE.str, VALUE.size)> ret;
         for (size_t i = 0; i < array.size(); i++)
-          ret[i] = bit::byteswap(array[i]);
+          ret[i] = bit::byteswap((u16)array[i]);
         return ret;
       }
     }
