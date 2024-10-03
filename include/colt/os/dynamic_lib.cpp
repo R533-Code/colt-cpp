@@ -23,7 +23,7 @@ namespace clt::os
     FreeLibrary((HMODULE)_handle);
   }
 
-  void* DynamicLib::find_symbol(const char* name)
+  void* DynamicLib::find_symbol(const char* name) const
   {
     if (_handle == nullptr)
       return nullptr;
@@ -52,7 +52,7 @@ namespace clt::os
     dlclose(_handle);
   }
 
-  void* DynamicLib::find_symbol(const char* name)
+  void* DynamicLib::find_symbol(const char* name) const
   {
     if (_handle == nullptr)
       return nullptr;

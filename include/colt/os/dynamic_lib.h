@@ -71,18 +71,18 @@ namespace clt::os
     /// @brief Searches for a symbol in the currently loaded library
     /// @param name The symbol's name
     /// @return null if not found or pointer to that symbol
-    void* find_symbol(const char* name);
+    void* find_symbol(const char* name) const;
     /// @brief Returns true if the current library contains a symbol 'name'
     /// @param name The symbol name
     /// @return True if 'name' exists in the current library.
-    bool has_symbol(const char* name) { return find_symbol(name) != nullptr; }
+    bool has_symbol(const char* name) const { return find_symbol(name) != nullptr; }
     /// @brief Searches for a symbol in the currently loaded library.
     /// If `is_closed()`, always returns None.
     /// @tparam Ty The type of the symbol
     /// @param name The name of the symbol
     /// @return None if the symbol was not found, else pointer to the symbol
     template<typename Ty> requires std::is_pointer_v<Ty>
-    Option<Ty> find(ZStringView name)
+    Option<Ty> find(ZStringView name) const
     {
       auto sym = find_symbol(name.c_str());
       return sym ? reinterpret_cast<Ty>(sym) : (Ty)nullptr;
@@ -95,7 +95,7 @@ namespace clt::os
     /// @return
     template<typename Ty>
       requires std::is_pointer_v<Ty>
-    Option<Ty> find(const char* name)
+    Option<Ty> find(const char* name) const
     {
       auto sym = find_symbol(name);
       return sym ? reinterpret_cast<Ty>(sym) : (Ty)nullptr;
