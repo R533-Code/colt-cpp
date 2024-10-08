@@ -11,7 +11,7 @@ namespace clt
   template<typename T, meta::Allocator ALLOCATOR>
   /// @brief Dynamic size array, that can make use of a local allocator
   /// @tparam T The type stored in the Vector
-  class Vector
+  class BasicVector
     : private ALLOCATOR
   {
     /// @brief Pointer to the allocated block (can be null)
@@ -50,7 +50,7 @@ namespace clt
 
     /// @brief Default constructor (when allocator is local)
     /// @param alloc Reference to the allocator to use
-    constexpr Vector(const ALLOCATOR& alloc) noexcept
+    constexpr BasicVector(const ALLOCATOR& alloc) noexcept
         : ALLOCATOR(alloc)
     {
     }
@@ -58,7 +58,7 @@ namespace clt
     /// @brief Reserve 'reserve' objects constructor (when allocator is local)
     /// @param alloc Reference to the allocator
     /// @param reserve The count of objects to allocate for
-    constexpr Vector(const ALLOCATOR& alloc, size_t reserve) noexcept
+    constexpr BasicVector(const ALLOCATOR& alloc, size_t reserve) noexcept
         : ALLOCATOR(alloc)
     {
       reserve_obj(reserve);
@@ -67,8 +67,8 @@ namespace clt
     /// @brief Reserve 'reserve' objects constructor (when allocator is local)
     /// @param alloc Reference to the allocator
     /// @param reserve The count of objects to allocate for
-    constexpr Vector(const ALLOCATOR& alloc, View<T> to_copy) noexcept
-        : Vector(alloc, to_copy.size())
+    constexpr BasicVector(const ALLOCATOR& alloc, View<T> to_copy) noexcept
+        : BasicVector(alloc, to_copy.size())
     {
       details::contiguous_copy(to_copy.data(), blk_ptr, to_copy.size());
       blk_size = to_copy.size();
@@ -81,7 +81,7 @@ namespace clt
     /// @param size The count of object to construct
     /// @param  Tag helper
     /// @param ...args The argument pack
-    constexpr Vector(
+    constexpr BasicVector(
         const ALLOCATOR& alloc, size_t size, in_place_t,
         Args&&... args) noexcept(std::is_nothrow_constructible_v<T, Args...>)
         : ALLOCATOR(alloc)
@@ -97,7 +97,7 @@ namespace clt
     /// @param size The count of object to construct
     /// @param  Tag helper
     /// @param ...args The argument pack
-    constexpr Vector(size_t size, in_place_t, Args&&... args) noexcept(
+    constexpr BasicVector(size_t size, in_place_t, Args&&... args) noexcept(
         std::is_nothrow_constructible_v<T, Args...>)
     {
       reserve_obj(size);
@@ -108,7 +108,7 @@ namespace clt
     /// @brief Constructs a Vector from an initializer_list
     /// @param alloc Reference to the local allocator to use
     /// @param list The initializer list
-    constexpr Vector(const ALLOCATOR& alloc, std::initializer_list<T> list) noexcept(
+    constexpr BasicVector(const ALLOCATOR& alloc, std::initializer_list<T> list) noexcept(
         std::is_nothrow_copy_constructible_v<T>)
         : ALLOCATOR(alloc)
     {
@@ -121,7 +121,7 @@ namespace clt
     /// The capacity of the resulting Vector is the same as 'to_copy'.
     /// @param to_copy
     /// @return
-    constexpr Vector(const Vector& to_copy) noexcept(
+    constexpr BasicVector(const BasicVector& to_copy) noexcept(
         std::is_nothrow_copy_constructible_v<T>)
         : ALLOCATOR(to_copy)
     {
@@ -134,7 +134,7 @@ namespace clt
     /// The capacity of the resulting Vector is the same as 'to_copy'.
     /// @param to_copy The Vector whose objects to copy
     /// @return Self
-    constexpr Vector& operator=(const Vector& to_copy) noexcept(
+    constexpr BasicVector& operator=(const BasicVector& to_copy) noexcept(
         std::is_nothrow_copy_constructible_v<T> && std::is_nothrow_destructible_v<T>)
     {
       assert_true("Self assignment is prohibited!", &to_copy != this);
@@ -148,7 +148,7 @@ namespace clt
 
     /// @brief Move constructor
     /// @param to_move The Vector whose resources to steal
-    constexpr Vector(Vector&& to_move) noexcept
+    constexpr BasicVector(BasicVector&& to_move) noexcept
         : ALLOCATOR(to_move)
         , blk_ptr(std::exchange(to_move.blk_ptr, nullptr))
         , blk_capacity(std::exchange(to_move.blk_capacity, 0))
@@ -159,7 +159,7 @@ namespace clt
     /// @brief Move assignment operator, swaps every member (allocator included)
     /// @param to_move The Vector being assigned
     /// @return Self
-    constexpr Vector& operator=(Vector&& to_move) noexcept
+    constexpr BasicVector& operator=(BasicVector&& to_move) noexcept
     {
       assert_true("Self assignment is prohibited!", &to_move != this);
       std::swap(static_cast<ALLOCATOR&>(to_move), static_cast<ALLOCATOR&>(*this));
@@ -171,7 +171,7 @@ namespace clt
     }
 
     /// @brief Destructor, destroy all active objects and free memory
-    constexpr ~Vector() noexcept(std::is_nothrow_destructible_v<T>)
+    constexpr ~BasicVector() noexcept(std::is_nothrow_destructible_v<T>)
     {
       //register freeing even if destructor throws to avoid memory leaks
       ON_SCOPE_EXIT
@@ -362,7 +362,7 @@ namespace clt
     /// @param v1 The first Vector
     /// @param v2 The second Vector
     /// @return True if both Vector are equal
-    friend constexpr bool operator==(const Vector& v1, View<T> v2) noexcept
+    friend constexpr bool operator==(const BasicVector& v1, View<T> v2) noexcept
     {
       if (v1.size() != v2.size())
         return false;
@@ -376,16 +376,34 @@ namespace clt
     /// @param v1 The first vector
     /// @param v2 The second vector
     /// @return Result of comparison
-    friend constexpr auto operator<=>(const Vector& v1, View<T> v2) noexcept
+    friend constexpr auto operator<=>(const BasicVector& v1, View<T> v2) noexcept
     {
       return std::lexicographical_compare_three_way(
           v1.begin(), v1.end(), v2.begin(), v2.end());
     }
   };
+
+  /// @brief Vector using the default global allocator
+  /// @tparam T The type
+  template<typename T>
+  using Vector = BasicVector<T, decltype(mem::GlobalAllocator)>;
+
+  /// @brief Create a vector using the default global allocator
+  /// @tparam ...Ty The arguments to forward to the constructor
+  /// @tparam T The type
+  /// @param ...args The arguments pack
+  /// @return Vector<T>
+  template<typename T, typename... Ty>
+  auto make_vector(Ty&&... args) noexcept
+  {
+    using enum clt::StringEncoding;
+    return BasicVector<T, decltype(mem::GlobalAllocator)>(
+        mem::GlobalAllocator, std::forward<Ty>(args)...);
+  }
 } // namespace clt
 
 template<clt::meta::formattable T, typename ALLOCATOR>
-struct fmt::formatter<clt::Vector<T, ALLOCATOR>>
+struct fmt::formatter<clt::BasicVector<T, ALLOCATOR>>
 {
   bool human_readable = false;
 
@@ -406,7 +424,7 @@ struct fmt::formatter<clt::Vector<T, ALLOCATOR>>
   }
 
   template<typename FormatContext>
-  auto format(const clt::Vector<T, ALLOCATOR>& vec, FormatContext& ctx)
+  auto format(const clt::BasicVector<T, ALLOCATOR>& vec, FormatContext& ctx)
   {
     auto fmt_to = ctx.out();
     if (human_readable)

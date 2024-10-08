@@ -581,8 +581,7 @@ namespace clt
     /// @return Result of comparison
     template<meta::CharType ENCODING2, size_t N>
     friend constexpr auto operator<=>(
-        const BasicString& v1,
-        const UnicodeLiteral<ENCODING2, N>& v2) noexcept
+        const BasicString& v1, const UnicodeLiteral<ENCODING2, N>& v2) noexcept
     {
       return std::lexicographical_compare_three_way(
           v1.begin(), v1.end(), v2.begin(), v2.end());
@@ -609,23 +608,21 @@ namespace clt
   bool maybe_in_const_segment(const void* ptr) noexcept;
 
   /// @brief Represents a String with the default customization
-  /// @tparam ALLOCATOR The allocator
-  /// @tparam ENCODING The encoding of the string
-  template<typename ALLOCATOR, StringEncoding ENCODING = StringEncoding::ASCII>
   using String = BasicString<
-      meta::StringCustomization{ENCODING, 24, true, true, true}, ALLOCATOR>;
+      meta::StringCustomization{StringEncoding::UTF8, 24, true, true, true},
+      decltype(mem::GlobalAllocator)>;
   /// @brief Represents a UTF8 string with the default customization
-  /// @tparam ALLOCATOR The allocator
-  template<typename ALLOCATOR>
-  using u8String = String<ALLOCATOR, StringEncoding::UTF8>;
+  using u8String = BasicString<
+      meta::StringCustomization{StringEncoding::UTF8, 24, true, true, true},
+      decltype(mem::GlobalAllocator)>;
   /// @brief Represents a UTF16 with platform endianness string with the default customization
-  /// @tparam ALLOCATOR The allocator
-  template<typename ALLOCATOR>
-  using u16String = String<ALLOCATOR, StringEncoding::UTF16>;
+  using u16String = BasicString<
+      meta::StringCustomization{StringEncoding::UTF16, 24, true, true, true},
+      decltype(mem::GlobalAllocator)>;
   /// @brief Represents a UTF32 with platform endianness string with the default customization
-  /// @tparam ALLOCATOR The allocator
-  template<typename ALLOCATOR>
-  using u32String = String<ALLOCATOR, StringEncoding::UTF32>;
+  using u32String = BasicString<
+      meta::StringCustomization{StringEncoding::UTF32, 24, true, true, true},
+      decltype(mem::GlobalAllocator)>;
 
   /// @brief Creates a string using the default string allocator
   /// @tparam ...Ty The parameter to forward to the string constructor
@@ -636,7 +633,9 @@ namespace clt
   auto make_string(Ty&&... args) noexcept
   {
     using enum clt::StringEncoding;
-    return String<decltype(mem::GlobalAllocator), ENCODING>(
+    return BasicString<
+        decltype(mem::GlobalAllocator),
+        meta::StringCustomization{ENCODING, 24, true, true, true}>(
         mem::GlobalAllocator, std::forward<Ty>(args)...);
   }
 
