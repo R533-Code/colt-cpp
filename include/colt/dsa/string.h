@@ -633,9 +633,8 @@ namespace clt
   auto make_string(Ty&&... args) noexcept
   {
     using enum clt::StringEncoding;
-    return BasicString<
-        decltype(mem::GlobalAllocator),
-        meta::StringCustomization{ENCODING, 24, true, true, true}>(
+    return BasicString<meta::StringCustomization{ENCODING, 24, true, true, true},
+        decltype(mem::GlobalAllocator)>(
         mem::GlobalAllocator, std::forward<Ty>(args)...);
   }
 
