@@ -256,9 +256,9 @@ namespace clt
     template<typename... Args>
     /// @brief Emplace an object at the end of the Vector
     /// @tparam ...Args The parameter pack
-    /// @param  InPlaceT tag
+    /// @param  in_place_t tag type
     /// @param ...args The argument pack to forward to the constructor
-    constexpr void push_back(meta::InPlaceT, Args&&... args) noexcept(
+    constexpr void push_back(in_place_t, Args&&... args) noexcept(
         std::is_nothrow_constructible_v<T, Args...>)
     {
       if (blk_size == blk_capacity)
