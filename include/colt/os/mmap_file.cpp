@@ -33,9 +33,18 @@ namespace clt::os
 
   void ViewOfFile::close()
   {
-    UnmapViewOfFile(view_map);
-    CloseHandle((HANDLE)mapping_handle);
+    if (view_map != nullptr)
+    {
+      UnmapViewOfFile(view_map);
+      view_map = nullptr;
+    }
+    if (mapping_handle != nullptr)
+    {
+      CloseHandle((HANDLE)mapping_handle);
+      mapping_handle = nullptr;
+    }
     CloseHandle((HANDLE)file_handle);
+    file_handle = nullptr;
   }
 
   Option<View<u8>> ViewOfFile::view() const noexcept
@@ -55,6 +64,9 @@ namespace clt::os
         FILE_ATTRIBUTE_NORMAL, nullptr);
     if (handle == INVALID_HANDLE_VALUE)
       return None;
+    LARGE_INTEGER file_size;
+    if (GetFileSizeEx(handle, &file_size) && file_size.QuadPart == 0)
+      return ViewOfFile((void*)handle, nullptr, nullptr);
 
     auto map = CreateFileMapping(handle, nullptr, PAGE_READONLY, 0, 0, nullptr);
     if (map == nullptr)
@@ -81,6 +93,7 @@ namespace clt::os
   void ViewOfFile::close()
   {
     munmap(mmap_handle, (off_t)file_size);
+    mmap_handle = nullptr;
   }
 
   Option<View<u8>> ViewOfFile::view() const noexcept
