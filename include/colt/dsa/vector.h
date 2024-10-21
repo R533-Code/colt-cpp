@@ -33,7 +33,7 @@ namespace clt
         if (blk_ptr)
           ALLOCATOR::dealloc({blk_ptr, blk_capacity * sizeof(T)});
         blk_ptr      = static_cast<T*>(new_blk.ptr());
-        blk_capacity = new_blk.size().to_bytes() / sizeof(T);
+        blk_capacity = new_blk.size() / sizeof(T);
       };
 
       details::contiguous_destructive_move(
