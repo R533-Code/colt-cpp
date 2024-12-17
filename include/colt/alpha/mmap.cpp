@@ -1,28 +1,31 @@
 #include "mmap.h"
+
+#ifdef COLT_WINDOWS
 #include <Windows.h>
 
 namespace clt
 {
-#ifdef COLT_WINDOWS
 
   static auto convert_access(VirtualPage::PageAccess access) noexcept
   {
+    using enum VirtualPage::PageAccess;
     switch_no_default(access)
     {
-    case clt::VirtualPage::PageAccess::None:
+    case None:
       return PAGE_NOACCESS;
-    case clt::VirtualPage::PageAccess::ReadExecute:
+    case ReadExecute:
       return PAGE_EXECUTE_READ;
-    case clt::VirtualPage::PageAccess::WriteExecute:
+    case WriteExecute:
       return PAGE_EXECUTE_READWRITE;
-    case clt::VirtualPage::PageAccess::ReadWrite:
+    case ReadWrite:
       return PAGE_READWRITE;
-    case clt::VirtualPage::PageAccess::ReadOnly:
-      return PAGE_READONLY
+    case ReadOnly:
+      return PAGE_READONLY;
     }
   }
 
-  VirtualPage VirtualPage::allocate(bytes byte, PageAccess access, void* hint) noexcept
+  VirtualPage VirtualPage::allocate(
+      bytes byte, PageAccess access, void* hint) noexcept
   {
     auto ret = VirtualAlloc(
         hint, byte.size, MEM_COMMIT | MEM_RESERVE, convert_access(access));
@@ -49,5 +52,8 @@ namespace clt
     return bytes{PAGE_SIZE};
   }
 
-#endif // COLT_WINDOWS
 } // namespace clt
+
+#else // !COLT_WINDOWS
+
+#endif // COLT_WINDOWS
