@@ -44,6 +44,7 @@ namespace clt
       /// @brief Readable: the page is only readable
       ReadOnly,
     };
+    using enum PageAccess;
 
     /// @brief Returns a pointer to the beginning of the page
     /// @return Pointer to the beginning of the page
