@@ -6,7 +6,7 @@
 
 namespace clt
 {
-  /// @brief Represents a memory page 
+  /// @brief Represents a memory page
   class VirtualPage
   {
     /// @brief The pointer to the start of the block (or null)
@@ -23,11 +23,11 @@ namespace clt
     {
       assert_true("Invalid block!", implies(begin == nullptr, size == 0));
     }
-  
+
   public:
-    constexpr VirtualPage() noexcept = default;
-    constexpr VirtualPage(VirtualPage&&) noexcept = default;
-    constexpr VirtualPage(const VirtualPage&) noexcept = default;
+    constexpr VirtualPage() noexcept                              = default;
+    constexpr VirtualPage(VirtualPage&&) noexcept                 = default;
+    constexpr VirtualPage(const VirtualPage&) noexcept            = default;
     constexpr VirtualPage& operator=(VirtualPage&&) noexcept      = default;
     constexpr VirtualPage& operator=(const VirtualPage&) noexcept = default;
 
@@ -64,19 +64,23 @@ namespace clt
     /// @param access The access type for the allocated page
     /// @param hint Hint address to where to allocate the page
     /// @return Allocated Page or Page for which is_null is true on errors
-    static VirtualPage allocate(bytes byte, PageAccess access, void* hint = nullptr) noexcept;
+    COLTCPP_EXPORT
+    static VirtualPage allocate(
+        bytes byte, PageAccess access, void* hint = nullptr) noexcept;
     /// @brief Deallocates a page that was created through `allocate`
     /// @param page The page to deallocate
+    COLTCPP_EXPORT
     static void deallocate(const VirtualPage& page) noexcept;
 
     /// @brief Returns the default page size of the current OS.
     /// The result of the underlying system call is cached.
     /// @return The default page size of the current OS
+    COLTCPP_EXPORT
     static bytes page_size() noexcept;
 
     /// @brief Flushes the instruction cache
-    void flush_icache() noexcept;
+    COLTCPP_EXPORT void flush_icache() noexcept;
   };
-}
+} // namespace clt
 
 #endif // !HG_COLT_MMAP

@@ -314,7 +314,7 @@ namespace clt
     //To see explanation, look at: 'clt::toupper'.
     return chr | (0b00100000 * static_cast<u8>(isupper(chr)));
   }
-}
+} // namespace clt
 
 namespace clt::uni
 {
@@ -458,33 +458,33 @@ namespace clt::uni
     /// @brief Optimized strlen for UTF8
     /// @param ptr The NUL-terminated string whose code point count to return
     /// @return Return the number of code point (not including NUL-terminator)
-    LenInfo len8(const char8_t* ptr) noexcept;
+    COLTCPP_EXPORT LenInfo len8(const char8_t* ptr) noexcept;
     /// @brief Optimized strlen for UTF16LE
     /// @param ptr The NUL-terminated string whose code point count to return
     /// @return Return the number of code point (not including NUL-terminator)
-    LenInfo len16LE(const char16_t* ptr) noexcept;
+    COLTCPP_EXPORT LenInfo len16LE(const char16_t* ptr) noexcept;
     /// @brief Optimized strlen for UTF16BE
     /// @param ptr The NUL-terminated string whose code point count to return
     /// @return Return the number of code point (not including NUL-terminator)
-    LenInfo len16BE(const char16_t* ptr) noexcept;
+    COLTCPP_EXPORT LenInfo len16BE(const char16_t* ptr) noexcept;
     /// @brief Optimized strlen for native UTF16
     /// @param ptr The NUL-terminated string whose code point count to return
     /// @return Return the number of code point (not including NUL-terminator)
-    LenInfo len16(const char16_t* ptr) noexcept;
+    COLTCPP_EXPORT LenInfo len16(const char16_t* ptr) noexcept;
     /// @brief Optimized unitlen for UTF16.
     /// This works for both endianness as zero are represented the same
     /// way on both endianness.
     /// The implementation uses SIMD instructions.
     /// @param ptr The NUL-terminated string whose unit count to return
     /// @return Return the count of char16_t forming the string
-    size_t unitlen16(const char16_t* ptr) noexcept;
+    COLTCPP_EXPORT size_t unitlen16(const char16_t* ptr) noexcept;
     /// @brief Optimized unitlen for UTF32.
     /// This works for both endianness as zero are represented the same
     /// way on both endianness.
     /// The implementation uses SIMD instructions.
     /// @param ptr The NUL-terminated string whose unit count to return
     /// @return Return the count of char32_t forming the string
-    size_t unitlen32(const char32_t* ptr) noexcept;
+    COLTCPP_EXPORT size_t unitlen32(const char32_t* ptr) noexcept;
   } // namespace details
 
   /// @brief Iterator over Unicode encoded strings
@@ -575,8 +575,8 @@ namespace clt::uni
   };
 
   /************************
-    | IMPLEMENTATIONS vvv   |
-    ************************/
+  | IMPLEMENTATIONS vvv   |
+  ************************/
 
   constexpr char16_t* unsafe_utf32to16(char32_t from, char16_t* result) noexcept
   {
@@ -1008,11 +1008,11 @@ namespace clt
       if constexpr (std::same_as<T, Char32BE>)
         return ""_UTF32LE.data();
     }
-  }
+  } // namespace meta
 
   template<meta::CharType T, size_t SIZE>
-  constexpr uni::CodePointIterator<meta::char_to_encoding_v<T>> clt::
-      UnicodeLiteral<T, SIZE>::begin() const noexcept
+  constexpr uni::CodePointIterator<meta::char_to_encoding_v<T>> clt::UnicodeLiteral<
+      T, SIZE>::begin() const noexcept
   {
     return std::array<T, SIZE>::data();
   }
@@ -1023,7 +1023,7 @@ namespace clt
   {
     return std::array<T, SIZE>::data() + std::array<T, SIZE>::size();
   }
-}
+} // namespace clt
 
 template<clt::meta::is_any_of<clt::Char32BE, clt::Char32LE> Ty>
 struct fmt::formatter<Ty>

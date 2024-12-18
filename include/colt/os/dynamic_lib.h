@@ -67,11 +67,11 @@ namespace clt::os
 
     /// @brief Closes the library.
     /// This is done automatically by the destructor.
-    void close();
+    COLTCPP_EXPORT void close();
     /// @brief Searches for a symbol in the currently loaded library
     /// @param name The symbol's name
     /// @return null if not found or pointer to that symbol
-    void* find_symbol(const char* name) const;
+    COLTCPP_EXPORT void* find_symbol(const char* name) const;
     /// @brief Returns true if the current library contains a symbol 'name'
     /// @param name The symbol name
     /// @return True if 'name' exists in the current library.
@@ -107,11 +107,11 @@ namespace clt::os
 
     /// @brief Opens the current process as a dynamic library
     /// @return None on errors
-    static Option<DynamicLib> open() noexcept;
+    COLTCPP_EXPORT static Option<DynamicLib> open() noexcept;
     /// @brief Opens a dynamic library with path 'path'
     /// @param path The path to the dynamic library
     /// @return None on errors
-    static Option<DynamicLib> open(const char* path) noexcept;
+    COLTCPP_EXPORT static Option<DynamicLib> open(const char* path) noexcept;
     /// @brief Opens a dynamic library with path 'path'
     /// @param path The path to the dynamic library
     /// @return None on errors

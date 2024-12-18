@@ -11,19 +11,20 @@
 #include <array>
 #include <cstdint>
 #include <fmt/format.h>
+#include <colt/coltcpp_export.h>
 
 namespace clt::io
 {
   /// @brief Turns on/off echo to the console
-  void toggle_echo() noexcept;
+  COLTCPP_EXPORT void toggle_echo() noexcept;
 
   /// @brief Returns the terminal size
   /// @param width The width
   /// @param height The height
-  void terminal_size(int& width, int& height) noexcept;
+  COLTCPP_EXPORT void terminal_size(int& width, int& height) noexcept;
 
   /// @brief Wait for any key to be pressed
-  void wait_kbhit() noexcept;
+  COLTCPP_EXPORT void wait_kbhit() noexcept;
 
   namespace details
   {

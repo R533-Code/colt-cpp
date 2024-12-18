@@ -85,28 +85,28 @@ namespace clt::os
       if (is_open())
         close();
     }
+    /// @brief True if the current library is open/
+    /// @return True if not closed
+    bool is_open() const noexcept { return !is_closed(); }
 
     /// @brief True if the current library is not open.
     /// A default constructed library is closed.
     /// @return True if not open
-    bool is_closed() const noexcept;
-    /// @brief True if the current library is open/
-    /// @return True if not closed
-    bool is_open() const noexcept { return !is_closed(); }
+    COLTCPP_EXPORT bool is_closed() const noexcept;
     /// @brief Closes the view.
     /// This is done automatically by the destructor.
-    void close();
+    COLTCPP_EXPORT void close();
 
     /// @brief Returns a view of bytes over the file.
     /// If the file is not opened, returns an empty view.
     /// None is only returned on OS failures.
     /// @return None on OS failures, else view over the file.
-    Option<View<u8>> view() const noexcept;
+    COLTCPP_EXPORT Option<View<u8>> view() const noexcept;
 
     /// @brief Opens a view of a file
     /// @param ptr The file path
     /// @return None on errors or opened ViewOfFile
-    static Option<ViewOfFile> open(const char* ptr);
+    COLTCPP_EXPORT static Option<ViewOfFile> open(const char* ptr);
     /// @brief Opens a view of a file
     /// @param ptr The file path
     /// @return None on errors or opened ViewOfFile

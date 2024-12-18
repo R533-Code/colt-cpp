@@ -8,20 +8,10 @@
 
 namespace clt
 {
-  int File::fileno() const noexcept
-  {
-    return handle;
-  }
-
   void File::close() noexcept
   {
     _close(handle);
     handle = -1;
-  }
-
-  bool File::is_open() const noexcept
-  {
-    return handle != -1;
   }
 
   static int to_fileno(FILE* file)
@@ -46,22 +36,7 @@ namespace clt
   {
     static auto FILE = File{to_fileno(stderr), FileAccess::Write};
     return FILE;
-  }
-
-  bool File::is_stdout() const noexcept
-  {
-    return false;
-  }
-
-  bool File::is_stderr() const noexcept
-  {
-    return false;
-  }
-
-  bool File::is_stdin() const noexcept
-  {
-    return false;
-  }
+  }  
   
   bool File::is_terminal() const noexcept
   {
