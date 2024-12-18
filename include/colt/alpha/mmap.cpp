@@ -52,6 +52,12 @@ namespace clt
     return bytes{PAGE_SIZE};
   }
 
+  void VirtualPage::flush_icache() noexcept
+  {
+    FlushInstructionCache(GetCurrentProcess(), this->ptr(), this->size());
+    // use __builtin___clear_cache() for linux
+  }
+
 } // namespace clt
 
 #else // !COLT_WINDOWS

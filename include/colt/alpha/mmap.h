@@ -73,6 +73,9 @@ namespace clt
     /// The result of the underlying system call is cached.
     /// @return The default page size of the current OS
     static bytes page_size() noexcept;
+
+    /// @brief Flushes the instruction cache
+    void flush_icache() noexcept;
   };
 }
 
