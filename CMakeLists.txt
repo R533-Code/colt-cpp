@@ -36,8 +36,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 project(Colt-Cpp VERSION 0.0.7.1 LANGUAGES CXX C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
-set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 # Save all the files to compile
 file(GLOB_RECURSE ColtHeaders "include/*.h")
@@ -45,6 +43,10 @@ file(GLOB_RECURSE ColtUnits "include/*.cpp")
 file(GLOB_RECURSE ColtUnitTests "test/*.cpp")
 
 add_library(coltcpp ${ColtHeaders} ${ColtUnits})
+set_target_properties(coltcpp PROPERTIES
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN 1
+)
 set_target_properties(coltcpp PROPERTIES OUTPUT_NAME libcoltcpp PREFIX "")
 
 # The export header which defines COLTCPP_EXPORT
