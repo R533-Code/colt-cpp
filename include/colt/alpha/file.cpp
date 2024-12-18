@@ -123,6 +123,52 @@ namespace clt
     return Option<bytes>(bytes{(size_t)_filelengthi64(this->fileno())});
   }
 
+  Option<u8> File::read() noexcept
+  {
+    if (!is_open() || access != FileAccess::Read)
+      return None;
+    if (u8 ret; _read(this->fileno(), &ret, 1) == 1)
+      return Option<u8>(ret);
+    return None;
+  }
+
+  ErrorFlag File::write(u8 out) noexcept
+  {
+    if (!is_open() || access == FileAccess::Read)
+      return ErrorFlag::error();
+    if (_write(this->fileno(), &out, 1) == 1)
+      return ErrorFlag::success();
+    return ErrorFlag::error();
+  }
+
+  Option<size_t> File::read(Span<u8> out) noexcept
+  {
+    if (!is_open() || access != FileAccess::Read)
+      return None;
+    // TODO: overflow check
+    auto read = _read(this->fileno(), out.data(), (unsigned int)out.size_bytes());
+    if (read < 0)
+      return None;
+    return Option<size_t>((size_t)read);
+  }
+
+  Option<size_t> File::write(View<u8> out) noexcept
+  {
+    if (!is_open() || access == FileAccess::Read)
+      return None;
+    auto write = _write(this->fileno(), &out, 1);
+    if (write < 0)
+      return None;
+    return Option<size_t>((size_t)write);
+  }
+
+  bool File::is_eof() const noexcept
+  {
+    if (!is_open())
+      return false;
+    return _eof(this->fileno());
+  }
+
   static auto convert_access(File::FileAccess access, bool text_mode) noexcept
   {
 

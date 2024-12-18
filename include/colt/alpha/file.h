@@ -11,19 +11,9 @@ namespace clt
   /// @brief Represents a file handle
   class File
   {
-    /// @brief The file number
-    int handle;
-
-    /// @brief Constructor
-    /// @param handle The file handle or -1 for errors
-    File(int handle) noexcept
-        : handle(handle)
-    {
-    }
-  
   public:
     /// @brief The file access when opening
-    enum class FileAccess
+    enum class FileAccess : u8
     {
       /// @brief "r", fail if !exist, read from start
       Read,
@@ -34,65 +24,113 @@ namespace clt
       /// @brief "wx", fail if exist, create if !exist, write from start
       Create,
     };
+    using enum FileAccess;
 
+  private:
+    /// @brief The file number
+    int handle;
+    /// @brief The file access
+    FileAccess access;
+
+    /// @brief Constructor
+    /// @param handle The file handle or -1 for errors
+    File(int handle) noexcept
+        : handle(handle)
+    {
+    }
+
+  public:
     /// @brief Returns the file number
     /// @return The file number or -1 if not open
-    int fileno() const noexcept;
+    [[nodiscard]] int fileno() const noexcept;
     /// @brief Check if the current file is opened
     /// @return True if opened
-    bool is_open() const noexcept;
-    
+    [[nodiscard]] bool is_open() const noexcept;
+
     /// @brief Closes the file descriptor
     void close() noexcept;
 
     /// @brief Check if the current file is stdout
     /// @return True if stdout
-    bool is_stdout() const noexcept;
+    [[nodiscard]] bool is_stdout() const noexcept;
     /// @brief Check if the current file is stderr
     /// @return True if stderr
-    bool is_stderr() const noexcept;
+    [[nodiscard]] bool is_stderr() const noexcept;
     /// @brief Check if the current file is stdin
     /// @return True if stdin
-    bool is_stdin() const noexcept;
+    [[nodiscard]] bool is_stdin() const noexcept;
 
     /// @brief True if the current file is associated with a terminal.
     /// As an example if stdout is not redirected, it is associated with
     /// a terminal. This is the same as `isatty`.
     /// @return True if associated with a terminal
-    bool is_terminal() const noexcept;
+    [[nodiscard]] bool is_terminal() const noexcept;
 
     /// @brief Returns the creation time of the current file.
     /// @return If not open or the operation fail returns None, else the creation time
-    Option<std::chrono::file_clock::time_point> creation_time() const noexcept;
+    [[nodiscard]] Option<std::chrono::file_clock::time_point> creation_time()
+        const noexcept;
     /// @brief Returns the last access time of the current file.
     /// @return If not open or the operation fail returns None, else the last access time
-    Option<std::chrono::file_clock::time_point> access_time() const noexcept;
+    [[nodiscard]] Option<std::chrono::file_clock::time_point> access_time()
+        const noexcept;
     /// /// @brief Returns the last write time of the current file.
     /// @return If not open or the operation fail returns None, else the last write time
-    Option<std::chrono::file_clock::time_point> write_time() const noexcept;
+    [[nodiscard]] Option<std::chrono::file_clock::time_point> write_time()
+        const noexcept;
 
     /// @brief Returns the file size in bytes
     /// @return The file size in bytes or None if not open or on errors
-    Option<bytes> file_size() const noexcept;
+    [[nodiscard]] Option<bytes> file_size() const noexcept;
+
+    /// @brief Reads a single byte from the file.
+    /// If the file is not opened as read, returns None.
+    /// If the file is not opened, returns None.
+    /// @return None on errors or EOF else the read value
+    [[nodiscard]] Option<u8> read() noexcept;
+
+    /// @brief Writes a single byte to a file.
+    /// If the file is opened as read, returns error().
+    /// If the file is not opened, returns error().
+    /// @param out The byte to write
+    /// @return success() if the byte was written
+    [[nodiscard]] ErrorFlag write(u8 out) noexcept;
+
+    /// @brief Reads multiple bytes from a file
+    /// @param out Where to write the read bytes
+    /// @return None on errors or the number of bytes read
+    [[nodiscard]] Option<size_t> read(Span<u8> out) noexcept;
+
+    /// @brief Writes multiple bytes to a file.
+    /// If the file is opened as read, returns None.
+    /// If the file is not opened, returns None.
+    /// @param out The bytes to write
+    /// @return None on errors or the number of bytes written
+    [[nodiscard]] Option<size_t> write(View<u8> out) noexcept;
+
+    /// @brief Check if the current file has hit the EOF.
+    /// If the file is not open, returns false.
+    /// @return True if the end of file was hit
+    [[nodiscard]] bool is_eof() const noexcept;
 
     /// @brief Creates a file
     /// @param path The path of the file
     /// @param access The access mode of the file
     /// @param text_mode True if text mode false if binary (only affects Windows)
     /// @return None on errors else opened handle
-    static Option<File> open(
+    [[nodiscard]] static Option<File> open(
         const char* const path, FileAccess access, bool text_mode = false) noexcept;
 
     /// @brief Returns the stdin handle
     /// @return stdin handle
-    static File& get_stdin() noexcept;
+    [[nodiscard]] static File& get_stdin() noexcept;
     /// @brief Returns the stdout handle
     /// @return stdout handle
-    static File& get_stdout() noexcept;
+    [[nodiscard]] static File& get_stdout() noexcept;
     /// @brief Returns the stderr handle
     /// @return stderr handle
-    static File& get_stderr() noexcept;
+    [[nodiscard]] static File& get_stderr() noexcept;
   };
-}
+} // namespace clt
 
 #endif // !HG_COLT_FILE
