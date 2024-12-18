@@ -11,6 +11,7 @@
 #include <cstdint>
 #include <span>
 #include <type_traits>
+#include <colt/coltcpp_export.h>
 #include "colt/macro/config.h"
 #include "colt/macro/assert.h"
 
