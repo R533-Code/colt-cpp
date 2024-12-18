@@ -20,7 +20,13 @@ permissions:
 jobs:
   build:
     runs-on: windows-latest
+    strategy:
+      fail-fast: false
 
+      matrix:
+        build_type: [Debug, Release]
+        library_share: [TRUE, FALSE]
+          
     steps:
     - name: Harden Runner
       uses: step-security/harden-runner@0080882f6c36860b6ba35c610c98ce87d4e2f26f # v2.10.2
@@ -32,11 +38,14 @@ jobs:
         submodules: recursive
 
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+      run: >
+        cmake -B ${{github.workspace}}/build
+        -DCMAKE_BUILD_TYPE=${{matrix.build_type}}
+        -DBUILD_SHARED_LIBS=${{ matrix.library_share }}
 
     - name: Build
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{github.workspace}}/build --config ${{matrix.build_type}}
 
     - name: Test
       working-directory: ${{github.workspace}}/build
-      run: ctest --output-on-failure -C ${{env.BUILD_TYPE}}
+      run: ctest --output-on-failure -C ${{matrix.build_type}}
