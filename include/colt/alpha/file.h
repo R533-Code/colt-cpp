@@ -34,8 +34,9 @@ namespace clt
 
     /// @brief Constructor
     /// @param handle The file handle or -1 for errors
-    File(int handle) noexcept
+    File(int handle, FileAccess access) noexcept
         : handle(handle)
+        , access(access)
     {
     }
 
@@ -65,6 +66,10 @@ namespace clt
     /// a terminal. This is the same as `isatty`.
     /// @return True if associated with a terminal
     [[nodiscard]] bool is_terminal() const noexcept;
+
+    /// @brief Returns the file access with which a file was opened.
+    /// @return The file access
+    [[nodiscard]] FileAccess file_access() const noexcept { return access; }
 
     /// @brief Returns the creation time of the current file.
     /// @return If not open or the operation fail returns None, else the creation time
