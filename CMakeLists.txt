@@ -44,6 +44,8 @@ file(GLOB_RECURSE ColtUnitTests "test/*.cpp")
 
 add_library(coltcpp ${ColtHeaders} ${ColtUnits})
 set_target_properties(coltcpp PROPERTIES
+    # we only want to export the functions that are marked with
+    # COLTCPP_EXPORT
     CXX_VISIBILITY_PRESET hidden
     VISIBILITY_INLINES_HIDDEN 1
 )
