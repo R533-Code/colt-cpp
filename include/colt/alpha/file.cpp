@@ -34,17 +34,17 @@ namespace clt
 
   File& File::get_stdin() noexcept
   {
-    static auto FILE = File{to_fileno(stdin)};
+    static auto FILE = File{to_fileno(stdin), FileAccess::Read};
     return FILE;
   }
   File& File::get_stdout() noexcept
   {
-    static auto FILE = File{to_fileno(stdout)};
+    static auto FILE = File{to_fileno(stdout), FileAccess::Write};
     return FILE;
   }
   File& File::get_stderr() noexcept
   {
-    static auto FILE = File{to_fileno(stderr)};
+    static auto FILE = File{to_fileno(stderr), FileAccess::Write};
     return FILE;
   }
 
@@ -192,7 +192,7 @@ namespace clt
     auto handle = _open(path, convert_access(access, text_mode));
     if (handle == -1)
       return None;
-    return Option<File>(handle);
+    return Option<File>(File(handle, access));
   }
 
 } // namespace clt
