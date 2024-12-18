@@ -157,7 +157,10 @@ set(SCN_USE_EXTERNAL_FAST_FLOAT ON CACHE BOOL "" FORCE)
 message(STATUS "Adding 'scnlib'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/scnlib")
 target_link_libraries(coltcpp PUBLIC scn::scn)
-set_target_properties(scn PROPERTIES OUTPUT_NAME libscn PREFIX "")
+set_target_properties(scn PROPERTIES
+    OUTPUT_NAME libscn PREFIX ""
+    WINDOWS_EXPORT_ALL_SYMBOLS YES
+)
 ###########################
 
 ###########################
