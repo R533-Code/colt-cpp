@@ -35,8 +35,6 @@ namespace clt
   {
     size_t size;
 
-    static constexpr ratio ratio = Ratio;
-
     template<clt::ratio Ratio2>
     friend constexpr auto operator+(
         const allocation_size a, const allocation_size<Ratio2> b) noexcept
@@ -51,60 +49,60 @@ namespace clt
   };
 
   using bits = allocation_size<ratio{1, 8}>;
-  consteval bits operator"" _bit(size_t lit) noexcept
+  consteval bits operator"" _bit(unsigned long long lit) noexcept
   {
     return {lit};
   }
-  consteval bits operator"" _b(size_t lit) noexcept
+  consteval bits operator"" _b(unsigned long long lit) noexcept
   {
     return {lit};
   }
   using bytes = allocation_size<ratio{1}>;
-  consteval bytes operator"" _B(size_t lit) noexcept
+  consteval bytes operator"" _B(unsigned long long lit) noexcept
   {
     return {lit};
   }
 
-  using kibibytes = allocation_size<ratio{1024}>;
-  consteval kibibytes operator"" _KiB(size_t lit) noexcept
+  using kibibytes = allocation_size<ratio{1024ULL}>;
+  consteval kibibytes operator"" _KiB(unsigned long long lit) noexcept
   {
     return {lit};
   }
-  using kilobytes = allocation_size<ratio{1000}>;
-  consteval kilobytes operator"" _KB(size_t lit) noexcept
-  {
-    return {lit};
-  }
-
-  using mebibytes = allocation_size<ratio{1024 * 1024}>;
-  consteval mebibytes operator"" _MiB(size_t lit) noexcept
-  {
-    return {lit};
-  }
-  using megabytes = allocation_size<ratio{1000 * 1000}>;
-  consteval megabytes operator"" _MB(size_t lit) noexcept
+  using kilobytes = allocation_size<ratio{1000ULL}>;
+  consteval kilobytes operator"" _KB(unsigned long long lit) noexcept
   {
     return {lit};
   }
 
-  using gibibytes = allocation_size<ratio{1024 * 1024 * 1024}>;
-  consteval gibibytes operator"" _GiB(size_t lit) noexcept
+  using mebibytes = allocation_size<ratio{1024ULL * 1024ULL}>;
+  consteval mebibytes operator"" _MiB(unsigned long long lit) noexcept
   {
     return {lit};
   }
-  using gigabytes = allocation_size<ratio{1000 * 1000 * 1000}>;
-  consteval gigabytes operator"" _GB(size_t lit) noexcept
+  using megabytes = allocation_size<ratio{1000ULL * 1000ULL}>;
+  consteval megabytes operator"" _MB(unsigned long long lit) noexcept
   {
     return {lit};
   }
 
-  using tebibytes = allocation_size<ratio{1024 * 1024 * 1024 * 1024}>;
-  consteval tebibytes operator"" _TiB(size_t lit) noexcept
+  using gibibytes = allocation_size<ratio{1024ULL * 1024ULL * 1024ULL}>;
+  consteval gibibytes operator"" _GiB(unsigned long long lit) noexcept
   {
     return {lit};
   }
-  using terabytes = allocation_size<ratio{1000 * 1000 * 1000 * 1000}>;
-  consteval terabytes operator"" _TB(size_t lit) noexcept
+  using gigabytes = allocation_size<ratio{1000ULL * 1000ULL * 1000ULL}>;
+  consteval gigabytes operator"" _GB(unsigned long long lit) noexcept
+  {
+    return {lit};
+  }
+
+  using tebibytes = allocation_size<ratio{1024ULL * 1024ULL * 1024ULL * 1024ULL}>;
+  consteval tebibytes operator"" _TiB(unsigned long long lit) noexcept
+  {
+    return {lit};
+  }
+  using terabytes = allocation_size<ratio{1000ULL * 1000ULL * 1000ULL * 1000ULL}>;
+  consteval terabytes operator"" _TB(unsigned long long lit) noexcept
   {
     return {lit};
   }
