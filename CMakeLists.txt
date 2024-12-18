@@ -33,7 +33,7 @@ endfunction()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-project(Colt-Cpp VERSION 0.0.7.0 LANGUAGES CXX C)
+project(Colt-Cpp VERSION 0.0.7.1 LANGUAGES CXX C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
@@ -47,6 +47,7 @@ file(GLOB_RECURSE ColtUnitTests "test/*.cpp")
 add_library(coltcpp ${ColtHeaders} ${ColtUnits})
 set_target_properties(coltcpp PROPERTIES OUTPUT_NAME libcoltcpp PREFIX "")
 
+# The export header which defines COLTCPP_EXPORT
 generate_export_header(
   coltcpp
   EXPORT_FILE_NAME "${CMAKE_CURRENT_SOURCE_DIR}/include/colt/coltcpp_export.h"
