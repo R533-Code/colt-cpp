@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.21)
 
+include(GenerateExportHeader)
+
 function(get_all_targets var)
     set(targets)
     get_all_targets_recursive(targets ${CMAKE_CURRENT_SOURCE_DIR})
@@ -34,27 +36,31 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 project(Colt-Cpp VERSION 0.0.7.0 LANGUAGES CXX C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 # Save all the files to compile
 file(GLOB_RECURSE ColtHeaders "include/*.h")
 file(GLOB_RECURSE ColtUnits "include/*.cpp")
 file(GLOB_RECURSE ColtUnitTests "test/*.cpp")
 
-add_executable(coltcpp_tests
-  ${ColtHeaders} ${ColtUnits} ${ColtUnitTests}
-)
-
 add_library(coltcpp ${ColtHeaders} ${ColtUnits})
 set_target_properties(coltcpp PROPERTIES OUTPUT_NAME libcoltcpp PREFIX "")
 
+generate_export_header(
+  coltcpp
+  EXPORT_FILE_NAME "${CMAKE_CURRENT_SOURCE_DIR}/include/colt/coltcpp_export.h"
+)
+
+add_executable(coltcpp_tests ${ColtUnitTests})
+target_link_libraries(coltcpp_tests PUBLIC coltcpp)
 
 # Define COLT_DEBUG_BUILD for debug config
 target_compile_definitions(
   coltcpp PUBLIC $<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
 )
 target_compile_definitions(
-  coltcpp_tests PUBLIC $<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
+  coltcpp_tests PUBLIC #$<$<CONFIG:Debug>:COLT_DEBUG> $<$<CONFIG:Debug>:COLT_DEBUG_BUILD> _CRT_SECURE_NO_WARNINGS
   COLT_TESTING
 )
 
@@ -105,13 +111,11 @@ ExternalProject_Add(mpir
 
 # Specify the directories where header files are located
 target_include_directories(coltcpp PUBLIC ${MPIR_INCLUDE_DIR})
-target_include_directories(coltcpp_tests PUBLIC ${MPIR_INCLUDE_DIR})
 
 # Link MPIR library
 add_dependencies(coltcpp mpir)
 add_dependencies(coltcpp_tests mpir)
 target_link_libraries(coltcpp PUBLIC ${MPIR_LIBRARY})
-target_link_libraries(coltcpp_tests PUBLIC ${MPIR_LIBRARY})
 ###########################
 
 ###########################
@@ -119,7 +123,6 @@ target_link_libraries(coltcpp_tests PUBLIC ${MPIR_LIBRARY})
 message(STATUS "Adding 'fmt'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/fmt")
 target_link_libraries(coltcpp PUBLIC fmt::fmt)
-target_link_libraries(coltcpp_tests PUBLIC fmt::fmt)
 set_target_properties(fmt PROPERTIES OUTPUT_NAME libfmt PREFIX "")
 ###########################
 
@@ -128,7 +131,6 @@ set_target_properties(fmt PROPERTIES OUTPUT_NAME libfmt PREFIX "")
 message(STATUS "Adding 'hat-trie'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/hat-trie")
 target_link_libraries(coltcpp PUBLIC tsl::hat_trie)
-target_link_libraries(coltcpp_tests PUBLIC tsl::hat_trie)
 ###########################
 
 ###########################
@@ -136,7 +138,6 @@ target_link_libraries(coltcpp_tests PUBLIC tsl::hat_trie)
 message(STATUS "Adding 'hopscotch-map'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/hopscotch-map")
 target_link_libraries(coltcpp PUBLIC tsl::hopscotch_map)
-target_link_libraries(coltcpp_tests PUBLIC tsl::hopscotch_map)
 ###########################
 
 ###########################
@@ -151,21 +152,18 @@ set(SCN_USE_EXTERNAL_FAST_FLOAT ON CACHE BOOL "" FORCE)
 message(STATUS "Adding 'scnlib'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/scnlib")
 target_link_libraries(coltcpp PUBLIC scn::scn)
-target_link_libraries(coltcpp_tests PUBLIC scn::scn)
 set_target_properties(scn PROPERTIES OUTPUT_NAME libscn PREFIX "")
 ###########################
 
 ###########################
 # Add gcem
 message(STATUS "Adding 'gcem'...")
-target_include_directories(coltcpp_tests PUBLIC "${PROJECT_SOURCE_DIR}/libraries/gcem/include")
 target_include_directories(coltcpp PUBLIC "${PROJECT_SOURCE_DIR}/libraries/gcem/include")
 ###########################
 
 ###########################
 # Add zpp_bits
 message(STATUS "Adding 'zpp_bits'...")
-target_include_directories(coltcpp_tests PUBLIC "${PROJECT_SOURCE_DIR}/libraries/zpp_bits")
 target_include_directories(coltcpp PUBLIC "${PROJECT_SOURCE_DIR}/libraries/zpp_bits")
 ###########################
 
@@ -174,7 +172,6 @@ target_include_directories(coltcpp PUBLIC "${PROJECT_SOURCE_DIR}/libraries/zpp_b
 message(STATUS "Adding 'uni-algo'...")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/uni-algo")
 target_link_libraries(coltcpp PUBLIC uni-algo::uni-algo)
-target_link_libraries(coltcpp_tests PUBLIC uni-algo::uni-algo)
 set_target_properties(uni-algo PROPERTIES OUTPUT_NAME libunialgo PREFIX "")
 ###########################
 
@@ -186,30 +183,27 @@ set(SIMDUTF_TESTS OFF CACHE BOOL "simdutf generate tests." FORCE)
 set(SIMDUTF_TOOLS OFF CACHE BOOL "simdutf generate tool." FORCE)
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/simdutf")
 target_link_libraries(coltcpp PUBLIC simdutf)
-target_link_libraries(coltcpp_tests PUBLIC simdutf)
 set_target_properties(simdutf PROPERTIES OUTPUT_NAME libsimdutf PREFIX "")
 ###########################
 
 ###########################
 # Add hedley
 message(STATUS "Adding 'hedley'...")
-target_include_directories(coltcpp_tests PUBLIC "${PROJECT_SOURCE_DIR}/libraries/hedley")
 target_include_directories(coltcpp PUBLIC "${PROJECT_SOURCE_DIR}/libraries/hedley")
 ###########################
 
 ###########################
 # Add date
 message(STATUS "Adding 'date'...")
-target_include_directories(coltcpp_tests PUBLIC "${PROJECT_SOURCE_DIR}/libraries/date/include")
 target_include_directories(coltcpp PUBLIC "${PROJECT_SOURCE_DIR}/libraries/date/include")
 ###########################
 
 ###########################
 # Catch2
 message(STATUS "Adding 'Catch2'...")
-target_include_directories(coltcpp_tests PUBLIC "${PROJECT_SOURCE_DIR}/libraries/Catch2")
+target_include_directories(coltcpp_tests PRIVATE "${PROJECT_SOURCE_DIR}/libraries/Catch2")
 add_subdirectory("${PROJECT_SOURCE_DIR}/libraries/Catch2")
-target_link_libraries(coltcpp_tests PUBLIC Catch2::Catch2)
+target_link_libraries(coltcpp_tests PRIVATE Catch2::Catch2)
 
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 include(CTest)
