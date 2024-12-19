@@ -6,7 +6,7 @@
  * @date   August 2024
  *********************************************************************/
 #include "../includes.h"
-#include <colt/io/mmap_file.h>
+#include <colt/io/mmap.h>
 
 
 TEST_CASE("ViewOfFile")
