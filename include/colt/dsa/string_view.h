@@ -9,9 +9,10 @@
 #ifndef HG_DSA_STRING_VIEW
 #define HG_DSA_STRING_VIEW
 
-#include "colt/uni/unicode.h"
 #include <zpp_bits.h>
-#include "colt/dsa/iterator.h"
+
+#include <colt/unicode/unicode.h>
+#include <colt/algo/iterator.h>
 
 namespace clt
 {
@@ -139,7 +140,7 @@ namespace clt
 
     constexpr size_t find(char32_t chr, size_t starting_offset = 0) const noexcept
     {
-      auto _begin = uni::CodePointIterator<ENCODING>(_ptr + math::min(starting_offset, unit_len()));
+      auto _begin = uni::CodePointIterator<ENCODING>(_ptr + clt::min(starting_offset, unit_len()));
       auto _end = uni::CodePointIterator<ENCODING>(_ptr + unit_len());
       while (_begin != _end)
       {

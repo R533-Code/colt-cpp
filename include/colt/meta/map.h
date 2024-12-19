@@ -13,7 +13,6 @@
 #include <utility>
 #include <numeric>
 
-#include "colt/macro/assert.h"
 #include "colt/dsa/option.h"
 
 namespace clt::meta

@@ -9,7 +9,7 @@
 #include <catch2/catch_tostring.hpp>
 
 #include <fmt/format.h>
-#include <colt/uni/unicode.h>
+#include <colt/unicode/unicode.h>
 
 namespace Catch
 {

@@ -6,7 +6,7 @@
  * @date   August 2024
  *********************************************************************/
 #include "../includes.h"
-#include <colt/uni/unicode.h>
+#include <colt/unicode/unicode.h>
 
 // Using COLT_FOR_EACH, we can generate a test for each of the strings below.
 // COLT_CONCAT(x, ...) is used to concatenate the string literal (u8, u, U).
@@ -55,7 +55,7 @@ const clt::Char16Other* operator+(MAKE_BE, const char16_t (&str)[N])
 {
   auto ret = new char16_t[N];
   for (size_t i = 0; i < N; i++)
-    ret[i] = clt::bit::byteswap(str[i]);
+    ret[i] = clt::byteswap(str[i]);
   return reinterpret_cast<clt::Char16Other*>(ret);
 }
 
@@ -258,7 +258,7 @@ TEST_CASE("Unicode UTF32 to UTF8")
   SECTION("UTF32 HOST INVALID")
   {
     for (size_t i = 0; i < sizeofA; i++)
-      A[i] = bit::byteswap((u32)A[i]);
+      A[i] = byteswap((u32)A[i]);
 
     // The reversed bytes will be invalid unicode
     auto from = ptr_to<const Char32*>(&A[0]);
@@ -274,7 +274,7 @@ TEST_CASE("Unicode UTF32 to UTF8")
   SECTION("UTF32 BYTESWAP VALID")
   {
     for (size_t i = 0; i < sizeofA; i++)
-      A[i] = bit::byteswap((u32)A[i]);
+      A[i] = byteswap((u32)A[i]);
 
     auto from = ptr_to<const Char32Other*>(&A[0]);
     REQUIRE(to_utf8(from, 6, result, 256) == ConvError::NO_ERROR);
@@ -295,7 +295,7 @@ TEST_CASE("Unicode UTF32 to UTF8")
   SECTION("UTF32 BYTESWAP NOT ENOUGH MEMORY")
   {
     for (size_t i = 0; i < sizeofA; i++)
-      A[i] = bit::byteswap((u32)A[i]);
+      A[i] = byteswap((u32)A[i]);
 
     auto from = ptr_to<const Char32Other*>(&A[0]);
     REQUIRE(to_utf8(from, 6, result, 8) == ConvError::NOT_ENOUGH_SPACE);

@@ -22,7 +22,7 @@
   #include <unistd.h>
 #endif // COLT_WINDOWS
 
-namespace clt::os
+namespace clt
 {
 #ifdef COLT_WINDOWS
   bool ViewOfFile::is_closed() const noexcept

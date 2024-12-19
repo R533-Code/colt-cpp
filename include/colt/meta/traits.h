@@ -13,7 +13,7 @@
 #include <zpp_bits.h>
 #include <fmt/format.h>
 #include <type_traits>
-#include "colt/macro/config.h"
+#include "colt/config.h"
 
 namespace clt::meta
 {

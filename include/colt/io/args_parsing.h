@@ -341,7 +341,7 @@ namespace clt::cl
       // 4ULL for "help"
       // + 3ULL is for ", -" between name and alias
       // + 1ULL is for "-"
-      return math::max(
+      return clt::max(
                  {(static_cast<size_t>(Args::name.size())
                    + static_cast<size_t>(
                        (!Args::alias.empty()) * (Args::alias.size() + 3)))...,
@@ -355,7 +355,7 @@ namespace clt::cl
     /// @return Maximum count of chars
     consteval u64 max_desc_size(meta::type_list<Args...> list) noexcept
     {
-      return math::max({Args::value_desc.size()..., static_cast<size_t>(2)}) + 2ULL;
+      return clt::max({Args::value_desc.size()..., static_cast<size_t>(2)}) + 2ULL;
     }
 
     template<IsOpt opt>

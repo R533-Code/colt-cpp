@@ -6,13 +6,12 @@
  * @date   August 2024
  *********************************************************************/
 #include "../includes.h"
-#include <colt/os/mmap_file.h>
+#include <colt/io/mmap_file.h>
 
 
 TEST_CASE("ViewOfFile")
 {
   using namespace clt;
-  using namespace clt::os;
   
   const char* text = "This is a test of ViewOfFile!";
   View<u8> view    = {(const u8*)text, uni::strlen(text)};

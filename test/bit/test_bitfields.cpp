@@ -6,11 +6,10 @@
  * @date   August 2024
  *********************************************************************/
 #include "../includes.h"
-#include <colt/bit/bitfields.h>
+#include <colt/num/bitfields.h>
 
 TEST_CASE("Bitfields")
 {
-  using namespace clt::bit;
   using namespace clt;
 
   using Type = Bitfields<u8, Bitfield<0, 5>, Bitfield<1, 2>, Bitfield<2, 1>>;

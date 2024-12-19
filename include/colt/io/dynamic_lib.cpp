@@ -15,7 +15,7 @@
   #include <dlfcn.h>
 #endif // COLT_WINDOWS
 
-namespace clt::os
+namespace clt
 {
 #ifdef COLT_WINDOWS
   void DynamicLib::close()

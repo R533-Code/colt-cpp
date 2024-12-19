@@ -1,7 +1,6 @@
 #ifndef HG_COLT_SMART_POINTERS
 #define HG_COLT_SMART_POINTERS
 
-#include <colt/macro/on_scope_exit.h>
 #include <colt/mem/allocator_ref.h>
 
 namespace clt

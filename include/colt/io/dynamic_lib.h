@@ -10,12 +10,10 @@
 #define HG_OS_DYNAMIC_LIB
 
 #include <filesystem>
-#include "colt/macro/config.h"
-#include "colt/macro/assert.h"
 #include "colt/dsa/option.h"
 #include "colt/dsa/string_view.h"
 
-namespace clt::os
+namespace clt
 {
   /// @brief Represents a dynamic library in an platform-agnostic way.
   class DynamicLib

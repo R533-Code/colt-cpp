@@ -9,7 +9,6 @@
 #define HG_COLT_BLOCK
 
 #include "fmt/format.h"
-#include "colt/macro/assert.h"
 #include "colt/typedefs.h"
 
 namespace clt::mem

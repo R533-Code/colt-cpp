@@ -12,14 +12,13 @@
 
 #include <concepts>
 
-#include "colt/bit/operations.h"
+#include "colt/num/math.h"
 #include "colt/dsa/common.h"
 #include "colt/meta/traits.h"
 #include "colt/typedefs.h"
 #include "colt/hash.h"
-#include "colt/macro/assert.h"
 
-namespace clt::bit
+namespace clt
 {
   /// @brief Represents a field of 'Bitfields'
   /// @tparam Name The integral type used to identify the bit field
@@ -222,7 +221,7 @@ namespace clt::bit
 namespace clt::meta
 {
   template<std::unsigned_integral Ty, typename Field0, typename... Fields>
-  struct is_contiguously_hashable<clt::bit::Bitfields<Ty, Field0, Fields...>>
+  struct is_contiguously_hashable<clt::Bitfields<Ty, Field0, Fields...>>
       : public std::true_type
   {
   };

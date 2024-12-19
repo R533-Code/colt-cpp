@@ -6,8 +6,8 @@
  * @date   August 2024
  *********************************************************************/
 #include "unicode.h"
-#include "colt/bit/operations.h"
-#include "colt/bit/detect_simd.h"
+#include "colt/num/math.h"
+#include "colt/algo/detect_simd.h"
 
 #pragma region // DEFAULT: len8 len16[BL]E
 
@@ -31,7 +31,7 @@ static clt::uni::LenInfo len16LEdefault(const char16_t* ptr) noexcept
   size_t len      = 0;
   auto end        = ptr;
   char16_t current;
-  while ((current = (char16_t)(clt::bit::ltoh((u16)*end)) != u'\0'))
+  while ((current = (char16_t)(clt::ltoh((u16)*end)) != u'\0'))
   {
     end += clt::uni::sequence_length(current);
     ++len;
@@ -45,7 +45,7 @@ static clt::uni::LenInfo len16BEdefault(const char16_t* ptr) noexcept
   size_t len      = 0;
   auto end        = ptr;
   char16_t current;
-  while ((current = (char16_t)(clt::bit::btoh((u16)*end)) != u'\0'))
+  while ((current = (char16_t)(clt::btoh((u16)*end)) != u'\0'))
   {
     end += clt::uni::sequence_length(current);
     ++len;
@@ -228,7 +228,7 @@ static COLT_FORCE_SSE2 clt::uni::LenInfo len16SSE2(const char16_t* ptr) noexcept
     if (*ptr == '\0')
       return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
-      len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
+      len += (size_t)(!clt::uni::is_trail_surrogate(clt::byteswap(*ptr)));
     else
       len += (size_t)(!clt::uni::is_trail_surrogate(*ptr));
     ++ptr;
@@ -260,7 +260,7 @@ static COLT_FORCE_SSE2 clt::uni::LenInfo len16SSE2(const char16_t* ptr) noexcept
     if (*ptr == 0)
       return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
-      len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
+      len += (size_t)(!clt::uni::is_trail_surrogate(clt::byteswap(*ptr)));
     else
       len += (size_t)(!clt::uni::is_trail_surrogate(*ptr));
     ++ptr;
@@ -280,7 +280,7 @@ static COLT_FORCE_AVX2 clt::uni::LenInfo len16AVX2(const char16_t* ptr) noexcept
     if (*ptr == 0)
       return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
-      len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
+      len += (size_t)(!clt::uni::is_trail_surrogate(clt::byteswap(*ptr)));
     else
       len += (size_t)(!clt::uni::is_trail_surrogate(*ptr));
     ++ptr;
@@ -313,7 +313,7 @@ static COLT_FORCE_AVX2 clt::uni::LenInfo len16AVX2(const char16_t* ptr) noexcept
     if (*ptr == 0)
       return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
-      len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
+      len += (size_t)(!clt::uni::is_trail_surrogate(clt::byteswap(*ptr)));
     else
       len += (size_t)(!clt::uni::is_trail_surrogate(*ptr));
     ++ptr;
@@ -334,7 +334,7 @@ static COLT_FORCE_AVX512BW clt::uni::LenInfo len16AVX512BW(
     if (*ptr == 0)
       return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
-      len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
+      len += (size_t)(!clt::uni::is_trail_surrogate(clt::byteswap(*ptr)));
     else
       len += (size_t)(!clt::uni::is_trail_surrogate(*ptr));
     ++ptr;
@@ -365,7 +365,7 @@ static COLT_FORCE_AVX512BW clt::uni::LenInfo len16AVX512BW(
     if (*ptr == 0)
       return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
-      len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
+      len += (size_t)(!clt::uni::is_trail_surrogate(clt::byteswap(*ptr)));
     else
       len += (size_t)(!clt::uni::is_trail_surrogate(*ptr));
     ++ptr;
@@ -667,7 +667,7 @@ static COLT_FORCE_NEON clt::uni::LenInfo len16NEON(const char16_t* ptr) noexcept
     if (*ptr == '\0')
       return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
-      len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
+      len += (size_t)(!clt::uni::is_trail_surrogate(clt::byteswap(*ptr)));
     else
       len += (size_t)(!clt::uni::is_trail_surrogate(*ptr));
     ++ptr;
@@ -700,7 +700,7 @@ static COLT_FORCE_NEON clt::uni::LenInfo len16NEON(const char16_t* ptr) noexcept
     if (*ptr == '\0')
       return {len, static_cast<size_t>(ptr - copy)};
     if constexpr (SWAP)
-      len += (size_t)(!clt::uni::is_trail_surrogate(clt::bit::byteswap(*ptr)));
+      len += (size_t)(!clt::uni::is_trail_surrogate(clt::byteswap(*ptr)));
     else
       len += (size_t)(!clt::uni::is_trail_surrogate(*ptr));
     ++ptr;
@@ -741,7 +741,7 @@ struct SIMDImpl
 /// @return Reference to the SIMD implementation function pointers
 static const SIMDImpl& get_colt_unicode_simd() noexcept
 {
-  using namespace clt::bit;
+  using namespace clt;
 
   static constexpr bool SWAP = (TargetEndian::native == TargetEndian::big);
 #ifdef COLT_x86_64

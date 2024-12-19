@@ -18,7 +18,6 @@
 #include "colt/num/math.h"
 #include "colt/typedefs.h"
 #include "colt/meta/traits.h"
-#include "colt/macro/assert.h"
 
 namespace clt
 {
@@ -70,7 +69,7 @@ namespace clt
     constexpr void contiguous_destructive_move(T* from, T* to, size_t count) noexcept(
         std::is_nothrow_move_constructible_v<T> && std::is_nothrow_destructible_v<T>)
     {
-      assert_true("Invalid arguments!", clt::math::abs(from - to) >= count);
+      assert_true("Invalid arguments!", clt::abs(from - to) >= count);
 
       if (!std::is_constant_evaluated())
       {
@@ -98,7 +97,7 @@ namespace clt
     constexpr void contiguous_move(T* from, T* to, size_t count) noexcept(
         std::is_nothrow_move_constructible_v<T>)
     {
-      assert_true("Invalid arguments!", clt::math::abs(from - to) >= count);
+      assert_true("Invalid arguments!", clt::abs(from - to) >= count);
       if (!std::is_constant_evaluated())
       {
         if constexpr (std::is_trivially_move_constructible_v<T>)

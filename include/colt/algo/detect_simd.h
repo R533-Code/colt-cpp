@@ -28,9 +28,8 @@
 #define HG_BIT_DETECT_SIMD
 
 #include <fmt/format.h>
-#include "colt/macro/macro.h"
-#include "colt/typedefs.h"
-#include "colt/meta/traits.h"
+#include <colt/typedefs.h>
+#include <colt/meta/traits.h>
 
 // We make use of simdutf internal header
 #include <simdutf/internal/isadetection.h>
@@ -79,7 +78,7 @@
   #include <arm_neon.h>
 #endif // COLT_x86_64
 
-namespace clt::bit
+namespace clt
 {
   using simd_flag = simdutf::internal::instruction_set;
 
@@ -154,7 +153,7 @@ namespace clt::bit
 } // namespace clt::bit
 
 template<>
-struct fmt::formatter<clt::bit::simd_flag>
+struct fmt::formatter<clt::simd_flag>
 {
   static constexpr std::array FLAG_VALUES = {
 #if defined(COLT_RV32) || defined(COLT_RV64)
@@ -219,7 +218,7 @@ struct fmt::formatter<clt::bit::simd_flag>
   }
 
   template<typename FormatContext>
-  auto format(clt::bit::simd_flag flag, FormatContext& ctx) const
+  auto format(clt::simd_flag flag, FormatContext& ctx) const
   {
     auto fmt_to = fmt::format_to(ctx.out(), "(");
     for (size_t i = 1; i < FLAG_VALUES.size(); i++)

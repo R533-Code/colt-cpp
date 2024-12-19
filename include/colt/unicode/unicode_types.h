@@ -45,9 +45,6 @@
 
 #include "colt/typedefs.h"
 #include "colt/meta/traits.h"
-#include "colt/macro/assert.h"
-#include "colt/macro/on_scope_exit.h"
-#include "colt/bit/endian.h"
 #include "colt/num/math.h"
 #include "colt/dsa/option.h"
 
@@ -289,7 +286,7 @@ namespace clt
     /// @brief Constructs a big endian value from host endianness
     /// @param value The value (in host endianness)
     constexpr Char32BE(char32_t value) noexcept
-        : _value((char32_t)bit::htob((u32)value))
+        : _value((char32_t)htob((u32)value))
     {
     }
 
@@ -301,7 +298,7 @@ namespace clt
     /// @return The current value as a host CodePoint
     constexpr char32_t as_host() const noexcept
     {
-      return (char32_t)bit::btoh((u32)_value);
+      return (char32_t)btoh((u32)_value);
     }
     /// @brief Return the current value as a little endian CodePoint.
     /// @return The current value as a little endian CodePoint
@@ -345,7 +342,7 @@ namespace clt
     /// @brief Constructs a little endian value from host endianness
     /// @param value The value (in host endianness)
     constexpr Char32LE(char32_t value) noexcept
-        : _value((char32_t)bit::htol((u32)value))
+        : _value((char32_t)htol((u32)value))
     {
     }
 
@@ -357,7 +354,7 @@ namespace clt
     /// @return The current value as a host CodePoint
     constexpr char32_t as_host() const noexcept
     {
-      return (char32_t)bit::ltoh((u32)_value);
+      return (char32_t)ltoh((u32)_value);
     }
     /// @brief Return the current value as a little endian CodePoint.
     /// This is a no-op.
@@ -402,7 +399,7 @@ namespace clt
     /// @brief Constructs a big endian value from host endianness
     /// @param value The value (in host endianness)
     constexpr Char16BE(char16_t value) noexcept
-        : _value((char16_t)bit::htob((u16)value))
+        : _value((char16_t)htob((u16)value))
     {
     }
 
@@ -414,7 +411,7 @@ namespace clt
     /// @return The current value as a host CodePoint
     constexpr char16_t as_host() const noexcept
     {
-      return (char16_t)bit::btoh((u16)_value);
+      return (char16_t)btoh((u16)_value);
     }
     /// @brief Return the current value as a little endian CodePoint.
     /// @return The current value as a little endian CodePoint
@@ -476,7 +473,7 @@ namespace clt
     /// @brief Constructs a little endian value from host endianness
     /// @param value The value (in host endianness)
     constexpr Char16LE(char16_t value) noexcept
-        : _value((char16_t)bit::htol((u16)value))
+        : _value((char16_t)htol((u16)value))
     {
     }
 
@@ -488,7 +485,7 @@ namespace clt
     /// @return The current value as a host CodePoint
     constexpr char16_t as_host() const noexcept
     {
-      return (char16_t)bit::ltoh((u16)_value);
+      return (char16_t)ltoh((u16)_value);
     }
     /// @brief Return the current value as a little endian CodePoint.
     /// This is a no-op.
@@ -884,13 +881,13 @@ namespace clt
   }
 
   constexpr Char32BE::Char32BE(Char32LE value) noexcept
-      : _value((char32_t)bit::byteswap((u32)value.in_endian()))
+      : _value((char32_t)byteswap((u32)value.in_endian()))
   {
   }
 
   constexpr Char32LE Char32BE::as_little() const noexcept
   {
-    return (char32_t)bit::byteswap((u32)_value);
+    return (char32_t)byteswap((u32)_value);
   }
 
   constexpr Char32BE::operator Char32LE() const noexcept
@@ -902,13 +899,13 @@ namespace clt
   // vvv LITTLE ENDIAN
 
   constexpr Char32LE::Char32LE(Char32BE value) noexcept
-      : _value((char32_t)bit::byteswap((u32)value.in_endian()))
+      : _value((char32_t)byteswap((u32)value.in_endian()))
   {
   }
 
   constexpr Char32BE Char32LE::as_big() const noexcept
   {
-    return (char32_t)bit::byteswap((u32)_value);
+    return (char32_t)byteswap((u32)_value);
   }
 
   constexpr Char32LE::operator Char32BE() const noexcept
@@ -920,13 +917,13 @@ namespace clt
   // vvv 16
 
   constexpr Char16BE::Char16BE(Char16LE value) noexcept
-      : _value((char16_t)bit::byteswap((u16)value.in_endian()))
+      : _value((char16_t)byteswap((u16)value.in_endian()))
   {
   }
 
   constexpr Char16LE Char16BE::as_little() const noexcept
   {
-    return (char16_t)bit::byteswap((u16)_value);
+    return (char16_t)byteswap((u16)_value);
   }
 
   constexpr Char16BE::operator Char16LE() const noexcept
@@ -938,13 +935,13 @@ namespace clt
   // vvv LITTLE ENDIAN
 
   constexpr Char16LE::Char16LE(Char16BE value) noexcept
-      : _value((char16_t)bit::byteswap((u16)value.in_endian()))
+      : _value((char16_t)byteswap((u16)value.in_endian()))
   {
   }
 
   constexpr Char16BE Char16LE::as_big() const noexcept
   {
-    return (char16_t)bit::byteswap((u16)_value);
+    return (char16_t)byteswap((u16)_value);
   }
 
   constexpr Char16LE::operator Char16BE() const noexcept
@@ -957,14 +954,14 @@ namespace clt
     template<auto VALUE>
     consteval auto literal_to_utf32be() noexcept
     {
-      if constexpr (bit::TargetEndian::native == bit::TargetEndian::big)
+      if constexpr (TargetEndian::native == TargetEndian::big)
         return literal_to_utf32<VALUE>();
       else
       {
         auto array = literal_to_utf32<VALUE>();
         std::array<Char32BE, utf8_to_utf32_buffer_size(VALUE.str, VALUE.size)> ret;
         for (size_t i = 0; i < array.size(); i++)
-          ret[i] = bit::byteswap(array[i]);
+          ret[i] = byteswap(array[i]);
         return ret;
       }
     }
@@ -972,14 +969,14 @@ namespace clt
     template<auto VALUE>
     consteval auto literal_to_utf32le() noexcept
     {
-      if constexpr (bit::TargetEndian::native == bit::TargetEndian::little)
+      if constexpr (TargetEndian::native == TargetEndian::little)
         return literal_to_utf32<VALUE>();
       else
       {
         auto array = literal_to_utf32<VALUE>();
         std::array<Char32LE, utf8_to_utf32_buffer_size(VALUE.str, VALUE.size)> ret;
         for (size_t i = 0; i < array.size(); i++)
-          ret[i] = bit::byteswap(array[i]);
+          ret[i] = byteswap(array[i]);
         return ret;
       }
     }
@@ -995,14 +992,14 @@ namespace clt
     template<auto VALUE>
     consteval auto literal_to_utf16be() noexcept
     {
-      if constexpr (bit::TargetEndian::native == bit::TargetEndian::big)
+      if constexpr (TargetEndian::native == TargetEndian::big)
         return literal_to_utf16<VALUE>();
       else
       {
         auto array = literal_to_utf16<VALUE>();
         std::array<Char16BE, utf8_to_utf16_buffer_size(VALUE.str, VALUE.size)> ret;
         for (size_t i = 0; i < array.size(); i++)
-          ret[i] = bit::byteswap((u16)array[i]);
+          ret[i] = byteswap((u16)array[i]);
         return ret;
       }
     }
@@ -1010,14 +1007,14 @@ namespace clt
     template<auto VALUE>
     consteval auto literal_to_utf16le() noexcept
     {
-      if constexpr (bit::TargetEndian::native == bit::TargetEndian::little)
+      if constexpr (TargetEndian::native == TargetEndian::little)
         return literal_to_utf16<VALUE>();
       else
       {
         auto array = literal_to_utf16<VALUE>();
         std::array<Char16LE, utf8_to_utf16_buffer_size(VALUE.str, VALUE.size)> ret;
         for (size_t i = 0; i < array.size(); i++)
-          ret[i] = bit::byteswap((u16)array[i]);
+          ret[i] = byteswap((u16)array[i]);
         return ret;
       }
     }

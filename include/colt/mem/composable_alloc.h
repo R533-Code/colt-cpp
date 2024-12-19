@@ -24,7 +24,7 @@ namespace clt::mem
       , private Fallback
   {
     /// @brief Alignment of returned MemBlock (min alignment of both allocator)
-    static constexpr u64 alignment = math::min(Primary::alignment, Fallback::alignment);
+    static constexpr u64 alignment = clt::min(Primary::alignment, Fallback::alignment);
 
     /// @brief Allocates a MemBlock
     /// @param size The size of the allocation
@@ -561,7 +561,7 @@ namespace clt::mem
       // at each call, 'register_count' might be greater than the max number
       // of registered functions
       const size_t registered_count =
-          math::min(register_count.load(std::memory_order_acquire), REGISTER_SIZE);
+          clt::min(register_count.load(std::memory_order_acquire), REGISTER_SIZE);
 
       //Call registered functions
       for (size_t i = 0; i < registered_count; i++)

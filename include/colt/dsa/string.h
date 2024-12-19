@@ -146,7 +146,7 @@ namespace clt
             CUSTOMIZATION.CACHE_MIDDLE, CUSTOMIZATION.CACHE_COUNT>
             _long;
 
-        char_t _buffer[math::max(
+        char_t _buffer[clt::max(
             CUSTOMIZATION.buffer_bytesize() / sizeof(char_t),
             size_t(sizeof(void*)))];
       };
@@ -402,7 +402,7 @@ namespace clt
     {
       const auto cache_data = data();
       auto _begin           = uni::CodePointIterator<STR_ENCODING>(
-          cache_data + math::min(starting_offset, unit_len()));
+          cache_data + clt::min(starting_offset, unit_len()));
       auto _end = uni::CodePointIterator<STR_ENCODING>(cache_data + unit_len());
       while (_begin != _end)
       {

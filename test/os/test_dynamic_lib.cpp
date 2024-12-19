@@ -6,7 +6,7 @@
  * @date   August 2024
  *********************************************************************/
 #include "../includes.h"
-#include <colt/os/dynamic_lib.h>
+#include <colt/io/dynamic_lib.h>
 
 extern "C" CLT_EXPORT int CLT_test_export()
 {
@@ -16,7 +16,6 @@ extern "C" CLT_EXPORT int CLT_test_export()
 TEST_CASE("DynamicLib")
 {
   using namespace clt;
-  using namespace clt::os;
 
   auto current = DynamicLib::open();
   auto invalid = DynamicLib::open("1234567890qwertyuiopasdfghjklzxcvbnm");

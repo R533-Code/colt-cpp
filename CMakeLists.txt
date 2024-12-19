@@ -33,7 +33,7 @@ endfunction()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-project(Colt-Cpp VERSION 0.0.7.1 LANGUAGES CXX C)
+project(Colt-Cpp VERSION 0.0.8.0 LANGUAGES CXX C)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -279,7 +279,7 @@ else()
 endif()
 
 configure_file("${PROJECT_SOURCE_DIR}/resources/cmake_colt_config.in"
-  "${PROJECT_SOURCE_DIR}/include/colt/macro/config.h")
+  "${PROJECT_SOURCE_DIR}/include/colt/config.h")
 
 message(STATUS "Finished configuring 'config.h'!")
 

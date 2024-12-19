@@ -8,12 +8,12 @@
 #ifndef HG_OS_MEMORY_MAPPED_FILE
 #define HG_OS_MEMORY_MAPPED_FILE
 
-#include "colt/macro/config.h"
+#include "colt/config.h"
 #include "colt/typedefs.h"
 #include "colt/dsa/option.h"
 #include "colt/dsa/string_view.h"
 
-namespace clt::os
+namespace clt
 {
   /// @brief Represents a view over a read-only memory mapped file.
   class ViewOfFile

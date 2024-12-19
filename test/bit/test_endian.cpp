@@ -6,11 +6,11 @@
  * @date   August 2024
  *********************************************************************/
 #include "../includes.h"
-#include <colt/bit/endian.h>
+#include <colt/num/math.h>
 
 TEST_CASE("Endianness Conversions")
 {
-  using namespace clt::bit;
+  using namespace clt;
   if constexpr (TargetEndian::native == TargetEndian::little)
   {
     u16 host = 0x80'00;

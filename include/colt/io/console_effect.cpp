@@ -1,6 +1,6 @@
-#include "colt/macro/config.h"
+#include "colt/config.h"
 #include "console_effect.h"
-#include <thread>
+#include <thread> // for std::this_thread::sleep_for
 
 #ifndef COLT_WINDOWS
   #include <termios.h>
@@ -36,14 +36,14 @@ namespace clt::io
     tcsetattr(fileno(stdin), TCSANOW, &ts);
 #endif
   }
-  
+
   void terminal_size(int& width, int& height) noexcept
   {
 #if defined(COLT_WINDOWS)
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi);
-    width  = (int)(csbi.srWindow.Right - csbi.srWindow.Left + 1);
-    height = (int)(csbi.srWindow.Bottom - csbi.srWindow.Top + 1);
+    width  = csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    height = csbi.srWindow.Bottom - csbi.srWindow.Top + 1;
 #else
     struct winsize w;
     ioctl(fileno(stdout), TIOCGWINSZ, &w);
@@ -51,7 +51,7 @@ namespace clt::io
     height = (int)(w.ws_row);
 #endif // Windows/Linux
   }
-  
+
   void wait_kbhit() noexcept
   {
     using namespace std::chrono_literals;

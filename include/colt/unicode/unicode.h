@@ -635,7 +635,7 @@ namespace clt::uni
   {
     if constexpr (std::same_as<Ty, char>)
     {
-      const auto min = math::min(from_size, result_size);
+      const auto min = clt::min(from_size, result_size);
       if (std::is_constant_evaluated())
       {
         const auto max_from = from + min;
