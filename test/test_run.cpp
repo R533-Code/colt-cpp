@@ -6,8 +6,8 @@
  * @date   August 2024
  *********************************************************************/
 #include <catch2/catch_session.hpp>
-#include <colt/macro/config.h>
-#include <colt/bit/detect_simd.h>
+#include <colt/config.h>
+#include <colt/algo/detect_simd.h>
 #include <colt/io/print.h>
 #include <colt/versions.h>
 
@@ -31,7 +31,7 @@ int main(int argc, const char** argv)
 #else
       "big",
 #endif // COLT_LITTLE_ENDIAN
-      BrightBlueF, bit::detect_supported_architectures(), Reset,
+      BrightBlueF, detect_supported_architectures(), Reset,
       vers::SimdUtfVersion, vers::ScnVersion, vers::FmtVersion, vers::UniAlgoVersion,
       vers::ColtCppVersion);
   return Catch::Session().run(argc, argv);
