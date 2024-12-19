@@ -9,9 +9,10 @@
 #define HG_NUM_TYPEDEFS
 
 #include <cstdint>
-#include <span>
 #include <cstdio>
 #include <cstdlib>
+#include <span>
+#include <utility>
 #include <concepts>
 #include <type_traits>
 #include <bit>
