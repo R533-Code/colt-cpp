@@ -77,8 +77,6 @@ namespace clt
 
 #endif // COLT_WINDOWS
 
-#include "mmap_file.h"
-
 namespace clt
 {
 #ifdef COLT_WINDOWS
