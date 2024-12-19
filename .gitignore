@@ -1,4 +1,4 @@
 ﻿/.vscode
 /build
-/include/colt/macro/config.h
+/include/colt/config.h
 /include/colt/coltcpp_export.h
