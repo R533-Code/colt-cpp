@@ -2,3 +2,4 @@
 /build
 /include/colt/config.h
 /include/colt/coltcpp_export.h
+__pycache__
