@@ -36,7 +36,13 @@ namespace clt
   {
     static auto FILE = File{to_fileno(stderr), FileAccess::Write};
     return FILE;
-  }  
+  }
+
+  File& File::get_null_device() noexcept
+  {
+    static auto FILE = *File::open("nul", FileAccess::Write);
+    return FILE;
+  }
   
   bool File::is_terminal() const noexcept
   {
@@ -131,7 +137,8 @@ namespace clt
   {
     if (!is_open() || access == FileAccess::Read)
       return None;
-    auto write = _write(this->fileno(), &out, 1);
+    // TODO: overflow check
+    auto write = _write(this->fileno(), &out, (unsigned int)out.size_bytes());
     if (write < 0)
       return None;
     return Option<size_t>((size_t)write);

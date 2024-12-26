@@ -134,6 +134,10 @@ namespace clt
     /// @brief Returns the stderr handle
     /// @return stderr handle
     [[nodiscard]] COLTCPP_EXPORT static File& get_stderr() noexcept;
+    /// @brief Returns the null device handle.
+    /// All writes to this file are discarded.
+    /// @return null device handle handle
+    [[nodiscard]] COLTCPP_EXPORT static File& get_null_device() noexcept;
   };
 } // namespace clt
 
