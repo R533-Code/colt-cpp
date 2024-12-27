@@ -196,7 +196,7 @@ namespace clt
 {
   void File::close() noexcept
   {
-    close(handle);
+    ::close(handle);
     handle = -1;
   }
 
@@ -290,7 +290,7 @@ namespace clt
 
   ErrorFlag File::flush() noexcept
   {
-    if (!is_open() || fsync(this->fileno()) == -1)
+    if (!is_open() || ::fsync(this->fileno()) == -1)
       return ErrorFlag::error();
     return ErrorFlag::success();
   }
@@ -299,7 +299,7 @@ namespace clt
   {
     if (!is_open() || access != FileAccess::Read)
       return None;
-    if (u8 ret; read(this->fileno(), &ret, 1) == 1)
+    if (u8 ret; ::read(this->fileno(), &ret, 1) == 1)
       return Option<u8>(ret);
     return None;
   }
@@ -308,7 +308,7 @@ namespace clt
   {
     if (!is_open() || access == FileAccess::Read)
       return None;
-    if (write(this->fileno(), &out, 1) == 1)
+    if (::write(this->fileno(), &out, 1) == 1)
       return 1;
     return None;
   }
@@ -318,7 +318,7 @@ namespace clt
     if (!is_open() || access != FileAccess::Read)
       return None;
     // TODO: overflow check
-    auto read = read(this->fileno(), out.data(), out.size_bytes());
+    auto read = ::read(this->fileno(), out.data(), out.size_bytes());
     if (read < 0)
       return None;
     return Option<size_t>((size_t)read);
@@ -329,7 +329,7 @@ namespace clt
     if (!is_open() || access == FileAccess::Read)
       return None;
     // TODO: overflow check
-    auto write = _write(this->fileno(), &out, out.size_bytes());
+    auto write = ::write(this->fileno(), &out, out.size_bytes());
     if (write < 0)
       return None;
     return Option<size_t>((size_t)write);
@@ -339,7 +339,7 @@ namespace clt
   {
     if (!is_open())
       return false;
-    off_t current_pos = lseek(this->fileno(), 0, SEEK_CUR);
+    off_t current_pos = ::lseek(this->fileno(), 0, SEEK_CUR);
     if (current_pos == -1)
       return false;
 
