@@ -104,6 +104,9 @@ class CodePointRange:
     self.begin = begin
     self.end = end
   
+  def __contains__(self, key: CodePoint):
+    return self.begin <= key and key <= self.end
+  
   def from_str(value: str)->Self:
     """Converts a string of the form [0-9A-F]+(..[0-9A-F]+)? to the range it represent
 
@@ -120,8 +123,8 @@ class CodePointRange:
       tmp = int(match.group(1), 16)
       return CodePointRange(tmp, tmp)
     return CodePointRange(
-      int(match.group(1), 16),
-      int(match.group(2), 16)
+      CodePoint(int(match.group(1), 16)),
+      CodePoint(int(match.group(2), 16))
     )
 
 hexint = lambda x: int(x, 16)
