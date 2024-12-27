@@ -87,6 +87,10 @@ namespace clt
     /// @return The file size in bytes or None if not open or on errors
     [[nodiscard]] COLTCPP_EXPORT Option<bytes> file_size() const noexcept;
 
+    /// @brief Flushes the file buffers
+    /// @return Success or failure
+    [[nodiscard]] COLTCPP_EXPORT ErrorFlag flush() noexcept;
+
     /// @brief Reads a single byte from the file.
     /// If the file is not opened as read, returns None.
     /// If the file is not opened, returns None.
@@ -94,11 +98,11 @@ namespace clt
     [[nodiscard]] COLTCPP_EXPORT Option<u8> read() noexcept;
 
     /// @brief Writes a single byte to a file.
-    /// If the file is opened as read, returns error().
-    /// If the file is not opened, returns error().
+    /// If the file is opened as read, returns none.
+    /// If the file is not opened, returns none.
     /// @param out The byte to write
-    /// @return success() if the byte was written
-    [[nodiscard]] COLTCPP_EXPORT ErrorFlag write(u8 out) noexcept;
+    /// @return None on errors else an option with 1
+    [[nodiscard]] COLTCPP_EXPORT Option<size_t> write(u8 out) noexcept;
 
     /// @brief Reads multiple bytes from a file
     /// @param out Where to write the read bytes

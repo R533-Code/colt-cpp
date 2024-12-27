@@ -40,6 +40,7 @@ namespace clt
 
   File& File::get_null_device() noexcept
   {
+    // TODO: checks
     static auto FILE = *File::open("nul", FileAccess::Write);
     return FILE;
   }
@@ -104,6 +105,13 @@ namespace clt
     return Option<bytes>(bytes{(size_t)_filelengthi64(this->fileno())});
   }
 
+  ErrorFlag File::flush() noexcept
+  {
+    if (!is_open() || _commit(this->fileno()) == -1)
+      return ErrorFlag::error();
+    return ErrorFlag::success();
+  }
+
   Option<u8> File::read() noexcept
   {
     if (!is_open() || access != FileAccess::Read)
@@ -113,13 +121,13 @@ namespace clt
     return None;
   }
 
-  ErrorFlag File::write(u8 out) noexcept
+  Option<size_t> File::write(u8 out) noexcept
   {
     if (!is_open() || access == FileAccess::Read)
-      return ErrorFlag::error();
+      return None;
     if (_write(this->fileno(), &out, 1) == 1)
-      return ErrorFlag::success();
-    return ErrorFlag::error();
+      return 1;
+    return None;
   }
 
   Option<size_t> File::read(Span<u8> out) noexcept
