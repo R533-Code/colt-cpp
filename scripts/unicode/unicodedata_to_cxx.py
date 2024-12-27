@@ -3,14 +3,24 @@ import colt
 from colt import frac
 from colt import CodePoint
 from colt import CodePointRange
+import time
+
+def time_fn(fn, *args, **kwargs):
+  start = time.time()
+  ret = fn(*args, **kwargs)
+  end = time.time()
+  print(f"{fn.__name__: <24}: {end - start:.2f}s")
+  return ret
 
 try:
-  # dict of abrv. str to Property
-  PROPERTIES = parseunicode.parse_propertyvalue()
   # dict of name str to abrv.
-  ALLALIASES = parseunicode.parse_propertyaliases()
+  ALLALIASES = time_fn(parseunicode.parse_propertyaliases)
+  # dict of abrv. str to Property
+  PROPERTIES = time_fn(parseunicode.parse_propertyvalue)
+  # list of all properties
+  PROPVALUES = time_fn(parseunicode.parse_properties)
   # dict of all
-  CODEPOINTS = parseunicode.parse_unicodedata()
+  CODEPOINTS = time_fn(parseunicode.parse_unicodedata)
   
   # Break down the data as planes
   PLANES = colt.chunk(CODEPOINTS, parseunicode.MAX_PLANE)
