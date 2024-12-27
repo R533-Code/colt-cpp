@@ -40,8 +40,7 @@ namespace clt
 
   File& File::get_null_device() noexcept
   {
-    // TODO: checks
-    static auto FILE = *File::open("nul", FileAccess::Write);
+    static auto FILE = File::open("nul", FileAccess::Write).value_or(File(-1, FileAccess::Write));
     return FILE;
   }
   
