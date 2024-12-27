@@ -367,7 +367,7 @@ namespace clt
   Option<File> File::open(
       const char* const path, FileAccess access, bool text_mode) noexcept
   {
-    auto handle = _open(path, convert_access(access, text_mode));
+    auto handle = ::open(path, convert_access(access, text_mode));
     if (handle == -1)
       return None;
     return Option<File>(File(handle, access));
