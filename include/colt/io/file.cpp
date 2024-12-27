@@ -349,7 +349,7 @@ namespace clt
     return current_pos >= file_stat.st_size;
   }
 
-  static auto convert_access(File::FileAccess access, bool text_mode) noexcept
+  static auto convert_access(File::FileAccess access) noexcept
   {
     switch_no_default(access)
     {
@@ -363,11 +363,26 @@ namespace clt
       return O_WRONLY | O_EXCL | O_CREAT;
     }
   }
+  
+  static ::mode_t convert_access_mode(File::FileAccess access) noexcept
+  {
+    switch_no_default(access)
+    {
+    case clt::File::FileAccess::Read:
+      return S_IRUSR;
+    case clt::File::FileAccess::Write:
+      return S_IRUSR | S_IWUSR;
+    case clt::File::FileAccess::Append:
+      return S_IRUSR | S_IWUSR;
+    case clt::File::FileAccess::Create:
+      return S_IRUSR | S_IWUSR;
+    }
+  }
 
   Option<File> File::open(
-      const char* const path, FileAccess access, bool text_mode) noexcept
+      const char* const path, FileAccess access, bool) noexcept
   {
-    auto handle = ::open(path, convert_access(access, text_mode));
+    auto handle = ::open(path, convert_access(access), convert_access_mode(access));
     if (handle == -1)
       return None;
     return Option<File>(File(handle, access));
