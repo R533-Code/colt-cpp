@@ -33,13 +33,13 @@ namespace clt
   template<typename OutputIt, typename... Args>
   constexpr auto format_to(OutputIt&& it, fmt_str<Args...> fmt, Args&&... args) -> OutputIt
   {
-    return fmt::format_to(std::forward<OutputIt>(it), std::forward<Args>(args)...);
+    return fmt::format_to(std::forward<OutputIt>(it), fmt, std::forward<Args>(args)...);
   }
   
   template<typename OutputIt, typename... Args>
   constexpr auto format_to_n(OutputIt&& it, size_t n, fmt_str<Args...> fmt, Args&&... args) -> OutputIt
   {
-    return fmt::format_to_n(std::forward<OutputIt>(it), n, std::forward<Args>(args)...);
+    return fmt::format_to_n(std::forward<OutputIt>(it), n, fmt, std::forward<Args>(args)...);
   }
 
   template<meta::StringLiteral endl = "\n", typename... Args>
@@ -136,7 +136,7 @@ namespace clt
   /// @param fmt The format string
   /// @param ...args The arguments to format
   constexpr Option<size_t> print_fatal(
-      File& file, fmt::format_string<Args...> fmt, Args&&... args)
+      File& file, fmt_str<Args...> fmt, Args&&... args)
   {
     using namespace clt::io;
 
@@ -196,7 +196,7 @@ namespace clt
   /// @tparam ...Args The types of the arguments to format
   /// @param fmt The format string
   /// @param ...args The arguments to format
-  constexpr auto print_fatal(fmt::format_string<Args...> fmt, Args&&... args)
+  constexpr auto print_fatal(fmt_str<Args...> fmt, Args&&... args)
   {
     return print_fatal<endl>(File::get_stderr(), fmt, std::forward<Args>(args)...);
   }
