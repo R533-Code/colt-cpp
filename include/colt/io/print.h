@@ -12,10 +12,11 @@
 #include <utility>
 #include <cstdio>
 
+#include "colt/io/file.h"
 #include "colt/meta/string_literal.h"
 #include "console_effect.h"
 
-namespace clt::io
+namespace clt
 {
   template<typename... Args>
   /// @brief Shorthand for fmt::format_string
@@ -26,10 +27,19 @@ namespace clt::io
   inline void press_to_continue() noexcept
   {
     std::fputs("Press any key to continue...\n", stdout);
-    //toggle_echo();
-    wait_kbhit();
-    //toggle_echo();
-    //std::fputc('\n', stdout);
+    io::wait_kbhit();
+  }
+
+  template<typename OutputIt, typename... Args>
+  constexpr auto format_to(OutputIt&& it, fmt_str<Args...> fmt, Args&&... args) -> OutputIt
+  {
+    return fmt::format_to(std::forward<OutputIt>(it), std::forward<Args>(args)...);
+  }
+  
+  template<typename OutputIt, typename... Args>
+  constexpr auto format_to_n(OutputIt&& it, size_t n, fmt_str<Args...> fmt, Args&&... args) -> OutputIt
+  {
+    return fmt::format_to_n(std::forward<OutputIt>(it), n, std::forward<Args>(args)...);
   }
 
   template<meta::StringLiteral endl = "\n", typename... Args>
@@ -38,20 +48,21 @@ namespace clt::io
   /// @param file The file where to write the output
   /// @param fmt The format string
   /// @param ...args The arguments to format
-  constexpr void print(
-      std::FILE* file, fmt_str<Args...> fmt, Args&&... args) noexcept
+  constexpr Option<size_t> print(
+      File& file, fmt_str<Args...> fmt, Args&&... args) noexcept
   {
+    using namespace clt::io;
+
+    fmt::basic_memory_buffer<char, 4096> buffer;
+    fmt::format_to(std::back_inserter(buffer), fmt, std::forward<Args>(args)...);
+      
     if constexpr (endl.size() != 0)
     {
-      fmt::basic_memory_buffer<char, 4096> buffer;
-      fmt::format_to(std::back_inserter(buffer), fmt, std::forward<Args>(args)...);
       fmt::format_to(
           std::back_inserter(buffer), "{}",
           fmt::string_view{endl.value, endl.size()});
-      fmt::print(file, "{}", fmt::string_view{buffer.data(), buffer.size()});
     }
-    else
-      fmt::print(file, fmt, std::forward<Args>(args)...);
+    return file.write({reinterpret_cast<u8*>(buffer.data()), buffer.size()});
   }
 
   template<meta::StringLiteral endl = "\n", typename... Args>
@@ -60,9 +71,11 @@ namespace clt::io
   /// @param file The file where to write the output
   /// @param fmt The format string
   /// @param ...args The arguments to format
-  constexpr void print_error(
-      std::FILE* file, fmt_str<Args...> fmt, Args&&... args) noexcept
+  constexpr Option<size_t> print_error(
+      File& file, fmt_str<Args...> fmt, Args&&... args) noexcept
   {
+    using namespace clt::io;
+
     fmt::basic_memory_buffer<char, 4096> buffer;
     fmt::format_to(std::back_inserter(buffer), "{}Error:{} ", BrightRedF, Reset);
     fmt::format_to(std::back_inserter(buffer), fmt, std::forward<Args>(args)...);
@@ -70,7 +83,7 @@ namespace clt::io
       fmt::format_to(
           std::back_inserter(buffer), "{}",
           fmt::string_view{endl.value, endl.size()});
-    fmt::print(file, "{}", fmt::string_view{buffer.data(), buffer.size()});
+    return file.write({reinterpret_cast<u8*>(buffer.data()), buffer.size()});
   }
 
   template<meta::StringLiteral endl = "\n", typename... Args>
@@ -79,9 +92,11 @@ namespace clt::io
   /// @param file The file where to write the output
   /// @param fmt The format string
   /// @param ...args The arguments to format
-  constexpr void print_warn(
-      std::FILE* file, fmt_str<Args...> fmt, Args&&... args) noexcept
+  constexpr Option<size_t> print_warn(
+      File& file, fmt_str<Args...> fmt, Args&&... args) noexcept
   {
+    using namespace clt::io;
+
     fmt::basic_memory_buffer<char, 4096> buffer;
     fmt::format_to(
         std::back_inserter(buffer), "{}Warning:{} ", BrightYellowF, Reset);
@@ -90,7 +105,7 @@ namespace clt::io
       fmt::format_to(
           std::back_inserter(buffer), "{}",
           fmt::string_view{endl.value, endl.size()});
-    fmt::print(file, "{}", fmt::string_view{buffer.data(), buffer.size()});
+    return file.write({reinterpret_cast<u8*>(buffer.data()), buffer.size()});
   }
 
   template<meta::StringLiteral endl = "\n", typename... Args>
@@ -99,9 +114,11 @@ namespace clt::io
   /// @param file The file where to write the output
   /// @param fmt The format string
   /// @param ...args The arguments to format
-  constexpr void print_message(
-      std::FILE* file, fmt_str<Args...> fmt, Args&&... args) noexcept
+  constexpr Option<size_t> print_message(
+      File& file, fmt_str<Args...> fmt, Args&&... args) noexcept
   {
+    using namespace clt::io;
+
     fmt::basic_memory_buffer<char, 4096> buffer;
     fmt::format_to(std::back_inserter(buffer), "{}Message:{} ", BrightBlueF, Reset);
     fmt::format_to(std::back_inserter(buffer), fmt, std::forward<Args>(args)...);
@@ -109,7 +126,7 @@ namespace clt::io
       fmt::format_to(
           std::back_inserter(buffer), "{}",
           fmt::string_view{endl.value, endl.size()});
-    fmt::print(file, "{}", fmt::string_view{buffer.data(), buffer.size()});
+    return file.write({reinterpret_cast<u8*>(buffer.data()), buffer.size()});
   }
 
   template<meta::StringLiteral endl = "\n", typename... Args>
@@ -118,8 +135,8 @@ namespace clt::io
   /// @param file The file where to write the output
   /// @param fmt The format string
   /// @param ...args The arguments to format
-  constexpr void print_fatal(
-      std::FILE* file, fmt::format_string<Args...> fmt, Args&&... args)
+  constexpr Option<size_t> print_fatal(
+      File& file, fmt::format_string<Args...> fmt, Args&&... args)
   {
     fmt::basic_memory_buffer<char, 4096> buffer;
     fmt::format_to(
@@ -129,8 +146,7 @@ namespace clt::io
       fmt::format_to(
           std::back_inserter(buffer), "{}",
           fmt::string_view{endl.value, endl.size()});
-    fmt::print(
-        file, "{}{}", fmt::string_view{buffer.data(), buffer.size()}, io::Reset);
+    return file.write({reinterpret_cast<u8*>(buffer.data()), buffer.size()});
   }
 
   template<meta::StringLiteral endl = "\n", typename... Args>
@@ -138,9 +154,9 @@ namespace clt::io
   /// @tparam ...Args The types of the arguments to format
   /// @param fmt The format string
   /// @param ...args The arguments to format
-  constexpr void print(fmt_str<Args...> fmt, Args&&... args) noexcept
+  constexpr auto print(fmt_str<Args...> fmt, Args&&... args) noexcept
   {
-    print<endl>(stdout, fmt, std::forward<Args>(args)...);
+    return print<endl>(File::get_stdout(), fmt, std::forward<Args>(args)...);
   }
 
   template<meta::StringLiteral endl = "\n", typename... Args>
@@ -148,9 +164,9 @@ namespace clt::io
   /// @tparam ...Args The types of the arguments to format
   /// @param fmt The format string
   /// @param ...args The arguments to format
-  constexpr void print_error(fmt_str<Args...> fmt, Args&&... args) noexcept
+  constexpr auto print_error(fmt_str<Args...> fmt, Args&&... args) noexcept
   {
-    print_error<endl>(stdout, fmt, std::forward<Args>(args)...);
+    return print_error<endl>(File::get_stdout(), fmt, std::forward<Args>(args)...);
   }
 
   template<meta::StringLiteral endl = "\n", typename... Args>
@@ -158,9 +174,9 @@ namespace clt::io
   /// @tparam ...Args The types of the arguments to format
   /// @param fmt The format string
   /// @param ...args The arguments to format
-  constexpr void print_warn(fmt_str<Args...> fmt, Args&&... args) noexcept
+  constexpr auto print_warn(fmt_str<Args...> fmt, Args&&... args) noexcept
   {
-    print_warn<endl>(stdout, fmt, std::forward<Args>(args)...);
+    return print_warn<endl>(File::get_stdout(), fmt, std::forward<Args>(args)...);
   }
 
   template<meta::StringLiteral endl = "\n", typename... Args>
@@ -168,19 +184,19 @@ namespace clt::io
   /// @tparam ...Args The types of the arguments to format
   /// @param fmt The format string
   /// @param ...args The arguments to format
-  constexpr void print_message(fmt_str<Args...> fmt, Args&&... args) noexcept
+  constexpr auto print_message(fmt_str<Args...> fmt, Args&&... args) noexcept
   {
-    print_message<endl>(stdout, fmt, std::forward<Args>(args)...);
+    return print_message<endl>(File::get_stdout(), fmt, std::forward<Args>(args)...);
   }
 
   template<meta::StringLiteral endl = "\n", typename... Args>
-  /// @brief Formats and prints a string to 'stdout', prepending "FATAL: "
+  /// @brief Formats and prints a string to 'stderr', prepending "FATAL: "
   /// @tparam ...Args The types of the arguments to format
   /// @param fmt The format string
   /// @param ...args The arguments to format
-  constexpr void print_fatal(fmt::format_string<Args...> fmt, Args&&... args)
+  constexpr auto print_fatal(fmt::format_string<Args...> fmt, Args&&... args)
   {
-    print_fatal<endl>(stderr, fmt, std::forward<Args>(args)...);
+    return print_fatal<endl>(File::get_stderr(), fmt, std::forward<Args>(args)...);
   }
 }
 
