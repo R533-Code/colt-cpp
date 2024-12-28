@@ -222,7 +222,7 @@ namespace clt::meta
   namespace details
   {
     template<typename... Ts>
-    using tuple_cat_t = decltype(std::tuple_cat(std::declval<Ts>()...));
+    using tuple_cat_t = std::invoke_result_t<decltype(&std::tuple_cat<Ts...>), Ts...>;
 
     template<typename T, typename... Ts>
     using remove_t = tuple_cat_t<typename std::conditional_t<
