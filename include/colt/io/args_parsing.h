@@ -459,7 +459,7 @@ namespace clt::cl
       if constexpr (Arg::alias.empty())
       {
         auto offset = Arg::name.find_first_not_of("-");
-        io::print<"">(
+        print<"">(
             "   -{}{}{: <{}}{}", Arg::name.substr(0, offset), io::BrightCyanF,
             Arg::name.substr(offset), max_size - offset,
             io::Reset);
@@ -468,7 +468,7 @@ namespace clt::cl
       {
         auto offset = Arg::name.find_first_not_of("-");
         auto offset2 = Arg::alias.find_first_not_of("-");
-        io::print<"">(
+        print<"">(
             "   -{}{}{}{}, -{}{}{}{}{: <{}}", Arg::name.substr(0, offset), io::BrightCyanF,
             Arg::name.substr(offset), io::Reset,
             Arg::alias.substr(0, offset2), io::BrightCyanF, Arg::alias.substr(offset2),
@@ -477,28 +477,28 @@ namespace clt::cl
       }
 
       if constexpr (Arg::value_desc.empty())
-        io::print<"">("{: <{}}", "", max_desc);
+        print<"">("{: <{}}", "", max_desc);
       else
-        io::print<"">(
+        print<"">(
             "{}<{}>{}{: <{}}", io::BrightMagentaF, Arg::value_desc.data(), io::Reset,
             "", max_desc - Arg::value_desc.size() - 2);
 
       if constexpr (Arg::desc.empty())
-        io::print("");
+        print("");
       else
-        io::print("  - {}", Arg::desc);
+        print("  - {}", Arg::desc);
     }
 
     template<typename Arg>
     void print_help_for_pos() noexcept
     {
-      io::print<" ">("<{}>", Arg::name);
+      print<" ">("<{}>", Arg::name);
     }
 
     template<typename Arg>
     void print_help_for_optpos() noexcept
     {
-      io::print<" ">("<{}>?", Arg::name);
+      print<" ">("<{}>?", Arg::name);
     }
 
     template<typename... Args, typename... Args2, typename... Args3>
@@ -511,18 +511,18 @@ namespace clt::cl
       constexpr u64 max_desc = max_desc_size(list);
 
       if (name.empty())
-        io::print<"">("USAGE: {}[OPTIONS] {}", io::BrightCyanF, io::BrightBlueF);
+        print<"">("USAGE: {}[OPTIONS] {}", io::BrightCyanF, io::BrightBlueF);
       else
-        io::print<"">(
+        print<"">(
             "USAGE: {} {}[OPTIONS] {}", name, io::BrightCyanF, io::BrightBlueF);
       (print_help_for_pos<Args2>(), ...);
-      io::print<"">("{}", io::GreenF);
+      print<"">("{}", io::GreenF);
       (print_help_for_optpos<Args3>(), ...);
-      io::print("{}\n   {}\n\nOPTIONS:", io::Reset, description);
+      print("{}\n   {}\n\nOPTIONS:", io::Reset, description);
       //Print commands in format -NAME <VALUE_DESC> - DESC aligning all options.
       (print_help_for_arg<Args>(max_size, max_desc), ...);
       //Print help command description
-      io::print(
+      print(
           "   -{}{: <{}}{}{: <{}}  - {}", io::BrightCyanF, "help", max_size,
           io::Reset, "", max_desc, "Display available options");
       std::exit(0);
@@ -541,7 +541,7 @@ namespace clt::cl
         if ((*opt).first == true)
         {
           if (equal_index != std::string_view::npos)
-            io::print_warn("'{}' does not expect an argument ('{}')!", to_parse, arg.substr(equal_index));
+            print_warn("'{}' does not expect an argument ('{}')!", to_parse, arg.substr(equal_index));
           (*(*opt).second)({});
           return;
         }
@@ -549,7 +549,7 @@ namespace clt::cl
         //not enough arguments...
         if (equal_index == std::string_view::npos && i == argc - 1)
         {
-          io::print_error("'{}' expects an argument!", arg);
+          print_error("'{}' expects an argument!", arg);
           std::exit(1);
         }
         //invoke callback...
@@ -561,13 +561,13 @@ namespace clt::cl
 
         if (err != ParsingCode::GOOD)
         {
-          io::print_error("Invalid argument for '{}' option ({:h})!", arg, err);
+          print_error("Invalid argument for '{}' option ({:h})!", arg, err);
           std::exit(1);
         }
       }
       else
       {
-        io::print_error(
+        print_error(
             "'-{}' is not an option!\nUse '-help' to enumerate possible options.",
             arg);
         std::exit(1);
@@ -579,7 +579,7 @@ namespace clt::cl
     {
       if (pos_id == POS_TABLE.size())
       {
-        io::print_warn("Unused argument '{}'!", arg);
+        print_warn("Unused argument '{}'!", arg);
         return;
       }
       auto opt = POS_TABLE[pos_id++];
@@ -587,7 +587,7 @@ namespace clt::cl
       ParsingResult err = (*opt)(arg);
       if (err != ParsingCode::GOOD)
       {
-        io::print_error("Invalid argument for '{}' option ({:h})!", arg, err);
+        print_error("Invalid argument for '{}' option ({:h})!", arg, err);
         std::exit(1);
       }
     }
@@ -634,7 +634,7 @@ namespace clt::cl
     }
     if (pos_id < PosList::size)
     {
-      io::print_error(
+      print_error(
           "Not enough arguments provided! {} missing.", PosList::size - pos_id);
       std::exit(1);
     }
