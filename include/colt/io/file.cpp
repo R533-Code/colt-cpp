@@ -156,7 +156,7 @@ namespace clt
     if (!is_open() || access == FileAccess::Read)
       return None;
     // TODO: overflow check
-    auto write = _write(this->fileno(), &out, (unsigned int)out.size_bytes());
+    auto write = _write(this->fileno(), out.data(), (unsigned int)out.size_bytes());
     if (write < 0)
       return None;
     return Option<size_t>((size_t)write);
