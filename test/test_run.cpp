@@ -10,6 +10,7 @@
 #include <colt/algo/detect_simd.h>
 #include <colt/io/print.h>
 #include <colt/versions.h>
+#include <io.h>
 
 /// @brief Catch2 starting point
 /// @param argc The number of arguments
@@ -20,8 +21,8 @@ int main(int argc, const char** argv)
   using namespace clt;
   using namespace clt::io;
 
-  io::print(
-      stderr,
+  print(
+      File::get_stdout(),
       "Running tests on {}{} {}{}{} ({}).\nThis is a {}-endian system.\nSupported "
       "SIMD instructions: {}{}{}.\n"
       "simdutf v{}, scn v{}, fmt v{}, uni-algo v{}, coltcpp v{}\n",
