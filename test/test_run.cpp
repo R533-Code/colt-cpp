@@ -10,7 +10,6 @@
 #include <colt/algo/detect_simd.h>
 #include <colt/io/print.h>
 #include <colt/versions.h>
-#include <io.h>
 
 /// @brief Catch2 starting point
 /// @param argc The number of arguments
