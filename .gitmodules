@@ -34,3 +34,6 @@
 [submodule "libraries/hopscotch-map"]
 	path = libraries/hopscotch-map
 	url = https://github.com/Tessil/hopscotch-map.git
+[submodule "libraries/subprocess.h"]
+	path = libraries/subprocess.h
+	url = https://github.com/sheredom/subprocess.h.git
