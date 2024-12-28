@@ -138,6 +138,8 @@ namespace clt
   constexpr Option<size_t> print_fatal(
       File& file, fmt::format_string<Args...> fmt, Args&&... args)
   {
+    using namespace clt::io;
+
     fmt::basic_memory_buffer<char, 4096> buffer;
     fmt::format_to(
         std::back_inserter(buffer), "{}FATAL:{} {}", RedB, Reset, BrightRedF);
