@@ -21,7 +21,7 @@ int main(int argc, const char** argv)
   using namespace clt::io;
 
   print(
-      File::get_stdout(),
+      File::get_stderr(),
       "Running tests on {}{} {}{}{} ({}).\nThis is a {}-endian system.\nSupported "
       "SIMD instructions: {}{}{}.\n"
       "simdutf v{}, scn v{}, fmt v{}, uni-algo v{}, coltcpp v{}\n",
