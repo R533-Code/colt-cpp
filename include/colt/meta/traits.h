@@ -221,8 +221,20 @@ namespace clt::meta
 
   namespace details
   {
+    template<typename T>
+    auto cat_tuple_detail()
+    {
+      return T{};
+    }
+
     template<typename... Ts>
-    using tuple_cat_t = std::invoke_result_t<decltype(&std::tuple_cat<Ts...>), Ts...>;
+    auto cat_tuple()
+    {
+      return std::tuple_cat(cat_tuple_detail<Ts>()...);
+    }
+
+    template<typename... Ts>
+    using tuple_cat_t = decltype(cat_tuple<Ts...>());
 
     template<typename T, typename... Ts>
     using remove_t = tuple_cat_t<typename std::conditional_t<
