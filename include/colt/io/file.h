@@ -129,6 +129,13 @@ namespace clt
     [[nodiscard]] COLTCPP_EXPORT static Option<File> open(
         const char* const path, FileAccess access, bool text_mode = false) noexcept;
 
+    /// @brief Opens a file from FILE*
+    /// @param from The FILE* to convert
+    /// @param access The access type of 'from'
+    /// @return None on errors else valid handle
+    [[nodiscard]] COLTCPP_EXPORT static Option<File> from(
+        FILE* from, FileAccess access) noexcept;
+
     /// @brief Returns the stdin handle
     /// @return stdin handle
     [[nodiscard]] COLTCPP_EXPORT static File& get_stdin() noexcept;

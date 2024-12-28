@@ -22,6 +22,16 @@ namespace clt
     return value;
   }
 
+  Option<File> File::from(FILE* from, FileAccess access) noexcept
+  {
+    if (from == nullptr)
+      return None;
+    auto val = to_fileno(from);
+    if (val == -1)
+      return None;
+    return File{val, access};
+  }
+
   File& File::get_stdin() noexcept
   {
     static auto FILE = File{to_fileno(stdin), FileAccess::Read};
@@ -386,6 +396,16 @@ namespace clt
     if (handle == -1)
       return None;
     return Option<File>(File(handle, access));
+  }
+
+  Option<File> File::from(FILE* from, FileAccess access) noexcept
+  {
+    if (from == nullptr)
+      return None;
+    auto val = ::fileno(from);
+    if (val == -1)
+      return None;
+    return File{val, access};
   }
 } // namespace clt
 
