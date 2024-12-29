@@ -19,18 +19,15 @@ namespace clt::meta
 {
   /// @brief Check if a type is serializable using zpp-bits
   template<typename T>
-  concept serializable = requires(zpp::bits::basic_out<std::span<std::byte>> out, T obj) {
-        {
-          static_cast<std::errc>(out(obj))
-        } -> std::same_as<std::errc>;
-  };
+  concept serializable =
+      requires(zpp::bits::basic_out<std::span<std::byte>> out, T obj) {
+        { static_cast<std::errc>(out(obj)) } -> std::same_as<std::errc>;
+      };
 
   /// @brief Check if a type is formattable using fmt
   template<typename T>
   concept formattable = requires(T obj) {
-    {
-      fmt::format_to("{}", obj)
-    }->std::same_as<std::string>;
+    { fmt::format_to("{}", obj) } -> std::same_as<std::string>;
   };
 
   /// @brief Check if a type has padding bits or not
@@ -221,20 +218,15 @@ namespace clt::meta
 
   namespace details
   {
-    template<typename T>
-    auto cat_tuple_detail()
+    template<typename... Ts>
+    struct tuple_cat_helper
     {
-      return T{};
-    }
+      using type = decltype(std::tuple_cat(std::declval<Ts>()...));
+    };
 
     template<typename... Ts>
-    auto cat_tuple()
-    {
-      return std::tuple_cat(cat_tuple_detail<Ts>()...);
-    }
-
+    using tuple_cat_t = typename tuple_cat_helper<Ts...>::type;
     template<typename... Ts>
-    using tuple_cat_t = decltype(cat_tuple<Ts...>());
 
     template<typename T, typename... Ts>
     using remove_t = tuple_cat_t<typename std::conditional_t<
@@ -356,7 +348,7 @@ namespace clt::meta
       typename... Ts>
   /// @brief Finds the first type for which the predicate returned true, or NOT_FOUND if none exist
   using find_first_match_t =
-      typename find_first_match<predicate, NOT_FOUND, T, Ts...>::type;  
+      typename find_first_match<predicate, NOT_FOUND, T, Ts...>::type;
 
   template<typename T, typename... U>
   /// @brief Check if a type is any of a list
