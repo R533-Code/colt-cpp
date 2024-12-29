@@ -197,6 +197,18 @@ namespace clt::cl
   /// @brief Adds the location in which to store the result for an Opt
   using callback = details::Callback<CALL>;
 
+  template<meta::StringLiteral GroupName, io::ANSIEffect Effect>
+  struct Group
+  {
+    /// @brief Concept helper
+    static constexpr bool is_group = true;
+
+    /// @brief The name of the
+    static constexpr std::string_view name = GroupName.value;
+    /// @brief The color of the group
+    static constexpr io::ANSIEffect effect = Effect;
+  };
+
   template<meta::StringLiteral Name, typename T, typename... Ts>
   /// @brief Represents an command line option
   struct Opt
@@ -279,11 +291,27 @@ namespace clt::cl
     template<typename T>
     /// @brief True if Opt
     concept IsOpt = T::is_opt;
+    
+    template<typename T>
+    /// @brief True if Opt
+    concept IsGroup = T::is_group;
 
     template<typename T>
     struct is_opt
     {
       static constexpr bool value = IsOpt<T>;
+    };
+    
+    template<typename T>
+    struct is_group
+    {
+      static constexpr bool value = IsGroup<T>;
+    };
+
+    template<typename T>
+    struct is_opt_or_group
+    {
+      static constexpr bool value = IsGroup<T> || IsOpt<T>;
     };
 
     template<typename T>
@@ -456,37 +484,43 @@ namespace clt::cl
     template<typename Arg>
     void print_help_for_arg(u64 max_size, u64 max_desc) noexcept
     {
-      if constexpr (Arg::alias.empty())
+      if constexpr (details::IsGroup<Arg>)
       {
-        auto offset = Arg::name.find_first_not_of("-");
-        print<"">(
-            "   -{}{}{: <{}}{}", Arg::name.substr(0, offset), io::BrightCyanF,
-            Arg::name.substr(offset), max_size - offset,
-            io::Reset);
+        print("\n {}{}:{}", Arg::effect, Arg::name, io::Reset);
       }
       else
       {
-        auto offset = Arg::name.find_first_not_of("-");
-        auto offset2 = Arg::alias.find_first_not_of("-");
-        print<"">(
-            "   -{}{}{}{}, -{}{}{}{}{: <{}}", Arg::name.substr(0, offset), io::BrightCyanF,
-            Arg::name.substr(offset), io::Reset,
-            Arg::alias.substr(0, offset2), io::BrightCyanF, Arg::alias.substr(offset2),
-            io::Reset, "",
-            max_size - Arg::name.size() - Arg::alias.size() - 3);
-      }
+        if constexpr (Arg::alias.empty())
+        {
+          auto offset = Arg::name.find_first_not_of("-");
+          print<"">(
+              "   -{}{}{: <{}}{}", Arg::name.substr(0, offset), io::BrightCyanF,
+              Arg::name.substr(offset), max_size - offset, io::Reset);
+        }
+        else
+        {
+          auto offset  = Arg::name.find_first_not_of("-");
+          auto offset2 = Arg::alias.find_first_not_of("-");
+          print<"">(
+              "   -{}{}{}{}, -{}{}{}{}{: <{}}", Arg::name.substr(0, offset),
+              io::BrightCyanF, Arg::name.substr(offset), io::Reset,
+              Arg::alias.substr(0, offset2), io::BrightCyanF,
+              Arg::alias.substr(offset2), io::Reset, "",
+              max_size - Arg::name.size() - Arg::alias.size() - 3);
+        }
 
-      if constexpr (Arg::value_desc.empty())
-        print<"">("{: <{}}", "", max_desc);
-      else
-        print<"">(
-            "{}<{}>{}{: <{}}", io::BrightMagentaF, Arg::value_desc.data(), io::Reset,
-            "", max_desc - Arg::value_desc.size() - 2);
+        if constexpr (Arg::value_desc.empty())
+          print<"">("{: <{}}", "", max_desc);
+        else
+          print<"">(
+              "{}<{}>{}{: <{}}", io::BrightMagentaF, Arg::value_desc.data(),
+              io::Reset, "", max_desc - Arg::value_desc.size() - 2);
 
-      if constexpr (Arg::desc.empty())
-        print("");
-      else
-        print("  - {}", Arg::desc);
+        if constexpr (Arg::desc.empty())
+          print("");
+        else
+          print("  - {}", Arg::desc);
+      }      
     }
 
     template<typename Arg>
@@ -501,10 +535,10 @@ namespace clt::cl
       print<" ">("<{}>?", Arg::name);
     }
 
-    template<typename... Args, typename... Args2, typename... Args3>
+    template<typename... Args, typename... Args2, typename... Args3, typename... Args4>
     [[noreturn]] void print_help(
         meta::type_list<Args...> list, meta::type_list<Args2...> pos,
-        meta::type_list<Args3...> optpos, std::string_view name,
+        meta::type_list<Args3...> optpos, meta::type_list<Args4...> optgroup, std::string_view name,
         std::string_view description) noexcept
     {
       constexpr u64 max_size = max_name_size(list);
@@ -519,12 +553,12 @@ namespace clt::cl
       print<"">("{}", io::GreenF);
       (print_help_for_optpos<Args3>(), ...);
       print("{}\n   {}\n\nOPTIONS:", io::Reset, description);
-      //Print commands in format -NAME <VALUE_DESC> - DESC aligning all options.
-      (print_help_for_arg<Args>(max_size, max_desc), ...);
       //Print help command description
       print(
           "   -{}{: <{}}{}{: <{}}  - {}", io::BrightCyanF, "help", max_size,
           io::Reset, "", max_desc, "Display available options");
+      //Print commands in format -NAME <VALUE_DESC> - DESC aligning all options.
+      (print_help_for_arg<Args4>(max_size, max_desc), ...);
       std::exit(0);
     }
 
@@ -598,9 +632,10 @@ namespace clt::cl
       int argc, const char** argv, std::string_view name = {},
       std::string_view description = {}) noexcept
   {
-    using OptList    = typename list::template remove_if_not<details::is_opt>;
-    using PosList    = typename list::template remove_if_not<details::is_pos>;
-    using OptPosList = typename list::template remove_if_not<details::is_optpos>;
+    using OptList      = typename list::template remove_if_not<details::is_opt>;
+    using OptGroupList = typename list::template remove_if_not<details::is_opt_or_group>;
+    using PosList      = typename list::template remove_if_not<details::is_pos>;
+    using OptPosList   = typename list::template remove_if_not<details::is_optpos>;
 
     //Positional argument table, contains pointers to the function to call
     //when a non-positional argument is detected.
@@ -626,7 +661,9 @@ namespace clt::cl
         }
 
         if (arg == "-help")
-          details::print_help(OptList{}, PosList{}, OptPosList{}, name, description);
+          details::print_help(
+              OptList{}, PosList{}, OptPosList{}, OptGroupList{}, name,
+              description);
         else
           details::handle_non_positional(
               arg, i, static_cast<u64>(argc), argv, CONST_MAP);
