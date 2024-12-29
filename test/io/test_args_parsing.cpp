@@ -8,6 +8,7 @@ using namespace clt;
 using namespace clt::cl;
 using Args = meta::type_list<
   Opt<"test", callback<[](){ CLT_TEST = true; }>>,
+  Group<"Other", io::BlueB>,
   Opt<"test2", location<CLT_TEST2>>
 >;
 
