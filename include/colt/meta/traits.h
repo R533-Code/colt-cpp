@@ -226,7 +226,6 @@ namespace clt::meta
 
     template<typename... Ts>
     using tuple_cat_t = typename tuple_cat_helper<Ts...>::type;
-    template<typename... Ts>
 
     template<typename T, typename... Ts>
     using remove_t = tuple_cat_t<typename std::conditional_t<
