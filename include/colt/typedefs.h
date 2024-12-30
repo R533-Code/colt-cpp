@@ -134,6 +134,13 @@ namespace clt
     return !p || q;
   }
 
+  template<typename T, typename... Ts>
+  HEDLEY_ALWAYS_INLINE
+  constexpr bool is_one_of(const T& value, const T& comp, const Ts&... other)
+  {
+    return (value == comp) || (value == other || ...);
+  }
+
   [[noreturn]]
   /// @brief Aborts the program (or call the debugger if possible)
   inline void debug_break() noexcept
