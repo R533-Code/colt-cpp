@@ -140,41 +140,4 @@
   #define COLT_ARCH_STRING "Unknown"
 #endif
 
-namespace clt
-{
-#ifdef COLT_DEBUG
-  /// @brief Check if the current build is on DEBUG configuration
-  /// @return True if on DEBUG
-  [[nodiscard]]
-  consteval bool is_debug_build() noexcept { return true; }
-#else
-  /// @brief Check if the current build is on DEBUG configuration
-  /// @return True if on DEBUG
-  [[nodiscard]]
-  consteval bool is_debug_build() noexcept { return false; }
-#endif // COLT_DEBUG
-
-  /// @brief Check if the current build is on RELEASE configuration
-  /// @return True if on RELEASE (not on DEBUG)
-  [[nodiscard]]
-  consteval bool is_release_build() noexcept { return !is_debug_build(); }
-
-  enum class TargetOS
-    : unsigned char
-  {
-    os_windows, os_linux, os_apple,
-    native =
-#ifdef COLT_WINDOWS
-    os_windows
-#elif defined(COLT_APPLE)
-    os_apple
-#elif defined(COLT_LINUX)
-    os_linux
-#else
-    (unsigned char)-1
-  #error "Unsupported platform!"
-#endif
-  };  
-}
-
 #endif //COLT_CONFIG
