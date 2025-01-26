@@ -8,7 +8,7 @@
 #ifndef _HG_COLT_DEBUGGING_
 #define _HG_COLT_DEBUGGING_
 
-#include <colt2/macros.h>
+#include <colt/macros.h>
 #include <colt/coltcpp_export.h>
 
 namespace clt

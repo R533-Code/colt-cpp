@@ -18,8 +18,8 @@
 #include <numeric>
 
 #include "colt/config.h"
-#include "colt2/macros.h"
-#include "colt2/debugging.h"
+#include "colt/macros.h"
+#include "colt/debugging.h"
 
 /// @brief p => q
 #define COLT_IMPLIES(p, q) !(bool)(p) || (q)
