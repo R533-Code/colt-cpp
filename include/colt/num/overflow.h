@@ -13,13 +13,12 @@
 
 #include "hedley.h"
 #include "colt/typedefs.h"
-#include "colt/macro/config.h"
 
 #ifdef COLT_MSVC
   #include <intrin.h>
 #endif
 
-namespace clt::num
+namespace clt
 {
   /// @brief Computes the sum of two numbers, and returns true on overflow
   /// @tparam T The integer type
@@ -30,7 +29,9 @@ namespace clt::num
   template<std::integral T>
   constexpr bool checked_add(T a, T b, T* result) noexcept
   {
-    static_assert(sizeof(T) <= 8);
+    static_assert(
+        sizeof(T) <= 8,
+        "checked_* operations only work on integer of size <= 8 bytes!");
 #if defined(COLT_GNU) || defined(COLT_CLANG)
     if (!std::is_constant_evaluated())
       return __builtin_add_overflow(a, b, result);
@@ -77,7 +78,9 @@ namespace clt::num
   template<std::integral T>
   constexpr bool checked_sub(T a, T b, T* result) noexcept
   {
-    static_assert(sizeof(T) <= 8);
+    static_assert(
+        sizeof(T) <= 8,
+        "checked_* operations only work on integer of size <= 8 bytes!");
 #if defined(COLT_GNU) || defined(COLT_CLANG)
     if (!std::is_constant_evaluated())
       return __builtin_sub_overflow(a, b, result);
@@ -124,7 +127,9 @@ namespace clt::num
   template<std::integral T>
   constexpr bool checked_mul(T a, T b, T* result) noexcept
   {
-    static_assert(sizeof(T) <= 8);
+    static_assert(
+        sizeof(T) <= 8,
+        "checked_* operations only work on integer of size <= 8 bytes!");
 #if defined(COLT_GNU) || defined(COLT_CLANG)
     if (!std::is_constant_evaluated())
       return __builtin_mul_overflow(a, b, result);
@@ -166,7 +171,7 @@ namespace clt::num
     }
   }
 
-  /// @brief Computes the product of two numbers, and returns true on overflow.
+  /// @brief Computes the quotient of two numbers, and returns true on overflow.
   /// If 'b' is zero, this function will still perform the division.
   /// The only case where an overflow can happen is for signed division
   /// of std::numeric_limits<T>::min() and -1.
@@ -178,13 +183,37 @@ namespace clt::num
   template<std::integral T>
   constexpr bool checked_div(T a, T b, T* result) noexcept
   {
-    static_assert(sizeof(T) <= 8);
+    static_assert(
+        sizeof(T) <= 8,
+        "checked_* operations only work on integer of size <= 8 bytes!");
     *result = a / b;
     if constexpr (std::is_signed_v<T>)
       return (a == std::numeric_limits<T>::min() && b == -1)
              || (b == std::numeric_limits<T>::min() && a == -1);
     return false;
   }
-} // namespace clt::num
+
+  /// @brief Computes the remainder of two numbers, and returns true on overflow.
+  /// If 'b' is zero, this function will still perform the division.
+  /// The only case where an overflow can happen is for signed division
+  /// of std::numeric_limits<T>::min() and -1.
+  /// @tparam T The integer type
+  /// @param a The first integer
+  /// @param b The second integer
+  /// @param result The result to which to write
+  /// @return True on overflow
+  template<std::integral T>
+  constexpr bool checked_rem(T a, T b, T* result) noexcept
+  {
+    static_assert(
+        sizeof(T) <= 8,
+        "checked_* operations only work on integer of size <= 8 bytes!");
+    *result = a % b;
+    if constexpr (std::is_signed_v<T>)
+      return (a == std::numeric_limits<T>::min() && b == -1)
+             || (b == std::numeric_limits<T>::min() && a == -1);
+    return false;
+  }
+} // namespace clt
 
 #endif // !HG_NUM_CHECK_OVERFLOW
