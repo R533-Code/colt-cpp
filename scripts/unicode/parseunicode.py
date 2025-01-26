@@ -21,7 +21,8 @@ class Property:
   NAME     : str
   FULLNAME : str
   KEYS     : dict[str, str]
-  DEFAULT_VALUE : tuple[CodePointRange, str]|None = None
+  DEFAULT_VALUE : tuple[CodePointRange, str]|None = None  
+  GROUP_FN : dict[str, list[str]]|None = None
 
 @functools.cache
 def parse_propertyvalue()->dict[str, Property]:
@@ -47,19 +48,26 @@ def parse_propertyvalue()->dict[str, Property]:
         CURRENT_PROPERTY = match.group(2)
         PROPERTY_LIST[match.group(2)] = Property(match.group(2), match.group(1), dict())
       continue      
-  
+      
     split = [i.strip() for i in line.split(';')]
     NAME = split[0]
     VALUE = split[1]
-    
-    current_dict = {VALUE: VALUE}
-    for i in range(2, len(split)): # add aliases
-      current_dict[split[i]] = VALUE
-    if NAME in PROPERTY_LIST:
-      PROPERTY_LIST[NAME].KEYS = {**PROPERTY_LIST[NAME].KEYS, **current_dict}
+    if "#" in line:
+      if '|' in line: # case # .. | .. | ..
+        if PROPERTY_LIST[NAME].GROUP_FN is None:
+          PROPERTY_LIST[NAME].GROUP_FN = dict()
+        PROPERTY_LIST[NAME].GROUP_FN[VALUE] = [i.strip() for i in split[-1].split('#')[1].split('|')]
+      # case: # RESERVED
+      # do nothing
     else:
-      current = Property(NAME=NAME, KEYS=current_dict)
-      PROPERTY_LIST[NAME] = current
+      current_dict = {VALUE: VALUE}
+      for i in range(2, len(split)): # add aliases
+        current_dict[split[i]] = VALUE
+      if NAME in PROPERTY_LIST:
+        PROPERTY_LIST[NAME].KEYS = {**PROPERTY_LIST[NAME].KEYS, **current_dict}
+      else:
+        current = Property(NAME=NAME, KEYS=current_dict)
+        PROPERTY_LIST[NAME] = current
   return PROPERTY_LIST
 
 @functools.cache
@@ -168,6 +176,12 @@ def parse_unicodedata()->list[CodePointInfo]:
   CODE_POINT_LIST : list[CodePointInfo] = [CodePointInfo(CodePoint(-1), dict())]
   PROPERTY_LIST   = parse_propertyvalue()
   PROPERTY_ALIAS  = parse_propertyaliases()
+  BINARY_PROPERTY = parse_properties()
+  
+  other_properties = dict()
+  for i in range(0, len(BINARY_PROPERTY)):
+    current_abrv = PROPERTY_ALIAS[BINARY_PROPERTY[i][1]]
+    other_properties[current_abrv] = 'N'
   
   # See https://www.unicode.org/reports/tr44/#UnicodeData.txt
   for line in colt.lines_of(PATH_UCD + 'UnicodeData.txt'):
@@ -186,6 +200,7 @@ def parse_unicodedata()->list[CodePointInfo]:
         value = default_to_true_default(default[1])
       # Lookup abbreviation in property alias
       PROPERTIES[current_abrv] = value
+    PROPERTIES.update(other_properties)
     
     # TODO: Condition as per (14) Note
     
@@ -205,9 +220,17 @@ def parse_unicodedata()->list[CodePointInfo]:
       CODE_POINT_LIST.append(current)
   # unassigned noncharacters
   while len(CODE_POINT_LIST) <= CodePoint.max_code_point() + 1:
-    CODE_POINT_LIST.append(CodePointInfo(len(CODE_POINT_LIST) - 1, CODE_POINT_LIST[-1].PROPERTIES))    
+    CODE_POINT_LIST.append(CodePointInfo(len(CODE_POINT_LIST) - 1, CODE_POINT_LIST[-1].PROPERTIES))
+  
+  CODE_POINT_LIST = CODE_POINT_LIST[1:]
+  
+  for i in range(0, len(BINARY_PROPERTY)):
+    current = BINARY_PROPERTY[i]
+    for j in range(current[0].begin.value, current[0].end.value + 1):
+      abrv = PROPERTY_ALIAS[current[1]]
+      CODE_POINT_LIST[j].PROPERTIES[abrv] = 'Y'
   # pop the CodePointInfo(-1)
-  return CODE_POINT_LIST[1:]
+  return CODE_POINT_LIST
 
 def is_assigned_character(x: CodePointInfo)->bool:
   return (x.get("General_Category") != "Cn"

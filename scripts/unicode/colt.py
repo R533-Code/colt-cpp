@@ -99,6 +99,7 @@ class CodePointRange:
     Raises:
         ValueError: If begin > end
     """
+    assert isinstance(begin, CodePoint) and isinstance(end, CodePoint)
     if begin > end:
       raise ValueError(f"Invalid range: {CodePoint.int_to_hex(begin)} > {CodePoint.int_to_hex(end)}!")
     self.begin = begin
@@ -120,7 +121,7 @@ class CodePointRange:
     if match is None:
       raise ValueError(f"Could not convert '{value}' to a CodePointRange!")
     if match.group(2) is None:
-      tmp = int(match.group(1), 16)
+      tmp = CodePoint(int(match.group(1), 16))
       return CodePointRange(tmp, tmp)
     return CodePointRange(
       CodePoint(int(match.group(1), 16)),
