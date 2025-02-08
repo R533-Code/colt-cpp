@@ -19,10 +19,10 @@
  * Computers also have a property called endianness:
  * The order of bytes representing an integer.
  * It usually comes in two flavors:
- * - Little: stores the least-significant byte first
- * - Big: stores the most-significant byte first
+ * - LITTLE_ENDIAN: stores the least-significant byte first
+ * - BIG_ENDIAN: stores the most-significant byte first
  * This means that for UTF16 and UTF32 the encoding might be
- * Little Endian (LE) or Big Endian (BE).
+ * LITTLE_ENDIAN Endian (LE) or BIG_ENDIAN Endian (BE).
  * 
  * A GRAPHEME is a single unit seen by the user.
  * Take for example the female construction worker emoji.
@@ -57,24 +57,24 @@ namespace clt
     ASCII = 0,
     /// @brief UTF8
     UTF8 = 1,
-    /// @brief UTF16 Big Endian
+    /// @brief UTF16 BIG_ENDIAN Endian
     UTF16BE = 2,
-    /// @brief UTF16 Little Endian
+    /// @brief UTF16 LITTLE_ENDIAN Endian
     UTF16LE = 3,
-    /// @brief UTF32 Big Endian
+    /// @brief UTF32 BIG_ENDIAN Endian
     UTF32BE = 4,
-    /// @brief UTF32 Little Endian
+    /// @brief UTF32 LITTLE_ENDIAN Endian
     UTF32LE = 5,
 
 #ifdef COLT_LITTLE_ENDIAN
-    /// @brief UTF16 in host format (little endian)
+    /// @brief UTF16 in host format (LITTLE_ENDIAN endian)
     UTF16 = UTF16LE,
-    /// @brief UTF32 in host format (little endian)
+    /// @brief UTF32 in host format (LITTLE_ENDIAN endian)
     UTF32 = UTF32LE
 #elif defined(COLT_BIG_ENDIAN)
-    /// @brief UTF16 in host format (big endian)
+    /// @brief UTF16 in host format (BIG_ENDIAN endian)
     UTF16 = UTF16BE,
-    /// @brief UTF32 in host format (big endian)
+    /// @brief UTF32 in host format (BIG_ENDIAN endian)
     UTF32 = UTF32BE
 #else
   #error
@@ -268,10 +268,10 @@ namespace clt
   #error "Unknown endianness!"
 #endif
 
-  /// @brief Big Endian 32-bit Char
+  /// @brief BIG_ENDIAN Endian 32-bit Char
   class Char32BE
   {
-    /// @brief The value (always stored as Big Endian)
+    /// @brief The value (always stored as BIG_ENDIAN Endian)
     char32_t _value = 0;
 
   public:
@@ -280,10 +280,10 @@ namespace clt
     /// @brief The maximum count of Char32 needed to form a code point
     static constexpr size_t max_sequence = 1;
 
-    /// @brief Constructs a big endian value from a little endian value
-    /// @param value The value (in little endian)
+    /// @brief Constructs a BIG_ENDIAN endian value from a LITTLE_ENDIAN endian value
+    /// @param value The value (in LITTLE_ENDIAN endian)
     constexpr Char32BE(Char32LE value) noexcept;
-    /// @brief Constructs a big endian value from host endianness
+    /// @brief Constructs a BIG_ENDIAN endian value from host endianness
     /// @param value The value (in host endianness)
     constexpr Char32BE(char32_t value) noexcept
         : _value((char32_t)htob((u32)value))
@@ -294,27 +294,27 @@ namespace clt
     MAKE_DEFAULT_COPY_AND_MOVE_FOR(Char32BE);
 
     /// @brief Return the current value as a host CodePoint.
-    /// If the host is big endian, this is a no-op.
+    /// If the host is BIG_ENDIAN endian, this is a no-op.
     /// @return The current value as a host CodePoint
     constexpr char32_t as_host() const noexcept
     {
       return (char32_t)btoh((u32)_value);
     }
-    /// @brief Return the current value as a little endian CodePoint.
-    /// @return The current value as a little endian CodePoint
+    /// @brief Return the current value as a LITTLE_ENDIAN endian CodePoint.
+    /// @return The current value as a LITTLE_ENDIAN endian CodePoint
     constexpr Char32LE as_little() const noexcept;
-    /// @brief Return the current value as a big endian CodePoint.
+    /// @brief Return the current value as a BIG_ENDIAN endian CodePoint.
     /// This is a no-op.
-    /// @return The current value as a big endian CodePoint
+    /// @return The current value as a BIG_ENDIAN endian CodePoint
     constexpr Char32BE as_big() const noexcept { return *this; }
 
     /// @brief Returns the value in host endian
     constexpr operator char32_t() const noexcept { return as_host(); }
-    /// @brief Returns the value in little endian
+    /// @brief Returns the value in LITTLE_ENDIAN endian
     constexpr operator Char32LE() const noexcept;
 
-    /// @brief Returns the value in big endian
-    /// @return Value in big endian
+    /// @brief Returns the value in BIG_ENDIAN endian
+    /// @return Value in BIG_ENDIAN endian
     constexpr char32_t in_endian() const noexcept { return _value; }
 
     /// @brief Check if the current UTF32 is a valid code point
@@ -325,7 +325,7 @@ namespace clt
     }
   };
 
-  /// @brief Little Endian 32-bit Char
+  /// @brief LITTLE_ENDIAN Endian 32-bit Char
   class Char32LE
   {
     char32_t _value = 0;
@@ -336,10 +336,10 @@ namespace clt
     /// @brief The maximum count of Char32 needed to form a code point
     static constexpr size_t max_sequence = 1;
 
-    /// @brief Constructs a little endian value from a big endian value
-    /// @param value The value (in little endian)
+    /// @brief Constructs a LITTLE_ENDIAN endian value from a BIG_ENDIAN endian value
+    /// @param value The value (in LITTLE_ENDIAN endian)
     constexpr Char32LE(Char32BE value) noexcept;
-    /// @brief Constructs a little endian value from host endianness
+    /// @brief Constructs a LITTLE_ENDIAN endian value from host endianness
     /// @param value The value (in host endianness)
     constexpr Char32LE(char32_t value) noexcept
         : _value((char32_t)htol((u32)value))
@@ -350,27 +350,27 @@ namespace clt
     MAKE_DEFAULT_COPY_AND_MOVE_FOR(Char32LE);
 
     /// @brief Return the current value as a host CodePoint.
-    /// If the host is little endian, this is a no-op.
+    /// If the host is LITTLE_ENDIAN endian, this is a no-op.
     /// @return The current value as a host CodePoint
     constexpr char32_t as_host() const noexcept
     {
       return (char32_t)ltoh((u32)_value);
     }
-    /// @brief Return the current value as a little endian CodePoint.
+    /// @brief Return the current value as a LITTLE_ENDIAN endian CodePoint.
     /// This is a no-op.
-    /// @return The current value as a little endian CodePoint
+    /// @return The current value as a LITTLE_ENDIAN endian CodePoint
     constexpr Char32LE as_little() const noexcept { return *this; }
-    /// @brief Return the current value as a big endian CodePoint.
-    /// @return The current value as a big endian CodePoint
+    /// @brief Return the current value as a BIG_ENDIAN endian CodePoint.
+    /// @return The current value as a BIG_ENDIAN endian CodePoint
     constexpr Char32BE as_big() const noexcept;
 
     /// @brief Returns the value in host endian
     constexpr operator char32_t() const noexcept { return as_host(); }
-    /// @brief Returns the value in big endian
+    /// @brief Returns the value in BIG_ENDIAN endian
     constexpr operator Char32BE() const noexcept;
 
-    /// @brief Returns the value in little endian
-    /// @return Value in little endian
+    /// @brief Returns the value in LITTLE_ENDIAN endian
+    /// @return Value in LITTLE_ENDIAN endian
     constexpr char32_t in_endian() const noexcept { return _value; }
 
     /// @brief Check if the current UTF32 is a valid code point
@@ -381,10 +381,10 @@ namespace clt
     }
   };
 
-  /// @brief Big Endian 16-bit Char
+  /// @brief BIG_ENDIAN Endian 16-bit Char
   class Char16BE
   {
-    /// @brief The value (always stored as Big Endian)
+    /// @brief The value (always stored as BIG_ENDIAN Endian)
     char16_t _value = 0;
 
   public:
@@ -393,10 +393,10 @@ namespace clt
     /// @brief The maximum count of Char16 needed to form a code point
     static constexpr size_t max_sequence = 2;
 
-    /// @brief Constructs a big endian value from a little endian value
-    /// @param value The value (in little endian)
+    /// @brief Constructs a BIG_ENDIAN endian value from a LITTLE_ENDIAN endian value
+    /// @param value The value (in LITTLE_ENDIAN endian)
     constexpr Char16BE(Char16LE value) noexcept;
-    /// @brief Constructs a big endian value from host endianness
+    /// @brief Constructs a BIG_ENDIAN endian value from host endianness
     /// @param value The value (in host endianness)
     constexpr Char16BE(char16_t value) noexcept
         : _value((char16_t)htob((u16)value))
@@ -407,27 +407,27 @@ namespace clt
     MAKE_DEFAULT_COPY_AND_MOVE_FOR(Char16BE);
 
     /// @brief Return the current value as a host CodePoint.
-    /// If the host is big endian, this is a no-op.
+    /// If the host is BIG_ENDIAN endian, this is a no-op.
     /// @return The current value as a host CodePoint
     constexpr char16_t as_host() const noexcept
     {
       return (char16_t)btoh((u16)_value);
     }
-    /// @brief Return the current value as a little endian CodePoint.
-    /// @return The current value as a little endian CodePoint
+    /// @brief Return the current value as a LITTLE_ENDIAN endian CodePoint.
+    /// @return The current value as a LITTLE_ENDIAN endian CodePoint
     constexpr Char16LE as_little() const noexcept;
-    /// @brief Return the current value as a big endian CodePoint.
+    /// @brief Return the current value as a BIG_ENDIAN endian CodePoint.
     /// This is a no-op.
-    /// @return The current value as a big endian CodePoint
+    /// @return The current value as a BIG_ENDIAN endian CodePoint
     constexpr Char16BE as_big() const noexcept { return *this; }
 
     /// @brief Returns the value in host endian
     constexpr operator char16_t() const noexcept { return as_host(); }
-    /// @brief Returns the value in little endian
+    /// @brief Returns the value in LITTLE_ENDIAN endian
     constexpr operator Char16LE() const noexcept;
 
-    /// @brief Returns the value in big endian
-    /// @return Value in big endian
+    /// @brief Returns the value in BIG_ENDIAN endian
+    /// @return Value in BIG_ENDIAN endian
     constexpr char16_t in_endian() const noexcept { return _value; }
 
     /// @brief Check if the current Char16 represents a lead surrogate.
@@ -456,7 +456,7 @@ namespace clt
     }
   };
 
-  /// @brief Little Endian 16-bit Char
+  /// @brief LITTLE_ENDIAN Endian 16-bit Char
   class Char16LE
   {
     char16_t _value = 0;
@@ -467,10 +467,10 @@ namespace clt
     /// @brief The maximum count of Char16 needed to form a code point
     static constexpr size_t max_sequence = 2;
 
-    /// @brief Constructs a little endian value from a big endian value
-    /// @param value The value (in little endian)
+    /// @brief Constructs a LITTLE_ENDIAN endian value from a BIG_ENDIAN endian value
+    /// @param value The value (in LITTLE_ENDIAN endian)
     constexpr Char16LE(Char16BE value) noexcept;
-    /// @brief Constructs a little endian value from host endianness
+    /// @brief Constructs a LITTLE_ENDIAN endian value from host endianness
     /// @param value The value (in host endianness)
     constexpr Char16LE(char16_t value) noexcept
         : _value((char16_t)htol((u16)value))
@@ -481,27 +481,27 @@ namespace clt
     MAKE_DEFAULT_COPY_AND_MOVE_FOR(Char16LE);
 
     /// @brief Return the current value as a host CodePoint.
-    /// If the host is little endian, this is a no-op.
+    /// If the host is LITTLE_ENDIAN endian, this is a no-op.
     /// @return The current value as a host CodePoint
     constexpr char16_t as_host() const noexcept
     {
       return (char16_t)ltoh((u16)_value);
     }
-    /// @brief Return the current value as a little endian CodePoint.
+    /// @brief Return the current value as a LITTLE_ENDIAN endian CodePoint.
     /// This is a no-op.
-    /// @return The current value as a little endian CodePoint
+    /// @return The current value as a LITTLE_ENDIAN endian CodePoint
     constexpr Char16LE as_little() const noexcept { return *this; }
-    /// @brief Return the current value as a big endian CodePoint.
-    /// @return The current value as a big endian CodePoint
+    /// @brief Return the current value as a BIG_ENDIAN endian CodePoint.
+    /// @return The current value as a BIG_ENDIAN endian CodePoint
     constexpr Char16BE as_big() const noexcept;
 
     /// @brief Returns the value in host endian
     constexpr operator char16_t() const noexcept { return as_host(); }
-    /// @brief Returns the value in little endian
+    /// @brief Returns the value in LITTLE_ENDIAN endian
     constexpr operator Char16BE() const noexcept;
 
-    /// @brief Returns the value in little endian
-    /// @return Value in little endian
+    /// @brief Returns the value in LITTLE_ENDIAN endian
+    /// @return Value in LITTLE_ENDIAN endian
     constexpr char16_t in_endian() const noexcept { return _value; }
 
     /// @brief Check if the current Char16 represents a lead surrogate.
@@ -820,7 +820,7 @@ namespace clt
     return (val);
   }
 
-  /// @brief Converts a string to a UTF16 encoded string with native endianness
+  /// @brief Converts a string to a UTF16 encoded string with current endianness
   /// @tparam a The literal converter
   /// @return UnicodeLiteral<Char16>
   template<details::LiteralConverter a>
@@ -895,8 +895,8 @@ namespace clt
     return as_little();
   }
 
-  // ^^^ BIG ENDIAN
-  // vvv LITTLE ENDIAN
+  // ^^^ BIG_ENDIAN ENDIAN
+  // vvv LITTLE_ENDIAN ENDIAN
 
   constexpr Char32LE::Char32LE(Char32BE value) noexcept
       : _value((char32_t)byteswap((u32)value.in_endian()))
@@ -931,8 +931,8 @@ namespace clt
     return as_little();
   }
 
-  // ^^^ BIG ENDIAN
-  // vvv LITTLE ENDIAN
+  // ^^^ BIG_ENDIAN ENDIAN
+  // vvv LITTLE_ENDIAN ENDIAN
 
   constexpr Char16LE::Char16LE(Char16BE value) noexcept
       : _value((char16_t)byteswap((u16)value.in_endian()))
@@ -954,7 +954,7 @@ namespace clt
     template<auto VALUE>
     consteval auto literal_to_utf32be() noexcept
     {
-      if constexpr (TargetEndian::native == TargetEndian::big)
+      if constexpr (TargetEndian::current == TargetEndian::BIG_ENDIAN)
         return literal_to_utf32<VALUE>();
       else
       {
@@ -969,7 +969,7 @@ namespace clt
     template<auto VALUE>
     consteval auto literal_to_utf32le() noexcept
     {
-      if constexpr (TargetEndian::native == TargetEndian::little)
+      if constexpr (TargetEndian::current == TargetEndian::LITTLE_ENDIAN)
         return literal_to_utf32<VALUE>();
       else
       {
@@ -992,7 +992,7 @@ namespace clt
     template<auto VALUE>
     consteval auto literal_to_utf16be() noexcept
     {
-      if constexpr (TargetEndian::native == TargetEndian::big)
+      if constexpr (TargetEndian::current == TargetEndian::BIG_ENDIAN)
         return literal_to_utf16<VALUE>();
       else
       {
@@ -1007,7 +1007,7 @@ namespace clt
     template<auto VALUE>
     consteval auto literal_to_utf16le() noexcept
     {
-      if constexpr (TargetEndian::native == TargetEndian::little)
+      if constexpr (TargetEndian::current == TargetEndian::LITTLE_ENDIAN)
         return literal_to_utf16<VALUE>();
       else
       {

@@ -17,7 +17,6 @@
 #include <concepts>
 #include <numeric>
 
-#include "colt/config.h"
 #include "colt/macros.h"
 #include "colt/debugging.h"
 
@@ -45,137 +44,36 @@
 
 namespace clt
 {
-  [[noreturn]]
-  /// @brief Marks a branch as unreachable, printing an error on Debug build
-  /// @param error The error message
-  /// @param src The source code information
-  void unreachable(
-      const char* error, clt::source_location src = clt::source_location::current());
-} // namespace clt
-
-namespace clt::details
-{
-  /// @brief Responsible of storing an expressions value and its source code string
-  struct Assertion
-  {
-    /// @brief The string representing the value
-    const char* str;
-    /// @brief The value of the assertion
-    bool value;
-  };
-
-  /// @brief Used to cause a compile-time failure
-  inline void constexpr_assert_true_failed() noexcept
-  {
-    //ASSERTION FAILED AT COMPILE TIME!
-  }
-
-  template<typename... BoolTs>
-    requires(sizeof...(BoolTs) != 0)
-  /// @brief Asserts that multiple conditions are true, and if not,
-  /// stops the application and prints the failed assertions.
-  /// @tparam ...BoolTs The type parameter pack
-  /// @param message The message to print
-  /// @param src The source location
-  /// @param ...bools The Assertion pack
-  constexpr void assert_true_multiple(
-      const char* message, clt::source_location src, BoolTs... bools) noexcept
-  {
-    static_assert(
-        (std::is_same_v<Assertion, std::remove_cvref_t<BoolTs>> && ...),
-        "This function expects 'Assertion'! Use assert_true rather than calling it "
-        "directly!");
-    if (std::is_constant_evaluated())
-    {
-      Assertion* array[sizeof...(BoolTs)] = {&bools...};
-      for (size_t i = 0; i < sizeof...(BoolTs); i++)
-      {
-        if (array[i]->value)
-          continue;
-        constexpr_assert_true_failed();
-      }
-    }
-    else if constexpr (is_debug_build())
-    {
-      Assertion* array[sizeof...(BoolTs)] = {&bools...};
-
-      bool error = false;
-      for (size_t i = 0; i < sizeof...(BoolTs); i++)
-      {
-        if (array[i]->value)
-          continue;
-        if (!error)
-        {
-          std::printf(
-              "FATAL: Assertion failed in function '%s' (line %u) in "
-              "file:\n'%s'\n%s",
-              src.function_name(), src.line(), src.file_name(), message);
-          error = true;
-        }
-        std::printf("%u. %s evaluated to false", (u32)(i + 1), array[i]->str);
-      }
-      if (error)
-        clt::debug_break();
-    }
-  }
-} // namespace clt::details
-
-/// @brief Helper for transforming assertions into strings and their evaluated value
-#define __DETAILS__COLT_TO_ASSERTION(expr) \
-  , clt::details::Assertion                \
-  {                                        \
-    #expr, (expr)                          \
-  }
-
-#ifndef COLT_MSVC
-  #define __DETAILS__COLT_TO_ASSUME(expr)
-#else
-  #define __DETAILS__COLT_TO_ASSUME(expr) , HEDLEY_ASSUME(expr)
-#endif // COLT_CLANG
-
-/// @brief Asserts that all condition are true
-#define assert_true(MESSAGE, COND, ...)                                           \
-  clt::details::assert_true_multiple(                                             \
-      MESSAGE, clt::source_location::current() __DETAILS__COLT_TO_ASSERTION(COND) \
-                   COLT_FOR_EACH(__DETAILS__COLT_TO_ASSERTION, __VA_ARGS__))      \
-      __DETAILS__COLT_TO_ASSUME(COND)                                             \
-          COLT_FOR_EACH(__DETAILS__COLT_TO_ASSUME, __VA_ARGS__)
-
-/// @brief switch case with no default
-#define switch_no_default(...)                                    \
-  switch (__VA_ARGS__)                                            \
-  default:                                                        \
-    if (true)                                                     \
-    {                                                             \
-      clt::unreachable("Invalid value for 'switch_no_default'."); \
-    }                                                             \
-    else
-#pragma endregion
-
-namespace clt
-{
-  COLT_FORCE_INLINE
-  constexpr bool implies(bool p, bool q) noexcept
-  {
-    return !p || q;
-  }
-
-  template<typename T, typename... Ts>
-  /// @brief Returns true if at least one argument is equal to the first
-  /// @param value The value to compare to
-  /// @param comp The value to compare against
-  /// @param ...other The values to compare against
-  /// @return True if 'comp' or any of 'other' are equal to 'value'
-  COLT_FORCE_INLINE constexpr bool is_one_of(
-      const T& value, const T& comp, const Ts&... other)
-  {
-    return (value == comp) || ((value == other) || ...);
-  }
-
   /// @brief Calls the debugger if possible or aborts.
   /// This should be used for unrecoverable errors such as
   /// bounds checks.
   COLTCPP_EXPORT void debug_break() noexcept;
+
+#ifdef COLT_DEBUG
+  /// @brief Check if the current build is on DEBUG configuration
+  /// @return True if on DEBUG
+  [[nodiscard]]
+  consteval bool is_debug_build() noexcept
+  {
+    return true;
+  }
+#else
+  /// @brief Check if the current build is on DEBUG configuration
+  /// @return True if on DEBUG
+  [[nodiscard]]
+  consteval bool is_debug_build() noexcept
+  {
+    return false;
+  }
+#endif // COLT_DEBUG
+
+  /// @brief Check if the current build is on RELEASE configuration
+  /// @return True if on RELEASE (not on DEBUG)
+  [[nodiscard]]
+  consteval bool is_release_build() noexcept
+  {
+    return !is_debug_build();
+  }
 
   /// @brief Represents a location in source code.
   /// Used to support older compilers.
@@ -253,6 +151,133 @@ namespace clt
     }
   };
 
+  [[noreturn]]
+  /// @brief Marks a branch as unreachable, printing an error on Debug build
+  /// @param error The error message
+  /// @param src The source code information
+  COLTCPP_EXPORT void unreachable(
+      const char* error, clt::source_location src = clt::source_location::current());
+} // namespace clt
+
+namespace clt::details
+{
+  /// @brief Responsible of storing an expressions value and its source code string
+  struct Assertion
+  {
+    /// @brief The string representing the value
+    const char* str;
+    /// @brief The value of the assertion
+    bool value;
+  };
+
+  /// @brief Used to cause a compile-time failure
+  inline void constexpr_assert_true_failed() noexcept
+  {
+    //ASSERTION FAILED AT COMPILE TIME!
+  }
+
+  template<typename... BoolTs>
+    requires(sizeof...(BoolTs) != 0)
+  /// @brief Asserts that multiple conditions are true, and if not,
+  /// stops the application and prints the failed assertions.
+  /// @tparam ...BoolTs The type parameter pack
+  /// @param message The message to print
+  /// @param src The source location
+  /// @param ...bools The Assertion pack
+  constexpr void assert_true_multiple(
+      const char* message, clt::source_location src, BoolTs... bools) noexcept
+  {
+    static_assert(
+        (std::is_same_v<Assertion, std::remove_cvref_t<BoolTs>> && ...),
+        "This function expects 'Assertion'! Use assert_true rather than calling it "
+        "directly!");
+    if (std::is_constant_evaluated())
+    {
+      Assertion* array[sizeof...(BoolTs)] = {&bools...};
+      for (size_t i = 0; i < sizeof...(BoolTs); i++)
+      {
+        if (array[i]->value)
+          continue;
+        constexpr_assert_true_failed();
+      }
+    }
+    else if constexpr (is_debug_build())
+    {
+      Assertion* array[sizeof...(BoolTs)] = {&bools...};
+
+      bool error = false;
+      for (size_t i = 0; i < sizeof...(BoolTs); i++)
+      {
+        if (array[i]->value)
+          continue;
+        if (!error)
+        {
+          std::printf(
+              "FATAL: Assertion failed in function '%s' (line %u) in "
+              "file:\n'%s'\n%s",
+              src.function_name(), src.line(), src.file_name(), message);
+          error = true;
+        }
+        std::printf("%u. %s evaluated to false", (unsigned int)(i + 1), array[i]->str);
+      }
+      if (error)
+        clt::debug_break();
+    }
+  }
+} // namespace clt::details
+
+/// @brief Helper for transforming assertions into strings and their evaluated value
+#define __DETAILS__COLT_TO_ASSERTION(expr) \
+  , clt::details::Assertion                \
+  {                                        \
+    #expr, (expr)                          \
+  }
+
+#ifndef COLT_MSVC
+  #define __DETAILS__COLT_TO_ASSUME(expr)
+#else
+  #define __DETAILS__COLT_TO_ASSUME(expr) , HEDLEY_ASSUME(expr)
+#endif // COLT_CLANG
+
+/// @brief Asserts that all condition are true
+#define assert_true(MESSAGE, COND, ...)                                           \
+  clt::details::assert_true_multiple(                                             \
+      MESSAGE, clt::source_location::current() __DETAILS__COLT_TO_ASSERTION(COND) \
+                   COLT_FOR_EACH(__DETAILS__COLT_TO_ASSERTION, __VA_ARGS__))      \
+      __DETAILS__COLT_TO_ASSUME(COND)                                             \
+          COLT_FOR_EACH(__DETAILS__COLT_TO_ASSUME, __VA_ARGS__)
+
+/// @brief switch case with no default
+#define switch_no_default(...)                                    \
+  switch (__VA_ARGS__)                                            \
+  default:                                                        \
+    if (true)                                                     \
+    {                                                             \
+      clt::unreachable("Invalid value for 'switch_no_default'."); \
+    }                                                             \
+    else
+#pragma endregion
+
+namespace clt
+{
+  COLT_FORCE_INLINE
+  constexpr bool implies(bool p, bool q) noexcept
+  {
+    return !p || q;
+  }
+
+  template<typename T, typename... Ts>
+  /// @brief Returns true if at least one argument is equal to the first
+  /// @param value The value to compare to
+  /// @param comp The value to compare against
+  /// @param ...other The values to compare against
+  /// @return True if 'comp' or any of 'other' are equal to 'value'
+  COLT_FORCE_INLINE constexpr bool is_one_of(
+      const T& value, const T& comp, const Ts&... other)
+  {
+    return (value == comp) || ((value == other) || ...);
+  }
+
   /// @brief unsigned 8-bit integer
   using u8 = uint8_t;
   /// @brief unsigned 16-bit integer
@@ -299,14 +324,14 @@ namespace clt
   };
 
   /// @brief The target endianness
-  enum class TargeEndian : unsigned char
+  enum class TargetEndian : unsigned char
   {
-    /// @brief Little endian
+    /// @brief LITTLE_ENDIAN endian
     LITTLE_ENDIAN,
-    /// @brief Big endian
+    /// @brief BIG_ENDIAN endian
     BIG_ENDIAN,
 
-    /// @brief The native endianness
+    /// @brief The current endianness
     current =
 #ifdef COLT_LITTLE_ENDIAN
         LITTLE_ENDIAN
@@ -314,32 +339,6 @@ namespace clt
         BIG_ENDIAN
 #endif // COLT_LITTLE_ENDIAN
   };
-
-#ifdef COLT_DEBUG
-  /// @brief Check if the current build is on DEBUG configuration
-  /// @return True if on DEBUG
-  [[nodiscard]]
-  consteval bool is_debug_build() noexcept
-  {
-    return true;
-  }
-#else
-  /// @brief Check if the current build is on DEBUG configuration
-  /// @return True if on DEBUG
-  [[nodiscard]]
-  consteval bool is_debug_build() noexcept
-  {
-    return false;
-  }
-#endif // COLT_DEBUG
-
-  /// @brief Check if the current build is on RELEASE configuration
-  /// @return True if on RELEASE (not on DEBUG)
-  [[nodiscard]]
-  consteval bool is_release_build() noexcept
-  {
-    return !is_debug_build();
-  }
 
 #pragma region Target Enums
 
@@ -541,12 +540,15 @@ namespace clt
       return ptr_;
     }
 
+    [[nodiscard]]
     constexpr explicit operator bool() const noexcept { return ptr_ != nullptr; }
+    [[nodiscard]]
     constexpr bool operator!() const noexcept { return !*this; }
 
-    friend constexpr auto operator==(const ptr& a, T* b) noexcept
+    [[nodiscard]]
+    constexpr auto operator==(T* b) noexcept
     {
-      return a.ptr_ == b;
+      return ptr_ == b;
     }
   };
 } // namespace clt
@@ -761,44 +763,44 @@ namespace clt
           | ((a & 0xFF00000000000000ULL) >> 56));
   }
 
-  /// @brief Converts an unsigned integer from host endianness to little endian.
-  /// This function is a no-op if the current host is little endian.
+  /// @brief Converts an unsigned integer from host endianness to LITTLE_ENDIAN endian.
+  /// This function is a no-op if the current host is LITTLE_ENDIAN endian.
   /// @tparam T The unsigned integer type
   /// @param a The value to convert
-  /// @return The integer encoded as little endian
+  /// @return The integer encoded as LITTLE_ENDIAN endian
   template<std::unsigned_integral T>
   constexpr T htol(T a) noexcept
-  {
+  {    
     using enum TargetEndian;
-    static_assert(native == little || native == big, "Unknown endianness!");
+    static_assert(current == LITTLE_ENDIAN || current == BIG_ENDIAN, "Unknown endianness!");
     static_assert(sizeof(T) <= 8, "Invalid integer size!");
 
-    if constexpr (sizeof(T) == 1 || native == little)
+    if constexpr (sizeof(T) == 1 || current == LITTLE_ENDIAN)
       return a;
     else
       return byteswap(a);
   }
 
-  /// @brief Converts an unsigned integer from host endianness to big endian.
-  /// This function is a no-op if the current host is big endian.
+  /// @brief Converts an unsigned integer from host endianness to BIG_ENDIAN endian.
+  /// This function is a no-op if the current host is BIG_ENDIAN endian.
   /// @tparam T The unsigned integer type
   /// @param a The value to convert
-  /// @return The integer encoded as big endian
+  /// @return The integer encoded as BIG_ENDIAN endian
   template<std::unsigned_integral T>
   constexpr T htob(T a) noexcept
   {
     using enum TargetEndian;
-    static_assert(native == little || native == big, "Unknown endianness!");
+    static_assert(current == LITTLE_ENDIAN || current == BIG_ENDIAN, "Unknown endianness!");
     static_assert(sizeof(T) <= 8, "Invalid integer size!");
 
-    if constexpr (sizeof(T) == 1 || native == big)
+    if constexpr (sizeof(T) == 1 || current == BIG_ENDIAN)
       return a;
     else
       return byteswap(a);
   }
 
-  /// @brief Converts an unsigned integer from little endian host endianness.
-  /// This function is a no-op if the current host is little endian.
+  /// @brief Converts an unsigned integer from LITTLE_ENDIAN endian host endianness.
+  /// This function is a no-op if the current host is LITTLE_ENDIAN endian.
   /// @tparam T The unsigned integer type
   /// @param a The value to convert
   /// @return The integer encoded as host endianness
@@ -806,17 +808,17 @@ namespace clt
   constexpr T ltoh(T a) noexcept
   {
     using enum TargetEndian;
-    static_assert(native == little || native == big, "Unknown endianness!");
+    static_assert(current == LITTLE_ENDIAN || current == BIG_ENDIAN, "Unknown endianness!");
     static_assert(sizeof(T) <= 8, "Invalid integer size!");
 
-    if constexpr (sizeof(T) == 1 || native == little)
+    if constexpr (sizeof(T) == 1 || current == LITTLE_ENDIAN)
       return a;
     else
       return byteswap(a);
   }
 
-  /// @brief Converts an unsigned integer from big endian to host endianness.
-  /// This function is a no-op if the current host is big endian.
+  /// @brief Converts an unsigned integer from BIG_ENDIAN endian to host endianness.
+  /// This function is a no-op if the current host is BIG_ENDIAN endian.
   /// @tparam T The unsigned integer type
   /// @param a The value to convert
   /// @return The integer encoded as host endianness
@@ -824,10 +826,10 @@ namespace clt
   constexpr T btoh(T a) noexcept
   {
     using enum TargetEndian;
-    static_assert(native == little || native == big, "Unknown endianness!");
+    static_assert(current == LITTLE_ENDIAN || current == BIG_ENDIAN, "Unknown endianness!");
     static_assert(sizeof(T) <= 8, "Invalid integer size!");
 
-    if constexpr (sizeof(T) == 1 || native == big)
+    if constexpr (sizeof(T) == 1 || current == BIG_ENDIAN)
       return a;
     else
       return byteswap(a);

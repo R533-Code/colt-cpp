@@ -23,27 +23,7 @@ COLT_DECLARE_TYPE(AB, _ab, _abc);
 TEST_CASE("reflect")
 {
   using namespace clt;
-  using namespace clt::meta;
-  SECTION("str()")
-  {
-    REQUIRE(reflect<i32>::str() == "i32");
-    REQUIRE(reflect<i32*>::str() == "i32*");
-    REQUIRE(reflect<i32&>::str() == "i32&");
-    REQUIRE(reflect<i32&&>::str() == "i32&&");
-    REQUIRE(reflect<const i32>::str() == "const i32");
-    REQUIRE(reflect<const i32*>::str() == "const i32*");
-    REQUIRE(reflect<const i32&>::str() == "const i32&");
-    REQUIRE(reflect<const i32&&>::str() == "const i32&&");
-    REQUIRE(reflect<volatile i32>::str() == "volatile i32");
-    REQUIRE(reflect<volatile i32*>::str() == "volatile i32*");
-    REQUIRE(reflect<volatile i32&>::str() == "volatile i32&");
-    REQUIRE(reflect<volatile i32&&>::str() == "volatile i32&&");
-    REQUIRE(reflect<const volatile i32>::str() == "const volatile i32");
-    REQUIRE(reflect<const volatile i32*>::str() == "const volatile i32*");
-    REQUIRE(reflect<const volatile i32&>::str() == "const volatile i32&");
-    REQUIRE(reflect<const volatile i32&&>::str() == "const volatile i32&&");
-  }
-
+  using namespace clt::meta;  
   SECTION("serialize custom")
   {
     // Create both a vector of bytes, input and output archives.

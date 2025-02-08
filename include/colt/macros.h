@@ -9,6 +9,7 @@
 #define _HG_COLT_MACROS_
 
 #include <hedley/hedley.h>
+#include "colt/config.h"
 
 // From `https://meghprkh.github.io/blog/posts/c++-force-inline/`
 #if defined(__clang__)
@@ -123,7 +124,7 @@
 #pragma endregion
 
 #pragma region DYNAMIC LINK MACROS
-#if defined(COLT_MSVC)
+#ifdef COLT_MSVC
   #define CLT_EXPORT __declspec(dllexport)
   #define CLT_IMPORT __declspec(dllimport)
 #elif defined(COLT_GNU) || defined(COLT_CLANG)
@@ -132,7 +133,7 @@
 #else
   #define CLT_EXPORT
   #define CLT_IMPORT
-  #pragma warning "Unknown dynamic link import/export semantics."
+  #error "Unknown dynamic link import/export semantics."
 #endif
 #pragma endregion
 

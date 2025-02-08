@@ -11,7 +11,7 @@
 TEST_CASE("Endianness Conversions")
 {
   using namespace clt;
-  if constexpr (TargetEndian::native == TargetEndian::little)
+  if constexpr (TargetEndian::current == TargetEndian::LITTLE_ENDIAN)
   {
     u16 host = 0x80'00;
 

@@ -31,7 +31,7 @@ static clt::uni::LenInfo len16LEdefault(const char16_t* ptr) noexcept
   size_t len      = 0;
   auto end        = ptr;
   char16_t current;
-  while ((current = (char16_t)(clt::ltoh((u16)*end)) != u'\0'))
+  while ((current = (char16_t)(clt::ltoh((clt::u16) * end)) != u'\0'))
   {
     end += clt::uni::sequence_length(current);
     ++len;
@@ -45,7 +45,7 @@ static clt::uni::LenInfo len16BEdefault(const char16_t* ptr) noexcept
   size_t len      = 0;
   auto end        = ptr;
   char16_t current;
-  while ((current = (char16_t)(clt::btoh((u16)*end)) != u'\0'))
+  while ((current = (char16_t)(clt::btoh((clt::u16)*end)) != u'\0'))
   {
     end += clt::uni::sequence_length(current);
     ++len;
@@ -95,9 +95,9 @@ static COLT_FORCE_SSE2 clt::uni::LenInfo len8SSE2(const char8_t* ptr) noexcept
   }
 
   const __m128i zero        = _mm_setzero_si128();
-  const __m128i trail_mask  = _mm_set1_epi8((u8)0b1100'0000);
-  const __m128i trail_value = _mm_set1_epi8((u8)0b1000'0000);
-  constexpr auto PACK_COUNT = sizeof(__m128i) / sizeof(u8);
+  const __m128i trail_mask  = _mm_set1_epi8((clt::u8)0b1100'0000);
+  const __m128i trail_value = _mm_set1_epi8((clt::u8)0b1000'0000);
+  constexpr auto PACK_COUNT = sizeof(__m128i) / sizeof(clt::u8);
   unsigned int mask;
   while (true)
   {
@@ -138,9 +138,9 @@ static COLT_FORCE_AVX2 clt::uni::LenInfo len8AVX2(const char8_t* ptr) noexcept
   }
 
   const __m256i zero        = _mm256_setzero_si256();
-  const __m256i trail_mask  = _mm256_set1_epi8((u8)0b1100'0000);
-  const __m256i trail_value = _mm256_set1_epi8((u8)0b1000'0000);
-  constexpr auto PACK_COUNT = sizeof(__m256i) / sizeof(u8);
+  const __m256i trail_mask  = _mm256_set1_epi8((clt::u8)0b1100'0000);
+  const __m256i trail_value = _mm256_set1_epi8((clt::u8)0b1000'0000);
+  constexpr auto PACK_COUNT = sizeof(__m256i) / sizeof(clt::u8);
   unsigned int mask;
   while (true)
   {
@@ -182,9 +182,9 @@ static COLT_FORCE_AVX512BW clt::uni::LenInfo len8AVX512BW(
   }
 
   const __m512i zero        = _mm512_setzero_si512();
-  const __m512i trail_mask  = _mm512_set1_epi8((u8)0b1100'0000);
-  const __m512i trail_value = _mm512_set1_epi8((u8)0b1000'0000);
-  constexpr auto PACK_COUNT = sizeof(__m512i) / sizeof(u8);
+  const __m512i trail_mask  = _mm512_set1_epi8((clt::u8)0b1100'0000);
+  const __m512i trail_value = _mm512_set1_epi8((clt::u8)0b1000'0000);
+  constexpr auto PACK_COUNT = sizeof(__m512i) / sizeof(clt::u8);
   unsigned long long mask;
   while (true)
   {
@@ -235,9 +235,9 @@ static COLT_FORCE_SSE2 clt::uni::LenInfo len16SSE2(const char16_t* ptr) noexcept
   }
 
   const __m128i zero        = _mm_setzero_si128();
-  const __m128i trail_mask  = _mm_set1_epi16(SWAP ? (u16)0x00FC : (u16)0xFC00);
-  const __m128i trail_value = _mm_set1_epi16(SWAP ? (u16)0x00DC : (u16)0xDC00);
-  constexpr auto PACK_COUNT = sizeof(__m128i) / sizeof(u16);
+  const __m128i trail_mask  = _mm_set1_epi16(SWAP ? (clt::u16)0x00FC : (clt::u16)0xFC00);
+  const __m128i trail_value = _mm_set1_epi16(SWAP ? (clt::u16)0x00DC : (clt::u16)0xDC00);
+  constexpr auto PACK_COUNT = sizeof(__m128i) / sizeof(clt::u16);
   unsigned int mask;
   while (true)
   {
@@ -287,9 +287,9 @@ static COLT_FORCE_AVX2 clt::uni::LenInfo len16AVX2(const char16_t* ptr) noexcept
   }
 
   const __m256i zero        = _mm256_setzero_si256();
-  const __m256i trail_mask  = _mm256_set1_epi16(SWAP ? (u16)0x00FC : (u16)0xFC00);
-  const __m256i trail_value = _mm256_set1_epi16(SWAP ? (u16)0x00DC : (u16)0xDC00);
-  constexpr auto PACK_COUNT = sizeof(__m256i) / sizeof(u16);
+  const __m256i trail_mask  = _mm256_set1_epi16(SWAP ? (clt::u16)0x00FC : (clt::u16)0xFC00);
+  const __m256i trail_value = _mm256_set1_epi16(SWAP ? (clt::u16)0x00DC : (clt::u16)0xDC00);
+  constexpr auto PACK_COUNT = sizeof(__m256i) / sizeof(clt::u16);
   unsigned int mask;
   while (true)
   {
@@ -341,9 +341,9 @@ static COLT_FORCE_AVX512BW clt::uni::LenInfo len16AVX512BW(
   }
 
   const __m512i zero        = _mm512_setzero_si512();
-  const __m512i trail_mask  = _mm512_set1_epi16(SWAP ? (u16)0x00FC : (u16)0xFC00);
-  const __m512i trail_value = _mm512_set1_epi16(SWAP ? (u16)0x00DC : (u16)0xDC00);
-  constexpr auto PACK_COUNT = sizeof(__m512i) / sizeof(u16);
+  const __m512i trail_mask  = _mm512_set1_epi16(SWAP ? (clt::u16)0x00FC : (clt::u16)0xFC00);
+  const __m512i trail_value = _mm512_set1_epi16(SWAP ? (clt::u16)0x00DC : (clt::u16)0xDC00);
+  constexpr auto PACK_COUNT = sizeof(__m512i) / sizeof(clt::u16);
   unsigned int mask;
   while (true)
   {
@@ -390,7 +390,7 @@ static COLT_FORCE_SSE2 size_t unitlen16SSE2(const char16_t* ptr) noexcept
   }
 
   const __m128i zero        = _mm_setzero_si128();
-  constexpr auto PACK_COUNT = sizeof(__m128i) / sizeof(u16);
+  constexpr auto PACK_COUNT = sizeof(__m128i) / sizeof(clt::u16);
   unsigned int mask;
   while (true)
   {
@@ -418,7 +418,7 @@ static COLT_FORCE_AVX2 size_t unitlen16AVX2(const char16_t* ptr) noexcept
   }
 
   const __m256i zero        = _mm256_setzero_si256();
-  constexpr auto PACK_COUNT = sizeof(__m256i) / sizeof(u16);
+  constexpr auto PACK_COUNT = sizeof(__m256i) / sizeof(clt::u16);
   unsigned int mask;
   while (true)
   {
@@ -445,7 +445,7 @@ static COLT_FORCE_AVX512BW size_t unitlen16AVX512BW(const char16_t* ptr) noexcep
   }
   // Zero mask
   const __m512i zero        = _mm512_setzero_si512();
-  constexpr auto PACK_COUNT = sizeof(__m512i) / sizeof(u16);
+  constexpr auto PACK_COUNT = sizeof(__m512i) / sizeof(clt::u16);
   __mmask32 mask;
   while (true)
   {
@@ -474,7 +474,7 @@ static COLT_FORCE_SSE2 size_t unitlen32SSE2(const char32_t* ptr) noexcept
   }
 
   const __m128i zero        = _mm_setzero_si128();
-  constexpr auto PACK_COUNT = sizeof(__m128i) / sizeof(u32);
+  constexpr auto PACK_COUNT = sizeof(__m128i) / sizeof(clt::u32);
   unsigned int mask;
   while (true)
   {
@@ -501,7 +501,7 @@ static COLT_FORCE_AVX2 size_t unitlen32AVX2(const char32_t* ptr) noexcept
   }
   // Zero mask
   const __m256i zero        = _mm256_setzero_si256();
-  constexpr auto PACK_COUNT = sizeof(__m256i) / sizeof(u32);
+  constexpr auto PACK_COUNT = sizeof(__m256i) / sizeof(clt::u32);
   unsigned int mask;
   while (true)
   {
@@ -528,7 +528,7 @@ static COLT_FORCE_AVX512F size_t unitlen32AVX512F(const char32_t* ptr) noexcept
   }
   // Zero mask
   const __m512i zero        = _mm512_setzero_si512();
-  constexpr auto PACK_COUNT = sizeof(__m512i) / sizeof(u32);
+  constexpr auto PACK_COUNT = sizeof(__m512i) / sizeof(clt::u32);
   __mmask16 mask;
   while (true)
   {
@@ -560,7 +560,7 @@ static COLT_FORCE_NEON size_t unitlen16NEON(const char16_t* ptr) noexcept
 
   // Zero mask
   const uint16x8_t zero     = vdupq_n_u16(0);
-  constexpr auto PACK_COUNT = sizeof(uint16x8_t) / sizeof(u16);
+  constexpr auto PACK_COUNT = sizeof(uint16x8_t) / sizeof(clt::u16);
   u64 mask;
   while (true)
   {
@@ -589,7 +589,7 @@ static COLT_FORCE_NEON size_t unitlen32NEON(const char32_t* ptr) noexcept
 
   // Zero mask
   const uint32x4_t zero     = vdupq_n_u32(0);
-  constexpr auto PACK_COUNT = sizeof(uint32x4_t) / sizeof(u32);
+  constexpr auto PACK_COUNT = sizeof(uint32x4_t) / sizeof(clt::u32);
   u64 mask;
   while (true)
   {
@@ -622,9 +622,9 @@ static COLT_FORCE_NEON clt::uni::LenInfo len8NEON(const char8_t* ptr) noexcept
 
   // Zero mask
   const uint8x16_t zero        = vdupq_n_u8(0);
-  const uint8x16_t trail_mask  = vdupq_n_u8((u8)0b1100'0000);
-  const uint8x16_t trail_value = vdupq_n_u8((u8)0b1000'0000);
-  constexpr auto PACK_COUNT    = sizeof(uint8x16_t) / sizeof(u8);
+  const uint8x16_t trail_mask  = vdupq_n_u8((clt::u8)0b1100'0000);
+  const uint8x16_t trail_value = vdupq_n_u8((clt::u8)0b1000'0000);
+  constexpr auto PACK_COUNT    = sizeof(uint8x16_t) / sizeof(clt::u8);
   u64 mask;
   while (true)
   {
@@ -675,9 +675,9 @@ static COLT_FORCE_NEON clt::uni::LenInfo len16NEON(const char16_t* ptr) noexcept
 
   // Zero mask
   const uint16x8_t zero        = vdupq_n_u16(0);
-  const uint16x8_t trail_mask  = vdupq_n_u16(SWAP ? (u16)0x00FC : (u16)0xFC00);
-  const uint16x8_t trail_value = vdupq_n_u16(SWAP ? (u16)0x00DC : (u16)0xDC00);
-  constexpr auto PACK_COUNT    = sizeof(uint16x8_t) / sizeof(u16);
+  const uint16x8_t trail_mask  = vdupq_n_u16(SWAP ? (clt::u16)0x00FC : (clt::u16)0xFC00);
+  const uint16x8_t trail_value = vdupq_n_u16(SWAP ? (clt::u16)0x00DC : (clt::u16)0xDC00);
+  constexpr auto PACK_COUNT    = sizeof(uint16x8_t) / sizeof(clt::u16);
   u64 mask;
   while (true)
   {
@@ -743,7 +743,7 @@ static const SIMDImpl& get_colt_unicode_simd() noexcept
 {
   using namespace clt;
 
-  static constexpr bool SWAP = (TargetEndian::native == TargetEndian::big);
+  static constexpr bool SWAP = (TargetEndian::current == TargetEndian::BIG_ENDIAN);
 #ifdef COLT_x86_64
   static auto ret = choose_simd_implementation<
       simd_flag::AVX512BW, simd_flag::AVX2, simd_flag::DEFAULT>{}(

@@ -19,7 +19,7 @@ int main(int argc, const char** argv)
 {
   using namespace clt;
   using namespace clt::io;
-
+  
   print(
       File::get_stderr(),
       "Running tests on {}{} {}{}{} ({}).\nThis is a {}-endian system.\nSupported "
