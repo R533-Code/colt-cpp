@@ -119,7 +119,6 @@ target_include_directories(coltcpp PUBLIC ${MPIR_INCLUDE_DIR})
 
 # Link MPIR library
 add_dependencies(coltcpp mpir)
-add_dependencies(coltcpp_tests mpir)
 target_link_libraries(coltcpp PUBLIC ${MPIR_LIBRARY})
 ###########################
 
