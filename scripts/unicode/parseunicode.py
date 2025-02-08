@@ -16,6 +16,14 @@ MAX_PLANE      = 17
 # the script
 os.chdir(os.path.dirname(PATH_THIS_FILE))
 
+from enum import Enum
+
+class PropertyKind(Enum):
+  STR = 0 # String value
+  ENM = 1 # Enumerated value (same as binary)
+  NUM = 2 # Numeric (double)
+  PTR = 3 # Pointer (to char32_t)
+
 @dataclasses.dataclass
 class Property:
   NAME     : str
@@ -23,6 +31,9 @@ class Property:
   KEYS     : dict[str, str]
   DEFAULT_VALUE : tuple[CodePointRange, str]|None = None  
   GROUP_FN : dict[str, list[str]]|None = None
+  KIND     : PropertyKind = PropertyKind.ENM
+
+DEPRECATED_PROPERTIES = {"isc", "ISO_Comment", "Script_Extensions", "scx"}
 
 @functools.cache
 def parse_propertyvalue()->dict[str, Property]:
@@ -32,6 +43,7 @@ def parse_propertyvalue()->dict[str, Property]:
       dict[str, Property]: The abbreviation name to property
   """
   PROPERTY_LIST : dict[str, Property] = dict()
+  KINDS : dict[str, PropertyKind] = parse_propertytypes()
   CURRENT_PROPERTY = "" # used by @ comments
   for line in colt.lines_of(PATH_UCD + 'PropertyValueAliases.txt', False, False):
     # TODO: handle @ comments
@@ -40,13 +52,17 @@ def parse_propertyvalue()->dict[str, Property]:
       RANGE = CodePointRange.from_str(split[0])
       VALUE = split[2]
       PROPERTY_LIST[CURRENT_PROPERTY].DEFAULT_VALUE = (RANGE, VALUE)
+      
+      if VALUE.lower() == "<code point>" and PROPERTY_LIST[CURRENT_PROPERTY].KIND == PropertyKind.STR:
+        PROPERTY_LIST[CURRENT_PROPERTY].KIND = PropertyKind.PTR
       continue
     elif line.startswith("#"):
       # name (abrv)
       match = re.match("# ([_a-zA-Z0-9]+) \\(([_a-zA-Z0-9]+)\\)", line)
       if not match is None:
         CURRENT_PROPERTY = match.group(2)
-        PROPERTY_LIST[match.group(2)] = Property(match.group(2), match.group(1), dict())
+        
+        PROPERTY_LIST[match.group(2)] = Property(match.group(2), match.group(1), dict(), KIND=KINDS[match.group(2)])
       continue      
       
     split = [i.strip() for i in line.split(';')]
@@ -66,8 +82,35 @@ def parse_propertyvalue()->dict[str, Property]:
       if NAME in PROPERTY_LIST:
         PROPERTY_LIST[NAME].KEYS = {**PROPERTY_LIST[NAME].KEYS, **current_dict}
       else:
-        current = Property(NAME=NAME, KEYS=current_dict)
+        current = Property(NAME=NAME, KEYS=current_dict, KIND=KINDS[NAME])
         PROPERTY_LIST[NAME] = current
+  for i in DEPRECATED_PROPERTIES:
+    PROPERTY_LIST.pop(i, None)
+  return PROPERTY_LIST
+
+@functools.cache
+def parse_propertytypes()->dict[str, PropertyKind]:
+  """Parses all the properties aliases from `PropertyAliases.txt`
+
+  Returns:
+      dict[str, PropertyKind]: Dict of names to kind
+  """
+  PROPERTY_LIST : dict[str, PropertyKind] = dict()
+  kind = PropertyKind.NUM
+  
+  # This should be updated at each new version of unicode
+  TO_NEW_KIND = { "bmg" : PropertyKind.STR, "age" : PropertyKind.ENM }
+  
+  for line in colt.lines_of(PATH_UCD + 'PropertyAliases.txt'):
+    split = [i.strip() for i in line.split(';')]
+    NAME = split[0]
+    VALUE = split[1]
+    if NAME in TO_NEW_KIND:
+      kind = TO_NEW_KIND[NAME]
+    PROPERTY_LIST[NAME]  = kind
+    PROPERTY_LIST[VALUE] = kind
+    for i in range(2, len(split)):
+      PROPERTY_LIST[split[i]] = kind
   return PROPERTY_LIST
 
 @functools.cache
@@ -77,13 +120,15 @@ def parse_propertyaliases()->dict[str, str]:
   Returns:
       dict[str, str]: Dict of names to abbreviation
   """
-  PROPERTY_LIST : dict[str, Property] = dict()
+  PROPERTY_LIST : dict[str, str] = dict()
   for line in colt.lines_of(PATH_UCD + 'PropertyAliases.txt'):
     split = [i.strip() for i in line.split(';')]
     NAME = split[0]
-    VALUE = split[1]    
+    VALUE = split[1]
+    if NAME in DEPRECATED_PROPERTIES or VALUE in DEPRECATED_PROPERTIES:
+      continue
     PROPERTY_LIST[NAME]  = NAME
-    PROPERTY_LIST[VALUE] = NAME
+    PROPERTY_LIST[VALUE] = NAME    
     for i in range(2, len(split)):
       PROPERTY_LIST[split[i]] = NAME
   return PROPERTY_LIST
@@ -161,6 +206,8 @@ def parse_unicodedata()->list[CodePointInfo]:
     """
     ret = dict()
     for j in range(0, len(UNICODE_DATA_PROPERTIES)):
+      if UNICODE_DATA_PROPERTIES[j] in DEPRECATED_PROPERTIES:
+        continue
       current_abrv = PROPERTY_ALIAS[UNICODE_DATA_PROPERTIES[j]]
       value = None
       default = PROPERTY_LIST[current_abrv].DEFAULT_VALUE
@@ -191,6 +238,8 @@ def parse_unicodedata()->list[CodePointInfo]:
     split.pop(0)
     PROPERTIES = dict()
     for i in range(0, len(UNICODE_DATA_PROPERTIES)):
+      if UNICODE_DATA_PROPERTIES[i] in DEPRECATED_PROPERTIES:
+        continue
       current_abrv = PROPERTY_ALIAS[UNICODE_DATA_PROPERTIES[i]]
       value = None
       default = PROPERTY_LIST[current_abrv].DEFAULT_VALUE
